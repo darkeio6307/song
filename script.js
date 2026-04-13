@@ -1,7 +1,8 @@
-// VIP Users
+// VIP Users की ख़ास महफ़िल
 const vipUsers = { "Dark_eio": "moh0909", "Muskan": "love2026", "Sanskar": "yaar123", "Harsh": "dost123", "Preeti": "bff" };
 
 // Elements
+const splashScreen = document.getElementById('splashScreen');
 const loginScreen = document.getElementById('loginScreen');
 const mainApp = document.getElementById('mainApp');
 const audio = document.getElementById('audioPlayer');
@@ -10,13 +11,19 @@ const progressBar = document.getElementById('progressBar');
 const songsList = document.getElementById('songsList');
 const listTitle = document.getElementById('listTitle');
 
-let currentUser = ""; // जो लॉगिन करेगा उसका नाम यहाँ सेव होगा
+let currentUser = ""; // जो लॉगिन करेगा उसका नाम
 let currentQueue = []; 
 let myPlaylist = []; // हर आईडी की अलग प्लेलिस्ट
 let currentIndex = 0;
 let isPlaylistView = false; 
 
-// Time Update
+// === 1. SPLASH SCREEN FIX (पर्दा उठाने वाला टाइमर) ===
+setTimeout(() => {
+    splashScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+}, 2500);
+
+// === 2. Time Update (वक़्त और इस्तिक़बाल) ===
 function updateTime() {
     const now = new Date();
     let h = now.getHours(), m = now.getMinutes();
@@ -31,14 +38,14 @@ function updateTime() {
 }
 setInterval(updateTime, 1000); updateTime();
 
-// Login & Playlist Initialization
+// === 3. Login & Playlist Initialization ===
 document.getElementById('loginBtn').onclick = () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     if (vipUsers[u] && vipUsers[u] === p) {
-        currentUser = u; // यूज़र का नाम सेव किया
+        currentUser = u; 
         
-        // उस ख़ास यूज़र की प्लेलिस्ट डेटाबेस से निकाली
+        // उस ख़ास यूज़र की प्लेलिस्ट डेटाबेस से निकालना
         const savedData = localStorage.getItem('arshad_playlist_' + currentUser);
         myPlaylist = savedData ? JSON.parse(savedData) : [];
         
@@ -58,7 +65,7 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// Fetch from API
+// === 4. Fetch from API ===
 async function fetchSongs(query) {
     listTitle.innerText = "तलाश जारी है...";
     songsList.innerHTML = '';
@@ -77,7 +84,7 @@ async function fetchSongs(query) {
     }
 }
 
-// Render List
+// === 5. Render List ===
 function renderSongs(songs) {
     songsList.innerHTML = '';
     songs.forEach((song, i) => {
@@ -102,7 +109,7 @@ function renderSongs(songs) {
     });
 }
 
-// Add/Remove from User Specific Playlist
+// === 6. Add/Remove from User Specific Playlist ===
 window.togglePlaylist = function(index) {
     const song = currentQueue[index];
     const existsIndex = myPlaylist.findIndex(s => s.id === song.id);
@@ -118,13 +125,11 @@ window.togglePlaylist = function(index) {
     // सिर्फ इसी यूज़र के नाम से डेटाबेस में सेव करो
     localStorage.setItem('arshad_playlist_' + currentUser, JSON.stringify(myPlaylist));
     
-    if (isPlaylistView) {
-        currentQueue = myPlaylist; 
-    }
+    if (isPlaylistView) currentQueue = myPlaylist; 
     renderSongs(currentQueue);
 };
 
-// Play Logic
+// === 7. Play Logic ===
 window.loadSong = function(i) {
     currentIndex = i;
     const s = currentQueue[i];
@@ -151,11 +156,9 @@ playBtn.onclick = () => {
     }
 };
 
-// --- AUTO PLAY LOGIC ---
+// === 8. Auto Play Logic ===
 audio.addEventListener('ended', () => {
-    if (currentQueue.length > 0) {
-        loadSong((currentIndex + 1) % currentQueue.length); 
-    }
+    if (currentQueue.length > 0) loadSong((currentIndex + 1) % currentQueue.length); 
 });
 
 document.getElementById('nextBtn').onclick = () => { if(currentQueue.length > 0) loadSong((currentIndex + 1) % currentQueue.length); };
@@ -166,7 +169,7 @@ audio.ontimeupdate = () => {
     progressBar.style.width = (audio.currentTime / audio.duration * 100) + '%';
 };
 
-// Navigation Tabs
+// === 9. Navigation Tabs ===
 document.getElementById('tabHome').onclick = () => {
     isPlaylistView = false;
     document.querySelector('.nav-item.active').classList.remove('active');
@@ -191,10 +194,12 @@ document.getElementById('tabPlaylist').onclick = () => {
     }
 };
 
+// Search 
 document.getElementById('searchBtn').onclick = () => {
     if(!isPlaylistView && document.getElementById('searchInput').value) {
         fetchSongs(document.getElementById('searchInput').value);
     }
 };
 
+// VIP Btn Alert
 document.getElementById('vipBtn').onclick = () => showToast("Only VIP Allowed!");
