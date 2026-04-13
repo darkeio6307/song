@@ -1,8 +1,7 @@
-// VIP Users की महफ़िल
+// VIP Users
 const vipUsers = { "Dark_eio": "moh0909", "Muskan": "love2026", "Sanskar": "yaar123", "Harsh": "dost123", "Preeti": "bff" };
 
 // Elements
-const splashScreen = document.getElementById('splashScreen');
 const loginScreen = document.getElementById('loginScreen');
 const mainApp = document.getElementById('mainApp');
 const audio = document.getElementById('audioPlayer');
@@ -11,18 +10,13 @@ const progressBar = document.getElementById('progressBar');
 const songsList = document.getElementById('songsList');
 const listTitle = document.getElementById('listTitle');
 
+let currentUser = ""; // जो लॉगिन करेगा उसका नाम यहाँ सेव होगा
 let currentQueue = []; 
-let myPlaylist = JSON.parse(localStorage.getItem('arshad_playlist')) || []; 
+let myPlaylist = []; // हर आईडी की अलग प्लेलिस्ट
 let currentIndex = 0;
 let isPlaylistView = false; 
 
-// === 1. SPLASH SCREEN FIX (यही वो जादुई टाइमर है जो मैं भूल गया था) ===
-setTimeout(() => {
-    splashScreen.classList.add('hidden'); // एनीमेशन को छुपाओ
-    loginScreen.classList.remove('hidden'); // लॉगिन स्क्रीन को दिखाओ
-}, 3000); // 3 सेकंड बाद पर्दा उठेगा
-
-// Time Update (वक़्त और इस्तिक़बाल)
+// Time Update
 function updateTime() {
     const now = new Date();
     let h = now.getHours(), m = now.getMinutes();
@@ -37,15 +31,21 @@ function updateTime() {
 }
 setInterval(updateTime, 1000); updateTime();
 
-// Login Logic
+// Login & Playlist Initialization
 document.getElementById('loginBtn').onclick = () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     if (vipUsers[u] && vipUsers[u] === p) {
+        currentUser = u; // यूज़र का नाम सेव किया
+        
+        // उस ख़ास यूज़र की प्लेलिस्ट डेटाबेस से निकाली
+        const savedData = localStorage.getItem('arshad_playlist_' + currentUser);
+        myPlaylist = savedData ? JSON.parse(savedData) : [];
+        
         loginScreen.classList.add('hidden');
         mainApp.classList.remove('hidden');
         document.getElementById('userName').innerText = u;
-        fetchSongs("Trending Hindi"); // डिफ़ॉल्ट गाने
+        fetchSongs("Trending Hindi"); 
     } else {
         document.getElementById('loginError').style.display = 'block';
     }
@@ -70,7 +70,7 @@ async function fetchSongs(query) {
             renderSongs(currentQueue);
             listTitle.innerText = `'${query}' के रिज़ल्ट्स`;
         } else {
-            listTitle.innerText = "कुछ नहीं मिला यार!";
+            listTitle.innerText = "कुछ नहीं मिला!";
         }
     } catch (e) {
         listTitle.innerText = "इंटरनेट एरर!";
@@ -84,6 +84,7 @@ function renderSongs(songs) {
         const div = document.createElement('div');
         div.className = 'song-card';
         
+        // चेक करो कि गाना इस यूज़र की प्लेलिस्ट में है या नहीं
         const isFav = myPlaylist.some(s => s.id === song.id);
         const heartIcon = isFav ? "fa-solid fa-heart" : "fa-regular fa-heart";
 
@@ -101,7 +102,7 @@ function renderSongs(songs) {
     });
 }
 
-// Add/Remove from Playlist
+// Add/Remove from User Specific Playlist
 window.togglePlaylist = function(index) {
     const song = currentQueue[index];
     const existsIndex = myPlaylist.findIndex(s => s.id === song.id);
@@ -114,9 +115,12 @@ window.togglePlaylist = function(index) {
         showToast("Playlist में सेव हो गया! ❤️");
     }
     
-    localStorage.setItem('arshad_playlist', JSON.stringify(myPlaylist));
+    // सिर्फ इसी यूज़र के नाम से डेटाबेस में सेव करो
+    localStorage.setItem('arshad_playlist_' + currentUser, JSON.stringify(myPlaylist));
     
-    if (isPlaylistView) currentQueue = myPlaylist; 
+    if (isPlaylistView) {
+        currentQueue = myPlaylist; 
+    }
     renderSongs(currentQueue);
 };
 
@@ -147,9 +151,11 @@ playBtn.onclick = () => {
     }
 };
 
-// Auto Play
+// --- AUTO PLAY LOGIC ---
 audio.addEventListener('ended', () => {
-    if (currentQueue.length > 0) loadSong((currentIndex + 1) % currentQueue.length); 
+    if (currentQueue.length > 0) {
+        loadSong((currentIndex + 1) % currentQueue.length); 
+    }
 });
 
 document.getElementById('nextBtn').onclick = () => { if(currentQueue.length > 0) loadSong((currentIndex + 1) % currentQueue.length); };
