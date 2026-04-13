@@ -3,42 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark_eio Pro Vibes</title>
+    <title>ARSHAD Music | Pro Vibes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="player-container">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="तलाश करो अपना अज़ीज़ गाना...">
-            <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
-        </div>
+    <div class="main-container">
+        <div class="content-area">
+            <header>
+                <h1><span class="highlight">ARSHAD</span> Music</h1>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="कोई भी गाना, आर्टिस्ट या एल्बम तलाश करो...">
+                    <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
+                </div>
+            </header>
 
-        <div class="song-info">
-            <div class="img-container" id="imgContainer">
-                <img id="coverImage" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=500&auto=format&fit=crop" alt="Song Cover">
+            <div class="welcome-text">
+                <h2 id="statusText">तेरे मनपसंद गानों की महफ़िल...</h2>
             </div>
-            <h2 id="songTitle">तेरी महफ़िल, तेरा गाना</h2>
-            <p id="artistName">आर्टिस्ट</p>
+
+            <div class="songs-grid" id="songsGrid">
+                </div>
         </div>
 
-        <div class="progress-area" id="progressContainer">
-            <div class="progress-bar" id="progressBar"></div>
-            <div class="time-info">
-                <span id="currentTime">0:00</span>
-                <span id="duration">0:00</span>
+        <div class="bottom-player">
+            <div class="now-playing">
+                <div class="img-container" id="imgContainer">
+                    <img id="coverImage" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=150" alt="Cover">
+                </div>
+                <div class="track-info">
+                    <h3 id="songTitle">ARSHAD Vibes</h3>
+                    <p id="artistName">No Track Selected</p>
+                </div>
             </div>
-        </div>
 
-        <div class="controls">
-            <button id="prevBtn"><i class="fa-solid fa-backward"></i></button>
-            <button id="playBtn" class="main-btn"><i class="fa-solid fa-play"></i></button>
-            <button id="nextBtn"><i class="fa-solid fa-forward"></i></button>
+            <div class="player-controls-wrapper">
+                <div class="controls">
+                    <button id="prevBtn"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="playBtn" class="main-btn"><i class="fa-solid fa-circle-play"></i></button>
+                    <button id="nextBtn"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+                <div class="progress-area">
+                    <span id="currentTime">0:00</span>
+                    <div class="progress-bar-bg" id="progressContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+            
+            <audio id="audioElement"></audio>
         </div>
-
-        <audio id="audioElement"></audio>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
