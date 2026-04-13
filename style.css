@@ -1,5 +1,4 @@
-/* Google Font: Poppins */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 * {
     margin: 0;
@@ -8,37 +7,45 @@
     font-family: 'Poppins', sans-serif;
 }
 
+/* ज़िंदा और एनिमेटेड बैकग्राउंड */
 body {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* शानदार डार्क ग्रेडिएंट बैकग्राउंड */
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     color: #fff;
-    overflow: hidden;
 }
 
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Premium Glassmorphism */
 .player-container {
-    width: 350px;
-    padding: 30px;
-    /* Glassmorphism Effect */
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 25px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    width: 380px;
+    padding: 35px 30px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.05);
     text-align: center;
 }
 
-/* Search Box Styling */
+/* Search Box - Smooth and Sleek */
 .search-box {
     display: flex;
-    margin-bottom: 25px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
     padding: 5px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .search-box input {
@@ -47,33 +54,48 @@ body {
     border: none;
     outline: none;
     color: #fff;
-    padding: 10px;
+    padding: 12px 15px;
     font-size: 14px;
 }
 
 .search-box button {
-    background: #e91e63;
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
     border: none;
     color: white;
-    padding: 10px 15px;
-    border-radius: 10px;
+    width: 45px;
+    border-radius: 15px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .search-box button:hover {
-    background: #ad1457;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 65, 108, 0.5);
 }
 
-/* Song Cover */
+/* Spinning Record Animation */
 .img-container {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 20px;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto 25px;
     border-radius: 50%;
     overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    border: 4px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    border: 5px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.img-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: #1a1a2e;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
 }
 
 .img-container img {
@@ -82,73 +104,124 @@ body {
     object-fit: cover;
 }
 
+.img-container.play {
+    animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
 #songTitle {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     margin-bottom: 5px;
+    background: -webkit-linear-gradient(#fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 #artistName {
     font-size: 14px;
-    color: #ccc;
-    margin-bottom: 20px;
+    color: #b3b3b3;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
 }
 
-/* Progress Bar */
-.progress-container {
-    background: rgba(255, 255, 255, 0.1);
-    height: 6px;
+/* Advanced Progress Bar */
+.progress-area {
     width: 100%;
-    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+#progressContainer {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
     cursor: pointer;
-    margin-bottom: 10px;
+    position: relative;
 }
 
 .progress-bar {
-    background: #e91e63;
     height: 100%;
-    width: 0%; /* JavaScript से कंट्रोल होगा */
-    border-radius: 10px;
+    width: 0%;
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    border-radius: 50px;
+    position: relative;
     transition: width 0.1s linear;
+}
+
+.progress-bar::before {
+    content: "";
+    position: absolute;
+    right: -5px;
+    top: -4px;
+    height: 14px;
+    width: 14px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 65, 108, 0.8);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+#progressContainer:hover .progress-bar::before {
+    opacity: 1;
 }
 
 .time-info {
     display: flex;
     justify-content: space-between;
     font-size: 12px;
-    margin-bottom: 25px;
-    color: #ddd;
+    color: #a0a0a0;
+    margin-top: 8px;
+    font-weight: 600;
 }
 
-/* Controls */
+/* Sleek Controls */
 .controls {
     display: flex;
     justify-content: space-around;
     align-items: center;
+    padding: 0 20px;
 }
 
 .controls button {
     background: transparent;
     border: none;
     color: #fff;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
-    transition: 0.3s;
-}
-
-.controls .main-btn {
-    font-size: 45px;
-    color: #e91e63;
+    transition: all 0.3s ease;
 }
 
 .controls button:hover {
-    transform: scale(1.1);
-    opacity: 0.8;
+    color: #ff416c;
+    transform: translateY(-3px);
 }
 
-/* Mobile Responsive */
-@media (max-width: 400px) {
+.controls .main-btn {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: #fff;
+    font-size: 26px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(255, 65, 108, 0.4);
+}
+
+.controls .main-btn:hover {
+    transform: scale(1.1);
+    color: #fff;
+    box-shadow: 0 15px 30px rgba(255, 65, 108, 0.6);
+}
+
+@media (max-width: 420px) {
     .player-container {
         width: 90%;
+        padding: 30px 20px;
     }
 }
