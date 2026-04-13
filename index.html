@@ -3,37 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark_eio Music Vibe</title>
+    <title>Dark_eio Pro Vibes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="player-container">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="कोई भी गाना सर्च करो...">
-            <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <input type="text" id="searchInput" placeholder="तलाश करो अपना अज़ीज़ गाना...">
+            <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
         </div>
 
         <div class="song-info">
-            <div class="img-container">
-                <img id="coverImage" src="https://via.placeholder.com/250" alt="Song Cover">
+            <div class="img-container" id="imgContainer">
+                <img id="coverImage" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=500&auto=format&fit=crop" alt="Song Cover">
             </div>
-            <h2 id="songTitle">तेरा मनपसंद गाना</h2>
-            <p id="artistName">आर्टिस्ट का नाम</p>
+            <h2 id="songTitle">तेरी महफ़िल, तेरा गाना</h2>
+            <p id="artistName">आर्टिस्ट</p>
         </div>
 
-        <div class="progress-container" id="progressContainer">
+        <div class="progress-area" id="progressContainer">
             <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="time-info">
-            <span id="currentTime">0:00</span>
-            <span id="duration">0:00</span>
+            <div class="time-info">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
         </div>
 
         <div class="controls">
-            <button id="prevBtn"><i class="fa-solid fa-backward-step"></i></button>
+            <button id="prevBtn"><i class="fa-solid fa-backward"></i></button>
             <button id="playBtn" class="main-btn"><i class="fa-solid fa-play"></i></button>
-            <button id="nextBtn"><i class="fa-solid fa-forward-step"></i></button>
+            <button id="nextBtn"><i class="fa-solid fa-forward"></i></button>
         </div>
 
         <audio id="audioElement"></audio>
