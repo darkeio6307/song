@@ -1,1 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark_eio Music Vibe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="player-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="कोई भी गाना सर्च करो...">
+            <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
 
+        <div class="song-info">
+            <div class="img-container">
+                <img id="coverImage" src="https://via.placeholder.com/250" alt="Song Cover">
+            </div>
+            <h2 id="songTitle">तेरा मनपसंद गाना</h2>
+            <p id="artistName">आर्टिस्ट का नाम</p>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="time-info">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+        </div>
+
+        <div class="controls">
+            <button id="prevBtn"><i class="fa-solid fa-backward-step"></i></button>
+            <button id="playBtn" class="main-btn"><i class="fa-solid fa-play"></i></button>
+            <button id="nextBtn"><i class="fa-solid fa-forward-step"></i></button>
+        </div>
+
+        <audio id="audioElement"></audio>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
