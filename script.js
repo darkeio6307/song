@@ -1,176 +1,159 @@
+// --- Screen Management ---
+const splashScreen = document.getElementById('splashScreen');
+const loginScreen = document.getElementById('loginScreen');
+const mainApp = document.getElementById('mainApp');
+
+// --- Login Elements ---
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('loginError');
+
+// --- Music Elements ---
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const songsGrid = document.getElementById('songsGrid');
 const statusText = document.getElementById('statusText');
-
 const playBtn = document.getElementById('playBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const audio = document.getElementById('audioElement');
-const progressContainer = document.getElementById('progressContainer');
-const progressBar = document.getElementById('progressBar');
-const currentTimeEl = document.getElementById('currentTime');
-const durationEl = document.getElementById('duration');
-
+const cover = document.getElementById('coverImage');
 const title = document.getElementById('songTitle');
 const artist = document.getElementById('artistName');
-const cover = document.getElementById('coverImage');
-const imgContainer = document.getElementById('imgContainer');
+const progressBar = document.getElementById('progressBar');
+const vipActionBtn = document.getElementById('vipActionBtn');
+const vipToast = document.getElementById('vipToast');
+
+// 1. Splash Screen Logic (ऐप की तरह 2 सेकंड की लोडिंग)
+setTimeout(() => {
+    splashScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+}, 2000);
+
+// 2. VIP Login Logic
+loginBtn.addEventListener('click', () => {
+    const u = usernameInput.value.trim();
+    const p = passwordInput.value.trim();
+
+    if (u === 'Dark_eio' && p === 'moh0909') {
+        loginScreen.classList.add('hidden');
+        mainApp.classList.remove('hidden');
+        // लॉगिन होते ही गाने लोड करो
+        searchSpotify("Top Hits"); 
+    } else {
+        loginError.style.display = 'block';
+        setTimeout(() => loginError.style.display = 'none', 3000);
+    }
+});
+
+// 3. VIP / Premium Button Toast Alert
+vipActionBtn.addEventListener('click', () => {
+    vipToast.classList.add('show');
+    setTimeout(() => {
+        vipToast.classList.remove('show');
+    }, 2500);
+});
+
+// 4. Music Player Logic (Spotify API - Token Update Required Every Hour)
+const SPOTIFY_TOKEN = 'BQAUbDbaHUhgDlArf4dlwBX8d-ftZxi4yl7tLsVsWEA0lOGftTdmdTUVIpboHXbe64aorZVYSPwsXZzXXx2WOClTM_cVIR3BMCIwZmQM1v-Ycc-USQCQb-WK33L4jg7MLp4a5eOW04xgtjhVMfwnR0SwSpNmZcBUpanlKW4CNyB7MVQrHBWQfvUilAW3ng2NMvTvx3vMGMFPtFVbnh73yKOeivczcoWz7OtRpujK_epv-LvW-K3gyrfkZqXAzMj2O9-yXyOGEi_7csfEmEdc_4tEDruk4JVH7e6V9VbccxXGxquTP-aOmQz0q7yH-PX1aN7j_g';
 
 let isPlaying = false;
 let songList = [];
 let currentSongIndex = 0;
 
-// API Base URL (Saavn)
-const API_URL = "https://saavn.sumit.co/api/search/songs?query=";
-
-async function searchSongs(query) {
+async function searchSpotify(query) {
     try {
-        statusText.innerText = "तलाश जारी है...";
+        statusText.innerText = "ढूंढ रहे हैं...";
         songsGrid.innerHTML = ''; 
         
-        const response = await fetch(`${API_URL}${query}`);
-        const data = await response.json();
+        const response = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`, {
+            headers: { 'Authorization': `Bearer ${SPOTIFY_TOKEN}` }
+        });
         
-        if(data.success && data.data.results.length > 0) {
-            songList = data.data.results;
-            statusText.innerText = `'${query}' के लिए बेहतरीन रिज़ल्ट्स`;
-            renderSongsGrid(songList);
+        if (!response.ok) throw new Error("Token Expired!");
+
+        const data = await response.json();
+        const playableTracks = data.tracks.items.filter(track => track.preview_url !== null);
+        
+        if(playableTracks.length > 0) {
+            songList = playableTracks;
+            statusText.innerText = 'Trending Vibes';
+            renderGrid(songList);
         } else {
-            statusText.innerText = "कुछ नहीं मिला यार! कोई और नाम ट्राई कर।";
+            statusText.innerText = "कोई ऑडियो नहीं मिला!";
         }
     } catch (error) {
-        console.error("API Error:", error);
-        statusText.innerText = "सर्वर एरर! इंटरनेट चेक कर ले।";
+        statusText.innerText = "Token एक्सपायर! कोड में नया टोकन डालें।";
     }
 }
 
-// गानों के कार्ड्स बनाना
-function renderSongsGrid(songs) {
+function renderGrid(songs) {
     songsGrid.innerHTML = '';
     songs.forEach((song, index) => {
         const card = document.createElement('div');
         card.classList.add('song-card');
-        
-        const imgUrl = song.image[song.image.length - 1].url;
-        const songName = song.name;
-        const artistName = song.artists.primary[0].name || "अज्ञात आर्टिस्ट";
-
         card.innerHTML = `
-            <img src="${imgUrl}" alt="cover">
-            <h4>${songName}</h4>
-            <p>${artistName}</p>
+            <img src="${song.album.images[0].url}" alt="cover">
+            <h4>${song.name}</h4>
+            <p>${song.artists[0].name}</p>
         `;
-        
-        // कार्ड पर क्लिक करते ही गाना प्ले हो जाए
         card.addEventListener('click', () => {
             currentSongIndex = index;
             loadSong(songList[currentSongIndex]);
         });
-
         songsGrid.appendChild(card);
     });
 }
 
 function loadSong(song) {
     title.innerText = song.name;
-    artist.innerText = song.artists.primary[0].name || "अज्ञात आर्टिस्ट";
+    artist.innerText = song.artists[0].name;
+    cover.src = song.album.images[0].url;
+    audio.src = song.preview_url;
     
-    if(song.image && song.image.length > 0) {
-        cover.src = song.image[song.image.length - 1].url;
-    }
-    
-    if(song.downloadUrl && song.downloadUrl.length > 0) {
-        audio.src = song.downloadUrl[song.downloadUrl.length - 1].url;
-        audio.addEventListener('canplay', () => {
-            playSong();
-        }, { once: true });
-    }
+    audio.addEventListener('canplay', () => { playSong(); }, { once: true });
 }
 
 function playSong() {
     isPlaying = true;
-    playBtn.innerHTML = '<i class="fa-solid fa-circle-pause"></i>';
-    imgContainer.classList.add('play'); 
+    playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    cover.classList.add('play'); 
     audio.play();
 }
 
 function pauseSong() {
     isPlaying = false;
-    playBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
-    imgContainer.classList.remove('play'); 
+    playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    cover.classList.remove('play'); 
     audio.pause();
 }
 
 playBtn.addEventListener('click', () => {
-    if (isPlaying) {
-        pauseSong();
-    } else {
-        if(songList.length > 0) playSong();
-    }
+    if (isPlaying) pauseSong();
+    else if(songList.length > 0) playSong();
 });
 
-function prevSong() {
+prevBtn.addEventListener('click', () => {
     if(songList.length === 0) return;
-    currentSongIndex--;
-    if (currentSongIndex < 0) currentSongIndex = songList.length - 1;
+    currentSongIndex = currentSongIndex - 1 < 0 ? songList.length - 1 : currentSongIndex - 1;
     loadSong(songList[currentSongIndex]);
-}
+});
 
-function nextSong() {
+nextBtn.addEventListener('click', () => {
     if(songList.length === 0) return;
-    currentSongIndex++;
-    if (currentSongIndex > songList.length - 1) currentSongIndex = 0;
+    currentSongIndex = currentSongIndex + 1 > songList.length - 1 ? 0 : currentSongIndex + 1;
     loadSong(songList[currentSongIndex]);
-}
-
-prevBtn.addEventListener('click', prevSong);
-nextBtn.addEventListener('click', nextSong);
+});
 
 searchBtn.addEventListener('click', () => {
-    const query = searchInput.value;
-    if (query.trim() !== "") searchSongs(query);
+    if (searchInput.value.trim() !== "") searchSpotify(searchInput.value);
 });
 
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const query = searchInput.value;
-        if (query.trim() !== "") searchSongs(query);
-    }
-});
-
-function updateProgress(e) {
+audio.addEventListener('timeupdate', (e) => {
     const { duration, currentTime } = e.srcElement;
     if (isNaN(duration)) return;
-    
-    const progressPercent = (currentTime / duration) * 100;
-    progressBar.style.width = `${progressPercent}%`;
-    
-    let currentMins = Math.floor(currentTime / 60);
-    let currentSecs = Math.floor(currentTime % 60);
-    if(currentSecs < 10) currentSecs = `0${currentSecs}`;
-    currentTimeEl.innerText = `${currentMins}:${currentSecs}`;
-    
-    let durationMins = Math.floor(duration / 60);
-    let durationSecs = Math.floor(duration % 60);
-    if(durationSecs < 10) durationSecs = `0${durationSecs}`;
-    durationEl.innerText = `${durationMins}:${durationSecs}`;
-}
-
-audio.addEventListener('timeupdate', updateProgress);
-
-progressContainer.addEventListener('click', (e) => {
-    const width = progressContainer.clientWidth;
-    const clickX = e.offsetX;
-    const duration = audio.duration;
-    if (!isNaN(duration)) {
-        audio.currentTime = (clickX / width) * duration;
-    }
+    progressBar.style.width = `${(currentTime / duration) * 100}%`;
 });
 
-audio.addEventListener('ended', nextSong);
-
-// पेज खुलते ही डिफ़ॉल्ट गानों की लिस्ट आ जाए
-window.onload = () => {
-    searchSongs("Trending Hindi");
-};
+audio.addEventListener('ended', () => { nextBtn.click(); });
