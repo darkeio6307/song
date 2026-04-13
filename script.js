@@ -1,7 +1,8 @@
-// VIP Users
+// VIP Users की महफ़िल
 const vipUsers = { "Dark_eio": "moh0909", "Muskan": "love2026", "Sanskar": "yaar123", "Harsh": "dost123", "Preeti": "bff" };
 
 // Elements
+const splashScreen = document.getElementById('splashScreen');
 const loginScreen = document.getElementById('loginScreen');
 const mainApp = document.getElementById('mainApp');
 const audio = document.getElementById('audioPlayer');
@@ -10,12 +11,18 @@ const progressBar = document.getElementById('progressBar');
 const songsList = document.getElementById('songsList');
 const listTitle = document.getElementById('listTitle');
 
-let currentQueue = []; // जो गाने अभी चल रहे हैं
-let myPlaylist = JSON.parse(localStorage.getItem('arshad_playlist')) || []; // सेव की हुई प्लेलिस्ट
+let currentQueue = []; 
+let myPlaylist = JSON.parse(localStorage.getItem('arshad_playlist')) || []; 
 let currentIndex = 0;
-let isPlaylistView = false; // चेक करने के लिए कि होम पर हैं या प्लेलिस्ट में
+let isPlaylistView = false; 
 
-// Time Update
+// === 1. SPLASH SCREEN FIX (यही वो जादुई टाइमर है जो मैं भूल गया था) ===
+setTimeout(() => {
+    splashScreen.classList.add('hidden'); // एनीमेशन को छुपाओ
+    loginScreen.classList.remove('hidden'); // लॉगिन स्क्रीन को दिखाओ
+}, 3000); // 3 सेकंड बाद पर्दा उठेगा
+
+// Time Update (वक़्त और इस्तिक़बाल)
 function updateTime() {
     const now = new Date();
     let h = now.getHours(), m = now.getMinutes();
@@ -30,7 +37,7 @@ function updateTime() {
 }
 setInterval(updateTime, 1000); updateTime();
 
-// Login
+// Login Logic
 document.getElementById('loginBtn').onclick = () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -38,7 +45,7 @@ document.getElementById('loginBtn').onclick = () => {
         loginScreen.classList.add('hidden');
         mainApp.classList.remove('hidden');
         document.getElementById('userName').innerText = u;
-        fetchSongs("Trending Hindi"); // डिफॉल्ट गाने
+        fetchSongs("Trending Hindi"); // डिफ़ॉल्ट गाने
     } else {
         document.getElementById('loginError').style.display = 'block';
     }
@@ -63,7 +70,7 @@ async function fetchSongs(query) {
             renderSongs(currentQueue);
             listTitle.innerText = `'${query}' के रिज़ल्ट्स`;
         } else {
-            listTitle.innerText = "कुछ नहीं मिला!";
+            listTitle.innerText = "कुछ नहीं मिला यार!";
         }
     } catch (e) {
         listTitle.innerText = "इंटरनेट एरर!";
@@ -77,7 +84,6 @@ function renderSongs(songs) {
         const div = document.createElement('div');
         div.className = 'song-card';
         
-        // चेक करो कि गाना प्लेलिस्ट में है या नहीं
         const isFav = myPlaylist.some(s => s.id === song.id);
         const heartIcon = isFav ? "fa-solid fa-heart" : "fa-regular fa-heart";
 
@@ -101,18 +107,16 @@ window.togglePlaylist = function(index) {
     const existsIndex = myPlaylist.findIndex(s => s.id === song.id);
     
     if (existsIndex > -1) {
-        myPlaylist.splice(existsIndex, 1); // हटाओ
-        showToast("Playist से हटा दिया!");
+        myPlaylist.splice(existsIndex, 1); 
+        showToast("Playlist से हटा दिया!");
     } else {
-        myPlaylist.push(song); // जोड़ो
+        myPlaylist.push(song); 
         showToast("Playlist में सेव हो गया! ❤️");
     }
     
     localStorage.setItem('arshad_playlist', JSON.stringify(myPlaylist));
     
-    if (isPlaylistView) {
-        currentQueue = myPlaylist; // अगर प्लेलिस्ट टैब में हैं तो तुरंत अपडेट करो
-    }
+    if (isPlaylistView) currentQueue = myPlaylist; 
     renderSongs(currentQueue);
 };
 
@@ -132,15 +136,20 @@ window.loadSong = function(i) {
 };
 
 playBtn.onclick = () => {
-    if (audio.paused && currentQueue.length > 0) { audio.play(); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('playerImg').classList.add('spin'); }
-    else if (!audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('playerImg').classList.remove('spin'); }
+    if (audio.paused && currentQueue.length > 0) { 
+        audio.play(); 
+        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; 
+        document.getElementById('playerImg').classList.add('spin'); 
+    } else if (!audio.paused) { 
+        audio.pause(); 
+        playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; 
+        document.getElementById('playerImg').classList.remove('spin'); 
+    }
 };
 
-// --- AUTO PLAY LOGIC ---
+// Auto Play
 audio.addEventListener('ended', () => {
-    if (currentQueue.length > 0) {
-        loadSong((currentIndex + 1) % currentQueue.length); // गाना खत्म होते ही अगला प्ले
-    }
+    if (currentQueue.length > 0) loadSong((currentIndex + 1) % currentQueue.length); 
 });
 
 document.getElementById('nextBtn').onclick = () => { if(currentQueue.length > 0) loadSong((currentIndex + 1) % currentQueue.length); };
@@ -157,14 +166,14 @@ document.getElementById('tabHome').onclick = () => {
     document.querySelector('.nav-item.active').classList.remove('active');
     document.getElementById('tabHome').classList.add('active');
     document.getElementById('searchArea').style.display = 'flex';
-    fetchSongs("Trending Hindi"); // वापस होम पर आने पर ट्रेंडिंग
+    fetchSongs("Trending Hindi"); 
 };
 
 document.getElementById('tabPlaylist').onclick = () => {
     isPlaylistView = true;
     document.querySelector('.nav-item.active').classList.remove('active');
     document.getElementById('tabPlaylist').classList.add('active');
-    document.getElementById('searchArea').style.display = 'none'; // सर्च छुपाओ
+    document.getElementById('searchArea').style.display = 'none'; 
     
     currentQueue = myPlaylist;
     listTitle.innerText = "तेरी पर्सनल Playlist ❤️";
