@@ -1,91 +1,103 @@
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
+const songsGrid = document.getElementById('songsGrid');
+const statusText = document.getElementById('statusText');
+
 const playBtn = document.getElementById('playBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const audio = document.getElementById('audioElement');
 const progressContainer = document.getElementById('progressContainer');
 const progressBar = document.getElementById('progressBar');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+
 const title = document.getElementById('songTitle');
 const artist = document.getElementById('artistName');
 const cover = document.getElementById('coverImage');
 const imgContainer = document.getElementById('imgContainer');
-const currentTimeEl = document.getElementById('currentTime');
-const durationEl = document.getElementById('duration');
 
 let isPlaying = false;
 let songList = [];
 let currentSongIndex = 0;
 
-// नया और फ़ास्ट YouTube (Piped) सर्वर 
-const API_BASE = "https://pipedapi.smnz.de"; 
-// अगर कभी ये भी डाउन हो, तो तू इसे बदलकर "https://api.piped.privacydev.net" कर सकता है।
+// API Base URL (Saavn)
+const API_URL = "https://saavn.sumit.co/api/search/songs?query=";
 
-async function fetchSongs(query) {
+async function searchSongs(query) {
     try {
-        title.innerText = "यूट्यूब खंगाल रहे हैं...";
-        artist.innerText = "ज़रा इंतज़ार मेरे दोस्त...";
-        imgContainer.classList.remove('play');
+        statusText.innerText = "तलाश जारी है...";
+        songsGrid.innerHTML = ''; 
         
-        const response = await fetch(`${API_BASE}/search?q=${query}&filter=all`);
+        const response = await fetch(`${API_URL}${query}`);
         const data = await response.json();
         
-        const videos = data.items.filter(item => item.type === 'stream');
-        
-        if(videos.length > 0) {
-            songList = videos;
-            currentSongIndex = 0;
-            loadSong(songList[currentSongIndex]);
+        if(data.success && data.data.results.length > 0) {
+            songList = data.data.results;
+            statusText.innerText = `'${query}' के लिए बेहतरीन रिज़ल्ट्स`;
+            renderSongsGrid(songList);
         } else {
-            title.innerText = "कुछ नहीं मिला यार!";
-            artist.innerText = "सही नाम लिखकर देख";
+            statusText.innerText = "कुछ नहीं मिला यार! कोई और नाम ट्राई कर।";
         }
     } catch (error) {
         console.error("API Error:", error);
-        title.innerText = "यूट्यूब सर्वर से राब्ता टूट गया!";
-        artist.innerText = "थोड़ी देर बाद कोशिश कर";
+        statusText.innerText = "सर्वर एरर! इंटरनेट चेक कर ले।";
     }
 }
 
-async function loadSong(song) {
-    title.innerText = "ऑडियो निकाला जा रहा है...";
-    artist.innerText = song.uploaderName; 
-    cover.src = song.thumbnail; 
+// गानों के कार्ड्स बनाना
+function renderSongsGrid(songs) {
+    songsGrid.innerHTML = '';
+    songs.forEach((song, index) => {
+        const card = document.createElement('div');
+        card.classList.add('song-card');
+        
+        const imgUrl = song.image[song.image.length - 1].url;
+        const songName = song.name;
+        const artistName = song.artists.primary[0].name || "अज्ञात आर्टिस्ट";
+
+        card.innerHTML = `
+            <img src="${imgUrl}" alt="cover">
+            <h4>${songName}</h4>
+            <p>${artistName}</p>
+        `;
+        
+        // कार्ड पर क्लिक करते ही गाना प्ले हो जाए
+        card.addEventListener('click', () => {
+            currentSongIndex = index;
+            loadSong(songList[currentSongIndex]);
+        });
+
+        songsGrid.appendChild(card);
+    });
+}
+
+function loadSong(song) {
+    title.innerText = song.name;
+    artist.innerText = song.artists.primary[0].name || "अज्ञात आर्टिस्ट";
     
-    try {
-        const videoId = song.url.split('v=')[1] || song.url.split('/').pop();
-        
-        const streamRes = await fetch(`${API_BASE}/streams/${videoId}`);
-        const streamData = await streamRes.json();
-        
-        const audioStreams = streamData.audioStreams;
-        
-        if(audioStreams && audioStreams.length > 0) {
-            audio.src = audioStreams[0].url;
-            title.innerText = song.title; 
-            
-            audio.addEventListener('canplay', () => {
-                playSong();
-            }, { once: true });
-        } else {
-            title.innerText = "ऑडियो लिंक नहीं मिला!";
-        }
-    } catch(err) {
-        console.error(err);
-        title.innerText = "गाना लोड नहीं हुआ!";
+    if(song.image && song.image.length > 0) {
+        cover.src = song.image[song.image.length - 1].url;
+    }
+    
+    if(song.downloadUrl && song.downloadUrl.length > 0) {
+        audio.src = song.downloadUrl[song.downloadUrl.length - 1].url;
+        audio.addEventListener('canplay', () => {
+            playSong();
+        }, { once: true });
     }
 }
 
 function playSong() {
     isPlaying = true;
-    playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    playBtn.innerHTML = '<i class="fa-solid fa-circle-pause"></i>';
     imgContainer.classList.add('play'); 
     audio.play();
 }
 
 function pauseSong() {
     isPlaying = false;
-    playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    playBtn.innerHTML = '<i class="fa-solid fa-circle-play"></i>';
     imgContainer.classList.remove('play'); 
     audio.pause();
 }
@@ -94,25 +106,21 @@ playBtn.addEventListener('click', () => {
     if (isPlaying) {
         pauseSong();
     } else {
-        playSong();
+        if(songList.length > 0) playSong();
     }
 });
 
 function prevSong() {
     if(songList.length === 0) return;
     currentSongIndex--;
-    if (currentSongIndex < 0) {
-        currentSongIndex = songList.length - 1;
-    }
+    if (currentSongIndex < 0) currentSongIndex = songList.length - 1;
     loadSong(songList[currentSongIndex]);
 }
 
 function nextSong() {
     if(songList.length === 0) return;
     currentSongIndex++;
-    if (currentSongIndex > songList.length - 1) {
-        currentSongIndex = 0;
-    }
+    if (currentSongIndex > songList.length - 1) currentSongIndex = 0;
     loadSong(songList[currentSongIndex]);
 }
 
@@ -121,17 +129,13 @@ nextBtn.addEventListener('click', nextSong);
 
 searchBtn.addEventListener('click', () => {
     const query = searchInput.value;
-    if (query.trim() !== "") {
-        fetchSongs(query);
-    }
+    if (query.trim() !== "") searchSongs(query);
 });
 
 searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         const query = searchInput.value;
-        if (query.trim() !== "") {
-            fetchSongs(query);
-        }
+        if (query.trim() !== "") searchSongs(query);
     }
 });
 
@@ -165,3 +169,8 @@ progressContainer.addEventListener('click', (e) => {
 });
 
 audio.addEventListener('ended', nextSong);
+
+// पेज खुलते ही डिफ़ॉल्ट गानों की लिस्ट आ जाए
+window.onload = () => {
+    searchSongs("Trending Hindi");
+};
