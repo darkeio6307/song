@@ -3,58 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARSHAD Music | Pro Vibes</title>
+    <title>ARSHAD Music | VIP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="main-container">
-        <div class="content-area">
-            <header>
-                <h1><span class="highlight">ARSHAD</span> Music</h1>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="कोई भी गाना, आर्टिस्ट या एल्बम तलाश करो...">
-                    <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
-                </div>
-            </header>
 
-            <div class="welcome-text">
-                <h2 id="statusText">तेरे मनपसंद गानों की महफ़िल...</h2>
+    <div id="splashScreen" class="splash-screen">
+        <div class="logo-animation">
+            <div class="pulse-ring"></div>
+            <h1>ARSHAD <br><span>Music</span></h1>
+        </div>
+    </div>
+
+    <div id="loginScreen" class="login-screen hidden">
+        <div class="login-box">
+            <i class="fa-solid fa-user-shield lock-icon"></i>
+            <h2>VIP Lounge</h2>
+            <p>सिर्फ़ ख़ास मेहमानों के लिए</p>
+            
+            <div class="input-group">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="username" placeholder="Username">
             </div>
+            <div class="input-group">
+                <i class="fa-solid fa-key"></i>
+                <input type="password" id="password" placeholder="Password">
+            </div>
+            
+            <button id="loginBtn" class="glow-btn">अंदर आएं</button>
+            <p id="loginError" class="error-msg">ग़लत पहचान!</p>
+        </div>
+    </div>
 
-            <div class="songs-grid" id="songsGrid">
+    <div id="mainApp" class="main-app hidden">
+        <header class="app-header">
+            <h2>ARSHAD <span>Vibes</span></h2>
+            <div class="user-profile">
+                <i class="fa-solid fa-crown"></i> Dark_eio
+            </div>
+        </header>
+
+        <div class="search-container">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="क्या सुनना पसंद करेंगे?">
+                <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="content-scroll">
+            <h3 class="section-title" id="statusText">तेरे लिए ख़ास...</h3>
+            <div class="mobile-grid" id="songsGrid">
                 </div>
         </div>
 
-        <div class="bottom-player">
-            <div class="now-playing">
-                <div class="img-container" id="imgContainer">
-                    <img id="coverImage" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=150" alt="Cover">
-                </div>
-                <div class="track-info">
-                    <h3 id="songTitle">ARSHAD Vibes</h3>
-                    <p id="artistName">No Track Selected</p>
-                </div>
-            </div>
-
-            <div class="player-controls-wrapper">
-                <div class="controls">
-                    <button id="prevBtn"><i class="fa-solid fa-backward-step"></i></button>
-                    <button id="playBtn" class="main-btn"><i class="fa-solid fa-circle-play"></i></button>
-                    <button id="nextBtn"><i class="fa-solid fa-forward-step"></i></button>
-                </div>
-                <div class="progress-area">
-                    <span id="currentTime">0:00</span>
-                    <div class="progress-bar-bg" id="progressContainer">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <span id="duration">0:00</span>
+        <div class="floating-player">
+            <div class="player-info">
+                <img id="coverImage" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=150" alt="Cover" class="spin-paused">
+                <div class="text-info">
+                    <h4 id="songTitle">ARSHAD Music</h4>
+                    <p id="artistName">VIP Edition</p>
                 </div>
             </div>
             
+            <div class="player-controls">
+                <button id="prevBtn"><i class="fa-solid fa-backward-step"></i></button>
+                <button id="playBtn" class="play-pause-btn"><i class="fa-solid fa-play"></i></button>
+                <button id="nextBtn"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
             <audio id="audioElement"></audio>
         </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></div>
+            <div class="nav-item"><i class="fa-solid fa-compass"></i><span>Explore</span></div>
+            <div class="nav-item vip-btn" id="vipActionBtn"><i class="fa-solid fa-gem"></i><span>Premium</span></div>
+        </nav>
     </div>
+
+    <div id="vipToast" class="custom-toast">
+        <i class="fa-solid fa-triangle-exclamation"></i> Only VIP Allowed!
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
