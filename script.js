@@ -17,18 +17,19 @@ let isPlaying = false;
 let songList = [];
 let currentSongIndex = 0;
 
-// YouTube (Piped API) से रियल-टाइम गाने खोजना
+// नया और फ़ास्ट YouTube (Piped) सर्वर 
+const API_BASE = "https://pipedapi.smnz.de"; 
+// अगर कभी ये भी डाउन हो, तो तू इसे बदलकर "https://api.piped.privacydev.net" कर सकता है।
+
 async function fetchSongs(query) {
     try {
-        title.innerText = "यूट्यूब में तलाश जारी है...";
+        title.innerText = "यूट्यूब खंगाल रहे हैं...";
         artist.innerText = "ज़रा इंतज़ार मेरे दोस्त...";
         imgContainer.classList.remove('play');
         
-        // Piped API (YouTube का रियल-टाइम डेटाबेस)
-        const response = await fetch(`https://pipedapi.kavin.rocks/search?q=${query}&filter=all`);
+        const response = await fetch(`${API_BASE}/search?q=${query}&filter=all`);
         const data = await response.json();
         
-        // सिर्फ वीडियो रिज़ल्ट्स को अलग करना
         const videos = data.items.filter(item => item.type === 'stream');
         
         if(videos.length > 0) {
@@ -46,29 +47,23 @@ async function fetchSongs(query) {
     }
 }
 
-// गाने का ऑडियो और पोस्टर लोड करना
 async function loadSong(song) {
     title.innerText = "ऑडियो निकाला जा रहा है...";
-    artist.innerText = song.uploaderName; // YouTube Channel Name
-    cover.src = song.thumbnail; // YouTube Thumbnail
+    artist.innerText = song.uploaderName; 
+    cover.src = song.thumbnail; 
     
     try {
-        // YouTube Video ID निकालना (url: "/watch?v=XYZ")
-        const videoId = song.url.split('v=')[1];
+        const videoId = song.url.split('v=')[1] || song.url.split('/').pop();
         
-        // वीडियो में से सिर्फ प्योर ऑडियो खींचना
-        const streamRes = await fetch(`https://pipedapi.kavin.rocks/streams/${videoId}`);
+        const streamRes = await fetch(`${API_BASE}/streams/${videoId}`);
         const streamData = await streamRes.json();
         
-        // बेहतरीन क्वालिटी का ऑडियो लिंक ढूँढना
         const audioStreams = streamData.audioStreams;
         
         if(audioStreams && audioStreams.length > 0) {
-            // पहला ऑडियो लिंक (बिना ऐड वाला) इस्तेमाल करना
             audio.src = audioStreams[0].url;
-            title.innerText = song.title; // असली YouTube Title
+            title.innerText = song.title; 
             
-            // जैसे ही ऑडियो लोड हो, प्ले कर दो
             audio.addEventListener('canplay', () => {
                 playSong();
             }, { once: true });
@@ -84,14 +79,14 @@ async function loadSong(song) {
 function playSong() {
     isPlaying = true;
     playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-    imgContainer.classList.add('play'); // पोस्टर को घुमाना शुरू
+    imgContainer.classList.add('play'); 
     audio.play();
 }
 
 function pauseSong() {
     isPlaying = false;
     playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-    imgContainer.classList.remove('play'); // पोस्टर को घुमाना बंद
+    imgContainer.classList.remove('play'); 
     audio.pause();
 }
 
@@ -169,5 +164,4 @@ progressContainer.addEventListener('click', (e) => {
     }
 });
 
-// गाना ख़त्म होने पर अपने-आप अगला गाना बजना
 audio.addEventListener('ended', nextSong);
