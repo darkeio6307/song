@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARSHAD Music | Ultra VIP</title>
+    <title>ARSHAD Music | Ultra Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
+        
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
                 <div class="logo-glow"></div>
@@ -19,41 +20,49 @@
 
         <div id="loginScreen" class="login-screen hidden">
             <div class="login-card">
-                <div class="user-icon"><i class="fa-solid fa-fingerprint"></i></div>
-                <h2>VIP Lounge</h2>
-                <div class="input-box">
-                    <input type="text" id="username" placeholder="Username" autocomplete="off">
-                    <input type="password" id="password" placeholder="Passcode">
+                <div class="login-header">
+                    <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
+                    <h2>VIP लाउंज</h2>
+                    <p>Identity Verification Required</p>
                 </div>
-                <button id="loginBtn">Access Terminal</button>
-                <p id="loginError" class="error">Access Denied! Check Credentials.</p>
+                <div class="input-box">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="username" placeholder="पहचान (Username)" autocomplete="off">
+                </div>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" placeholder="ख़ुफ़िया चाबी (Passcode)">
+                </div>
+                <button id="loginBtn">अंदर आएं <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+                <p id="loginError" class="error">ग़लत पहचान मेरे दोस्त!</p>
             </div>
         </div>
 
         <div id="mainApp" class="main-app hidden">
+            
             <header class="main-header">
                 <div class="greet-area">
                     <p id="timeGreeting">Good Evening,</p>
                     <h2 id="userName" class="neon-text">Dark_eio</h2>
                 </div>
                 <div class="status-widgets">
-                    <div class="clock-chip" id="liveClock">00:00:00</div>
+                    <div class="clock-chip" id="liveClock">00:00</div>
                     <div class="vip-tag">VIP</div>
                 </div>
             </header>
 
-            <div class="search-bar-v2">
+            <div class="search-bar-v2" id="searchSection">
                 <div class="search-inner">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchInput" placeholder="Search your vibe...">
-                    <button id="searchBtn">Go</button>
+                    <input type="text" id="searchInput" placeholder="कोई अज़ीज़ नग्मा तलाशें...">
+                    <button id="searchBtn">खोजें</button>
                 </div>
             </div>
 
             <section class="music-library">
                 <div class="lib-header">
                     <h3 id="listHeading">Discovery</h3>
-                    <div id="floatingQuote" class="quote-text">Your vibe is unique...</div>
+                    <div id="floatingQuote" class="quote-text">सुकून भरे नग्मे...</div>
                 </div>
                 <div id="songsList" class="songs-grid-vertical">
                     </div>
@@ -88,7 +97,7 @@
             <nav class="dock-nav">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-house-chimney-window"></i><span>Home</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-heart-pulse"></i><span>Playlist</span></div>
-                <div class="dock-item" id="btnVIP"><i class="fa-solid fa-gem"></i><span>VIP</span></div>
+                <div class="dock-item" id="btnVIP"><i class="fa-solid fa-gem"></i><span>Premium</span></div>
             </nav>
         </div>
 
