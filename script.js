@@ -25,22 +25,35 @@ const progressBar = document.getElementById('progressBar');
 const vipActionBtn = document.getElementById('vipActionBtn');
 const vipToast = document.getElementById('vipToast');
 
-// 1. Splash Screen Logic (ऐप की तरह 2 सेकंड की लोडिंग)
+// 1. Splash Screen Logic
 setTimeout(() => {
     splashScreen.classList.add('hidden');
     loginScreen.classList.remove('hidden');
 }, 2000);
+
+// === VIP Users Database (यहाँ तू और भी नाम जोड़ सकता है) ===
+const vipUsers = {
+    "Dark_eio": "moh0909",
+    "Muskan": "love2026",
+    "Sanskar": "yaar123",
+    "Harsh": "dost123"
+};
 
 // 2. VIP Login Logic
 loginBtn.addEventListener('click', () => {
     const u = usernameInput.value.trim();
     const p = passwordInput.value.trim();
 
-    if (u === 'Dark_eio' && p === 'moh0909') {
+    // चेक करो कि यूज़र हमारे डेटाबेस में है या नहीं
+    if (vipUsers[u] && vipUsers[u] === p) {
         loginScreen.classList.add('hidden');
         mainApp.classList.remove('hidden');
-        // लॉगिन होते ही गाने लोड करो
-        searchSpotify("Top Hits"); 
+        
+        // जो लॉगिन करेगा, ऐप के ऊपर उसी का नाम चमकेगा!
+        document.querySelector('.user-profile').innerHTML = `<i class="fa-solid fa-crown"></i> ${u}`;
+        
+        // लॉगिन होते ही बिना एरर के गाने लोड करो
+        searchSaavn("Trending Bollywood"); 
     } else {
         loginError.style.display = 'block';
         setTimeout(() => loginError.style.display = 'none', 3000);
@@ -55,36 +68,31 @@ vipActionBtn.addEventListener('click', () => {
     }, 2500);
 });
 
-// 4. Music Player Logic (Spotify API - Token Update Required Every Hour)
-const SPOTIFY_TOKEN = 'BQAUbDbaHUhgDlArf4dlwBX8d-ftZxi4yl7tLsVsWEA0lOGftTdmdTUVIpboHXbe64aorZVYSPwsXZzXXx2WOClTM_cVIR3BMCIwZmQM1v-Ycc-USQCQb-WK33L4jg7MLp4a5eOW04xgtjhVMfwnR0SwSpNmZcBUpanlKW4CNyB7MVQrHBWQfvUilAW3ng2NMvTvx3vMGMFPtFVbnh73yKOeivczcoWz7OtRpujK_epv-LvW-K3gyrfkZqXAzMj2O9-yXyOGEi_7csfEmEdc_4tEDruk4JVH7e6V9VbccxXGxquTP-aOmQz0q7yH-PX1aN7j_g';
+// === 4. Music Player Logic (Saavn API - No Token, Full Songs!) ===
+const API_URL = "https://saavn.sumit.co/api/search/songs?query=";
 
 let isPlaying = false;
 let songList = [];
 let currentSongIndex = 0;
 
-async function searchSpotify(query) {
+async function searchSaavn(query) {
     try {
-        statusText.innerText = "ढूंढ रहे हैं...";
+        statusText.innerText = "तलाश जारी है...";
         songsGrid.innerHTML = ''; 
         
-        const response = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`, {
-            headers: { 'Authorization': `Bearer ${SPOTIFY_TOKEN}` }
-        });
-        
-        if (!response.ok) throw new Error("Token Expired!");
-
+        const response = await fetch(`${API_URL}${query}`);
         const data = await response.json();
-        const playableTracks = data.tracks.items.filter(track => track.preview_url !== null);
         
-        if(playableTracks.length > 0) {
-            songList = playableTracks;
+        if(data.success && data.data.results.length > 0) {
+            songList = data.data.results;
             statusText.innerText = 'Trending Vibes';
             renderGrid(songList);
         } else {
-            statusText.innerText = "कोई ऑडियो नहीं मिला!";
+            statusText.innerText = "कुछ नहीं मिला यार!";
         }
     } catch (error) {
-        statusText.innerText = "Token एक्सपायर! कोड में नया टोकन डालें।";
+        console.error("API Error:", error);
+        statusText.innerText = "सर्वर एरर! इंटरनेट चेक कर।";
     }
 }
 
@@ -93,10 +101,15 @@ function renderGrid(songs) {
     songs.forEach((song, index) => {
         const card = document.createElement('div');
         card.classList.add('song-card');
+        
+        const imgUrl = song.image[song.image.length - 1].url;
+        const songName = song.name;
+        const artistName = song.artists.primary[0].name || "अज्ञात";
+
         card.innerHTML = `
-            <img src="${song.album.images[0].url}" alt="cover">
-            <h4>${song.name}</h4>
-            <p>${song.artists[0].name}</p>
+            <img src="${imgUrl}" alt="cover">
+            <h4>${songName}</h4>
+            <p>${artistName}</p>
         `;
         card.addEventListener('click', () => {
             currentSongIndex = index;
@@ -108,11 +121,18 @@ function renderGrid(songs) {
 
 function loadSong(song) {
     title.innerText = song.name;
-    artist.innerText = song.artists[0].name;
-    cover.src = song.album.images[0].url;
-    audio.src = song.preview_url;
+    artist.innerText = song.artists.primary[0].name || "अज्ञात";
     
-    audio.addEventListener('canplay', () => { playSong(); }, { once: true });
+    if(song.image && song.image.length > 0) {
+        cover.src = song.image[song.image.length - 1].url;
+    }
+    
+    if(song.downloadUrl && song.downloadUrl.length > 0) {
+        audio.src = song.downloadUrl[song.downloadUrl.length - 1].url;
+        audio.addEventListener('canplay', () => { 
+            playSong(); 
+        }, { once: true });
+    }
 }
 
 function playSong() {
@@ -147,7 +167,13 @@ nextBtn.addEventListener('click', () => {
 });
 
 searchBtn.addEventListener('click', () => {
-    if (searchInput.value.trim() !== "") searchSpotify(searchInput.value);
+    if (searchInput.value.trim() !== "") searchSaavn(searchInput.value);
+});
+
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && searchInput.value.trim() !== "") {
+        searchSaavn(searchInput.value);
+    }
 });
 
 audio.addEventListener('timeupdate', (e) => {
