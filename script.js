@@ -261,12 +261,34 @@ micBtn.style.display = 'none'; // Hide if browser not supported
 
 // === FEATURE 10: DAILY MIX ===
 function checkDailyMix() {
-dailyMixBanner.classList.remove('hidden');
-document.getElementById('playDailyMixBtn').onclick = () => {
-isPlaylistView = false;
-fetchMusic("Study Lofi Focus"); // Tailored for PCM Student Dark_eio!
-showToast("Loading your custom PCM Study Vibe 📚✨");
-};
+
+    dailyMixBanner.classList.remove('hidden');
+
+    // ✅ Name हट गया (Dark_eio नहीं दिखेगा)
+    document.querySelector("#dailyMixBanner h3").innerText = "Daily Vibe ✨";
+
+    document.getElementById('playDailyMixBtn').onclick = () => {
+
+        isPlaylistView = false;
+
+        let moods = [
+            "Trending Hindi Songs",
+            "Lofi Chill",
+            "Arijit Singh",
+            "Sad Hindi Songs",
+            "Punjabi Hits",
+            "Romantic Bollywood",
+            "Phonk",
+            "Slowed Reverb",
+            "Hip Hop India"
+        ];
+
+        let randomMood = moods[Math.floor(Math.random() * moods.length)];
+
+        fetchMusic(randomMood);
+
+        showToast(`AI picked: ${randomMood} 🎧`);
+    };
 }
 
 // === 💬 VIBE CHAT SYSTEM ===
