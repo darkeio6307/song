@@ -261,35 +261,12 @@ micBtn.style.display = 'none'; // Hide if browser not supported
 
 // === FEATURE 10: DAILY MIX ===
 function checkDailyMix() {
-
-dailyMixBanner.classList.remove('hidden');  
-
-// ✅ Name हट गया (Dark_eio नहीं दिखेगा)  
-document.querySelector("#dailyMixBanner h3").innerText = "Daily Vibe ✨";  
-
-document.getElementById('playDailyMixBtn').onclick = () => {  
-
-    isPlaylistView = false;  
-
-    let moods = [  
-        "Trending Hindi Songs",  
-        "Lofi Chill",  
-        "Arijit Singh",  
-        "Sad Hindi Songs",  
-        "Punjabi Hits",  
-        "Romantic Bollywood",  
-        "Phonk",  
-        "Slowed Reverb",  
-        "Hip Hop India"  
-    ];  
-
-    let randomMood = moods[Math.floor(Math.random() * moods.length)];  
-
-    fetchMusic(randomMood);  
-
-    showToast(`AI picked: ${randomMood} 🎧`);  
+dailyMixBanner.classList.remove('hidden');
+document.getElementById('playDailyMixBtn').onclick = () => {
+isPlaylistView = false;
+fetchMusic("Study Lofi Focus"); // Tailored for PCM Student Dark_eio!
+showToast("Loading your custom PCM Study Vibe 📚✨");
 };
-
 }
 
 // === 💬 VIBE CHAT SYSTEM ===
@@ -518,3 +495,21 @@ if(currentQueue.length > 0) broadcastFMState(currentQueue[currentIndex]);
 fmBroadcastBtn.classList.remove('fm-broadcasting');
 setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
 showToast("📡 FM Broadcast Stopped.");
+}
+};
+
+async function broadcastFMState(song) {
+await setDoc(doc(db, "fm", "globalRadio"), {
+isLive: true,
+host: currentUser,
+songId: song.id,
+songName: song.name,
+cover: song.image[2].url,
+audio: song.downloadUrl[4].url,
+artist: song.artists.primary[0].name,
+timestamp: Date.now()
+});
+}
+
+function listenToGlobalFM() {
+onSnapshot(doc(db, "fm", "globalRadio"), (docS
