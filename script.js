@@ -220,6 +220,9 @@ document.getElementById('loginBtn').onclick = async () => {
             document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
         }
     } catch (error) {
+        // ये जासूस हमें असली वजह बताएगा
+        alert("Google Error: " + error.message);
+        
         console.error(error);
         showToast("Cloud Connection Error!");
         document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
