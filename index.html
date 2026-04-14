@@ -1,136 +1,217 @@
-// === 🔥 ADD THIS AT TOP (BLOCK SYSTEM) ===
-let blockedUsers = JSON.parse(localStorage.getItem("blockedUsers") || "[]");
+Okh to Mai code send kar raha hun to bD ek abhi
 
-// === 🔥 FM BUTTON ONLY FOR DARK_EIO ===
-function controlFMVisibility() {
-    if(currentUser.toLowerCase() === "dark_eio") {
-        fmBroadcastBtn.classList.remove('hidden');
-    } else {
-        fmBroadcastBtn.classList.add('hidden');
-    }
-}
+<!DOCTYPE html>  <html lang="hi">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">  
+    <title>ARSHAD Vibes | Supreme Elite</title>  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+    <link rel="stylesheet" href="style.css">  
+    <link rel="manifest" href="manifest.json">  
+    <meta name="theme-color" content="#0f0c29">  
+</head>  
+<body class="theme-default">  
+    <div class="live-aura" id="bgAura"></div>  
+    <div class="live-aura-secondary"></div>  <div class="app-container">  
+      
+    <div id="splashScreen" class="splash-screen">  
+        <div class="loader-content">  
+            <div class="hologram-circle">  
+                <i class="fa-solid fa-compact-disc spin-fast"></i>  
+            </div>  
+            <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>  
+            <p class="sync-text">Loading Quantum Cloud...</p>  
+            <div class="loading-track"><div class="loading-progress"></div></div>  
+        </div>  
+    </div>  
 
-// === MODIFY initializeUserSession ===
-async function initializeUserSession(u) {
-    currentUser = u;
+    <div id="loginScreen" class="login-screen hidden">  
+        <div class="cyber-login-card">  
+            <div class="login-header">  
+                <div class="hex-badge">  
+                    <i class="fa-solid fa-fingerprint fingerprint-scan"></i>  
+                    <div class="scan-line"></div>  
+                </div>  
+                <h2 id="loginTitle">ELITE PORTAL</h2>  
+                <p id="loginSubTitle">Cloud Authentication Required</p>  
+            </div>  
 
-    let userData = vipDB[currentUser] || (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
+            <div id="loginMode">  
+                <div class="input-box glass-input">  
+                    <i class="fa-solid fa-user-astronaut"></i>  
+                    <input type="text" id="username" placeholder="Identity (Username)" autocomplete="off">  
+                </div>  
+                <div class="input-box glass-input">  
+                    <i class="fa-solid fa-key"></i>  
+                    <input type="password" id="password" placeholder="Cipher (Passcode)">  
+                </div>  
+                <button id="loginBtn" class="neon-btn-pro">INITIALIZE <i class="fa-solid fa-bolt"></i></button>  
+                <p id="loginError" class="error">Auth Failed: Intruder Detected!</p>  
+                <p id="toggleRegister" class="toggle-link">नए मेहमान हैं? यहाँ रजिस्टर करें</p>  
+            </div>  
 
-    document.body.className = userData.theme;
+            <div id="registerMode" class="hidden">  
+                <div class="input-box glass-input">  
+                    <i class="fa-solid fa-user-plus"></i>  
+                    <input type="text" id="regUsername" placeholder="New Username" autocomplete="off">  
+                </div>  
+                <div class="input-box glass-input">  
+                    <i class="fa-solid fa-lock"></i>  
+                    <input type="password" id="regPassword" placeholder="Create Passcode">  
+                </div>  
+                <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>  
+                <p id="toggleLogin" class="toggle-link">पहले से आईडी है? लॉग-इन करें</p>  
+            </div>  
+        </div>  
+    </div>  
 
-    // 🔥 ADD THIS
-    controlFMVisibility();
+    <div id="mainApp" class="main-app hidden">  
+          
+        <header class="main-header">  
+            <div class="greet-area">  
+                <p id="timeGreeting">Good Evening,</p>  
+                <h2 id="userName" class="hologram-text">Dark_eio</h2>  
+            </div>  
+            <div class="status-widgets">  
+                <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #ff3366;">  
+                    <i class="fa-solid fa-tower-broadcast fade-blink"></i> LIVE FM  
+                </div>  
+                <div class="session-timer glass-widget" title="Listening Time">  
+                    <i class="fa-solid fa-cloud"></i> <span id="cloudStatus">Synced</span>  
+                </div>  
+                <div class="profile-trigger glass-widget" id="profileBtn">  
+                    <img src="darkeio.jpg" alt="avatar" id="userAvatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad'">  
+                </div>  
+            </div>  
+        </header>  
 
-    splash.classList.add('hidden');
-    login.classList.add('hidden');
-    app.classList.remove('hidden');
+        <div class="live-stories-wrapper hidden" id="liveActivityArea">  
+            <p class="section-micro-title">Live VIPs Activity</p>  
+            <div class="stories-scroll" id="liveStoriesContainer"></div>  
+        </div>  
 
-    loadVibeChat();
-    listenToGlobalFM();
-    fetchMusic("Top Lofi Hindi");
-}
+        <div class="search-bar-v2" id="searchSection">  
+            <div class="search-inner glass-widget">  
+                <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;"><i class="fa-solid fa-microphone"></i></button>  
+                <input type="text" id="searchInput" placeholder="Search song or say 'Bankai'...">  
+                <button id="searchBtn">GO</button>  
+            </div>  
+        </div>  
 
-// === 🔥 PERFECT FM SYNC SYSTEM ===
-function listenToGlobalFM() {
-    onSnapshot(doc(db, "fm", "globalRadio"), (docSnap) => {
-        if(!docSnap.exists()) return;
+        <div id="dailyMixBanner" class="daily-mix-card hidden">  
+            <div class="mix-info">  
+                <h3>Dark_eio's Daily Vibe ✨</h3>  
+                <p>AI generated fresh picks for today!</p>  
+            </div>  
+            <button id="playDailyMixBtn"><i class="fa-solid fa-play"></i></button>  
+        </div>  
 
-        const fmData = docSnap.data();
+        <section class="music-library">  
+            <div class="lib-header">  
+                <h3 id="listHeading">Discovery</h3>  
+                <div class="visualizer hidden" id="eqBars">  
+                    <span></span><span></span><span></span><span></span>  
+                </div>  
+            </div>  
+            <div id="songsList" class="songs-grid-vertical"></div>  
+        </section>  
 
-        if(fmData.isLive) {
-            if(fmData.host !== currentUser) {
+        <div class="pro-player glass-widget-heavy">  
+            <div class="seek-wrapper">  
+                <span class="time-label" id="timeCurrent">0:00</span>  
+                <input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider">  
+                <span class="time-label" id="timeTotal">0:00</span>  
+            </div>  
 
-                fmLiveTag.classList.remove('hidden');
+            <div class="player-main-ui">  
+                <div class="now-playing">  
+                    <div class="vinyl-record" id="vinylDisk">  
+                        <img id="playerCover" src="https://via.placeholder.com/80" alt="disk">  
+                        <div class="record-hole"></div>  
+                        <div id="notesContainer"></div>  
+                    </div>  
+                    <div class="song-meta">  
+                        <h4 id="playerTitle">Arshad Music</h4>  
+                        <p id="playerArtist">Elite Edition</p>  
+                    </div>  
+                </div>  
+                  
+                <div class="playback-controls">  
+                    <button id="fmBroadcastBtn" class="action-btn" title="Broadcast to Global FM"><i class="fa-solid fa-satellite-dish"></i></button>  
+                    <button id="prevBtn"><i class="fa-solid fa-backward-fast"></i></button>  
+                    <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>  
+                    <button id="nextBtn"><i class="fa-solid fa-forward-fast"></i></button>  
+                    <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>  
+                </div>  
+            </div>  
+        </div>  
 
-                // 🔥 FULL SYNC
-                if(audio.src !== fmData.audio) {
-                    audio.src = fmData.audio;
-                    audio.play();
+        <nav class="dock-nav glass-widget-heavy">  
+            <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Explore</span></div>  
+            <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>  
+            <div class="dock-item" id="btnVIP"><i class="fa-solid fa-shield-halved"></i><span>Pro</span></div>  
+        </nav>  
 
-                    document.getElementById('playerTitle').innerText = fmData.songName;
-                    document.getElementById('playerArtist').innerText = fmData.artist;
-                    document.getElementById('playerCover').src = fmData.cover;
+        <button id="openChatBtn" class="floating-chat-btn"><i class="fa-solid fa-comments"></i></button>  
 
-                    updatePlayState(true);
-                }
-            }
-        } else {
-            fmLiveTag.classList.add('hidden');
-        }
-    });
-}
+        <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">  
+            <div class="chat-header">  
+                <h3>Vibe Chat 💬</h3>  
+                <button id="closeChatBtn"><i class="fa-solid fa-xmark"></i></button>  
+            </div>  
+            <div id="chatMessages" class="chat-messages"></div>  
+            <div class="chat-input-area">  
+                <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">  
+                <button id="sendChatBtn" class="neon-btn-pro"><i class="fa-solid fa-paper-plane"></i></button>  
+            </div>  
+        </div>  
 
-// === 🔥 UPDATE BROADCAST (NO CHANGE NEEDED BUT ENSURE THIS EXISTS) ===
-async function broadcastFMState(song) {
-    await setDoc(doc(db, "fm", "globalRadio"), {
-        isLive: true,
-        host: currentUser,
-        songId: song.id,
-        songName: song.name,
-        cover: song.image[2].url,
-        audio: song.downloadUrl[4].url,
-        artist: song.artists.primary[0].name,
-        timestamp: Date.now()
-    });
-}
+        <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">  
+            <div class="lyrics-header">  
+                <h3>Live Lyrics 🎤</h3>  
+                <button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button>  
+            </div>  
+            <div class="lyrics-content">  
+                <p class="lyrics-text placeholder-glow">Vibing to the beat...<br>Lyrics sync in progress...</p>  
+            </div>  
+        </div>  
 
-// === 🔥 CHAT SIDEBAR TOGGLE ===
-openChatBtn.onclick = () => {
-    chatWidget.classList.toggle('show');
-};
+    </div>  
 
-// === 🔥 BLOCK USER FUNCTION ===
-window.blockUser = function(user) {
-    if(user === currentUser) return;
+    <div id="profileSidebar" class="profile-sidebar glass-widget-heavy">  
+        <div class="sidebar-header">  
+            <button id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button>  
+        </div>  
+        <div class="profile-card">  
+            <div class="prof-img-box">  
+                <img id="sideProfAvatar" src="darkeio.jpg" alt="Profile" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad'">  
+                <div class="online-dot"></div>  
+            </div>  
+            <h2 id="profName" class="hologram-text">Name</h2>  
+            <div class="relation-badge" id="profRelation">Relation</div>  
+              
+            <ul class="prof-stats glass-widget">  
+                <li><i class="fa-solid fa-palette"></i> <strong>Theme:</strong> <span id="profThemeName">Dark Neon</span></li>  
+                <li><i class="fa-solid fa-cloud"></i> <strong>Cloud Vault:</strong> <span id="profSongCount">0</span> Songs</li>  
+                <li><i class="fa-solid fa-clock"></i> <strong>Today:</strong> <span id="statToday">0m</span></li>  
+            </ul>  
 
-    if(!blockedUsers.includes(user)) {
-        blockedUsers.push(user);
-        localStorage.setItem("blockedUsers", JSON.stringify(blockedUsers));
-        showToast(`${user} blocked 🚫`);
-    }
-};
+            <div class="capsule-section glass-widget">  
+                <p class="section-micro-title">💞 Love Capsule</p>  
+                <div id="capsuleList" class="capsule-scroll">  
+                    <p class="empty-msg" style="font-size:10px; color:#aaa;">Abhi koi yaad kaid nahi hui...</p>  
+                </div>  
+            </div>  
 
-// === 🔥 UPDATE CHAT SYSTEM ===
-function loadVibeChat() {
-    const q = query(collection(db, "globalChat"), orderBy("timestamp", "desc"), limit(50));
+            <button id="logoutBtn" class="logout-btn"><i class="fa-solid fa-power-off"></i> LOGOUT</button>  
+        </div>  
+    </div>  
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>  
+    <div id="toast" class="toast-popup">Confirmed!</div>  
+</div>  
 
-    onSnapshot(q, (snap) => {
-        const chatMessages = document.getElementById('chatMessages');
-        chatMessages.innerHTML = '';
+<audio id="audioEngine"></audio>  
+<script type="module" src="script.js"></script>
 
-        const msgs = [];
-        snap.forEach(doc => msgs.push(doc.data()));
-
-        msgs.reverse().forEach(m => {
-
-            // ❌ SKIP BLOCKED USERS
-            if(blockedUsers.includes(m.sender)) return;
-
-            const d = document.createElement('div');
-            d.className = `chat-msg ${m.sender === currentUser ? 'mine' : ''}`;
-
-            d.innerHTML = `
-                <span>${m.sender}</span>
-                ${m.text}
-                ${m.sender !== currentUser ? `<button onclick="blockUser('${m.sender}')" style="font-size:10px;margin-left:10px;">Block</button>` : ''}
-            `;
-
-            chatMessages.appendChild(d);
-        });
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    });
-
-    document.getElementById('sendChatBtn').onclick = async () => {
-        const input = document.getElementById('chatInput');
-        if(!input.value.trim()) return;
-
-        await addDoc(collection(db, "globalChat"), {
-            sender: currentUser,
-            text: input.value,
-            timestamp: Date.now()
-        });
-
-        input.value = '';
-    };
-}
+</body>  
+</html>
