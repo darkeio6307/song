@@ -21,7 +21,7 @@
                     <i class="fa-solid fa-compact-disc spin-fast"></i>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Quantum Syncing with Cloud...</p>
+                <p class="sync-text">Quantum Syncing with Cloud Universe...</p>
                 <div class="loading-track">
                     <div class="loading-progress"></div>
                 </div>
@@ -95,18 +95,18 @@
 
             <div class="search-bar-v2" id="searchSection">
                 <div class="search-inner glass-widget">
-                    <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;">
+                    <button id="micBtn" class="action-btn" style="color: var(--neon-main); margin-right: 10px;">
                         <i class="fa-solid fa-microphone"></i>
                     </button>
-                    <input type="text" id="searchInput" placeholder="Search song or say 'Bankai'...">
+                    <input type="text" id="searchInput" placeholder="Search universe or say 'Bankai'...">
                     <button id="searchBtn">GO</button>
                 </div>
             </div>
 
             <div id="dailyMixBanner" class="daily-mix-card hidden">
                 <div class="mix-info">
-                    <h3>Daily Vibe ✨</h3>
-                    <p>AI generated fresh picks for today!</p>
+                    <h3 id="mixTitle">Your Daily Vibe ✨</h3>
+                    <p>AI picks based on your psychology!</p>
                 </div>
                 <button id="playDailyMixBtn"><i class="fa-solid fa-play"></i></button>
             </div>
@@ -137,12 +137,12 @@
                         </div>
                         <div class="song-meta">
                             <h4 id="playerTitle">Arshad Music</h4>
-                            <p id="playerArtist">Elite Edition</p>
+                            <p id="playerArtist">Supreme Elite</p>
                         </div>
                     </div>
                     
                     <div class="playback-controls">
-                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Broadcast Global FM">
+                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Broadcast FM">
                             <i class="fa-solid fa-satellite-dish"></i>
                         </button>
                         <button id="prevBtn"><i class="fa-solid fa-backward-fast"></i></button>
@@ -163,7 +163,7 @@
 
             <button id="openChatBtn" class="floating-chat-btn"><i class="fa-solid fa-comments"></i></button>
 
-            <div id="chatWidget" class="chat-panel hidden">
+            <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
                 <div class="chat-header">
                     <h3>Vibe Chat 💬</h3>
                     <button id="closeChatBtn"><i class="fa-solid fa-xmark"></i></button>
@@ -175,13 +175,13 @@
                 </div>
             </div>
 
-            <div id="lyricsPanel" class="lyrics-panel hidden">
+            <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
                 <div class="lyrics-header">
                     <h3>Live Lyrics 🎤</h3>
                     <button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
                 <div class="lyrics-content">
-                    <p class="lyrics-text placeholder-glow">Vibing to the beat...<br>Lyrics sync in progress...</p>
+                    <p class="lyrics-text placeholder-glow">Vibing to the soul...<br>Lyrics sync active.</p>
                 </div>
             </div>
         </div>
@@ -195,17 +195,17 @@
                     <img id="sideProfAvatar" src="darkeio.jpg" alt="Profile" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad'">
                     <div class="online-dot"></div>
                 </div>
-                <h2 id="profName" class="hologram-text">Name</h2>
-                <div class="relation-badge" id="profRelation">Relation</div>
+                <h2 id="profName" class="hologram-text">Dark_eio</h2>
+                <div class="user-badge" id="userBadge">Elite Member</div>
                 
                 <ul class="prof-stats glass-widget">
-                    <li><i class="fa-solid fa-cloud"></i> <strong>Cloud Vault:</strong> <span id="profSongCount">0</span> Songs</li>
+                    <li><i class="fa-solid fa-cloud"></i> <strong>Vault:</strong> <span id="profSongCount">0</span> Songs</li>
                 </ul>
 
                 <div class="capsule-section glass-widget">
                     <p class="section-micro-title">💞 Love Capsule</p>
                     <div id="capsuleList" class="capsule-scroll">
-                        <p class="empty-msg" style="font-size:10px; color:#aaa;">Abhi koi yaad kaid nahi hui...</p>
+                        <p class="empty-msg" style="font-size:10px; color:#aaa;">कोई यादगार लम्हा अभी दर्ज नहीं हुआ...</p>
                     </div>
                 </div>
 
@@ -218,6 +218,8 @@
     </div>
 
     <audio id="audioEngine"></audio>
+    
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>
