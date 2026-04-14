@@ -85,7 +85,8 @@
 
             <div class="live-stories-wrapper hidden" id="liveActivityArea">
                 <p class="section-micro-title">Live VIPs Activity</p>
-                <div class="stories-scroll" id="liveStoriesContainer"></div>
+                <div class="stories-scroll" id="liveStoriesContainer">
+                    </div>
             </div>
 
             <div class="search-bar-v2" id="searchSection">
@@ -156,6 +157,8 @@
                 <div class="relation-badge" id="profRelation">Relation</div>
                 
                 <ul class="prof-stats glass-widget">
+                    <li><i class="fa-solid fa-palette"></i> <strong>Theme:</strong> <span id="profThemeName">Dark Neon</span></li>
+                    
                     <li><i class="fa-solid fa-cloud"></i> <strong>Cloud Vault:</strong> <span id="profSongCount">0</span> Songs</li>
                     <li><i class="fa-solid fa-clock"></i> <strong>Today:</strong> <span id="statToday">0m</span></li>
                     <li><i class="fa-solid fa-calendar-week"></i> <strong>This Week:</strong> <span id="statWeek">0m</span></li>
@@ -165,6 +168,7 @@
                 <button id="installAppBtn" class="neon-btn-pro install-btn" style="display: none;">
                     <i class="fa-solid fa-mobile-screen-button"></i> Install App
                 </button>
+
                 <button id="logoutBtn" class="logout-btn"><i class="fa-solid fa-power-off"></i> LOGOUT</button>
             </div>
         </div>
@@ -173,6 +177,7 @@
     </div>
 
     <audio id="audioEngine"></audio>
+    
     <script type="module" src="script.js"></script>
 </body>
 </html>
