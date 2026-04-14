@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=15.0">
+    <link rel="stylesheet" href="style.css?v=16.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
 </head>
@@ -17,26 +17,28 @@
         
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
-                <div class="hologram-circle">
-                    <i class="fa-solid fa-compact-disc spin-fast"></i>
+                <div class="supreme-music-logo">
+                    <div class="wave wave1"></div>
+                    <div class="wave wave2"></div>
+                    <div class="wave wave3"></div>
+                    <i class="fa-solid fa-headphones-simple"></i>
+                    <div class="wave wave4"></div>
+                    <div class="wave wave5"></div>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Quantum Syncing with Cloud...</p>
-                <div class="loading-track">
-                    <div class="loading-progress"></div>
-                </div>
+                <p class="sync-text">Tuning into the Universe...</p>
+                <div class="loading-track"><div class="loading-progress"></div></div>
+                <button id="forceEnterBtn" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
             <div class="cyber-login-card">
                 <div class="login-header">
-                    <div class="hex-badge">
-                        <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
-                        <div class="scan-line"></div>
+                    <div class="supreme-music-logo" style="transform: scale(0.6); margin-bottom: 0;">
+                        <i class="fa-solid fa-fingerprint"></i>
                     </div>
                     <h2 id="loginTitle">ELITE PORTAL</h2>
-                    <p id="loginSubTitle">Authentication Required</p>
                 </div>
 
                 <div id="loginMode">
@@ -72,18 +74,15 @@
             
             <header class="main-header">
                 <div class="greet-area">
-                    <p id="timeGreeting">Good Morning,</p>
+                    <p id="timeGreeting">Aadaab,</p>
                     <h2 id="userName" class="hologram-text">User</h2>
                 </div>
                 <div class="status-widgets">
-                    <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #ff3366; cursor: pointer;">
-                        <i class="fa-solid fa-tower-broadcast fade-blink"></i> LIVE FM
-                    </div>
-                    <div class="session-timer glass-widget" title="Listening Time">
-                        <i class="fa-solid fa-cloud"></i> <span id="cloudStatus">Synced</span>
+                    <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #00ff88; cursor: pointer; border-color:#00ff88;">
+                        <i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>LIVE FM</span>
                     </div>
                     <div class="profile-trigger glass-widget" id="profileBtn">
-                        <img src="darkeio.jpg" alt="avatar" id="userAvatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad'">
+                        <img src="darkeio.jpg" alt="avatar" id="userAvatar">
                     </div>
                 </div>
             </header>
@@ -98,25 +97,24 @@
                 </div>
             </div>
 
-            <div id="dailyMixBanner" class="daily-mix-card hidden">
-                <div class="mix-info">
-                    <h3 id="mixTitle">Daily Vibe ✨</h3>
-                    <p>AI generated fresh picks tailored for you!</p>
-                </div>
-                <button id="playDailyMixBtn"><i class="fa-solid fa-play"></i></button>
+            <div class="ai-mood-matrix" id="moodMatrix">
+                <button class="mood-chip" data-mood="Latest Workout Gym Phonk">🔥 Gym</button>
+                <button class="mood-chip" data-mood="Sad Lofi Broken Heart">💔 Sad</button>
+                <button class="mood-chip" data-mood="Deep Focus Study Lofi">📚 Focus</button>
+                <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
             </div>
 
             <section class="music-library">
                 <div class="lib-header">
-                    <h3 id="listHeading">Top Trending Hits</h3>
+                    <h3 id="listHeading">Top 50 Discovery</h3>
                     <div class="visualizer hidden" id="eqBars">
                         <span></span><span></span><span></span><span></span>
                     </div>
                 </div>
                 <div id="songsList" class="songs-grid-vertical"></div>
-            </section>
+                <div class="bottom-padding"></div> </section>
 
-            <div class="pro-player glass-widget-heavy">
+            <div class="pro-player glass-widget-heavy" id="proPlayerArea">
                 <div class="seek-wrapper">
                     <span class="time-label" id="timeCurrent">0:00</span>
                     <input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider">
@@ -136,30 +134,26 @@
                     </div>
                     
                     <div class="playback-controls">
-                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Broadcast FM">
-                            <i class="fa-solid fa-satellite-dish"></i>
-                        </button>
+                        <button id="driveModeBtn" class="action-btn" title="Focus Mode"><i class="fa-solid fa-car"></i></button>
+                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Broadcast FM"><i class="fa-solid fa-satellite-dish"></i></button>
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
-                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer">
-                            <i class="fa-solid fa-moon"></i>
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <nav class="dock-nav glass-widget-heavy">
+            <nav class="dock-nav glass-widget-heavy" id="bottomDock">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>
-                <div class="dock-item" id="btnChatToggle"><i class="fa-solid fa-comments"></i><span>Chat</span></div>
+                <div class="dock-item" id="btnChatToggle"><i class="fa-solid fa-comments"></i><span>Live Chat</span></div>
             </nav>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
                 
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-header">
-                        <h3>Online Users 🟢</h3>
+                        <h3>Galaxy Souls 🌌</h3>
                         <button id="closeChatBtn"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
                     <div id="onlineUsersList" class="contacts-list">
@@ -173,10 +167,9 @@
                         <img id="chatPartnerAvatar" src="darkeio.jpg" alt="Partner">
                         <h3 id="chatPartnerName">User</h3>
                     </div>
-                    <div id="directMessages" class="chat-messages whatsapp-bg">
-                        </div>
+                    <div id="directMessages" class="chat-messages whatsapp-bg"></div>
                     <div class="chat-input-area">
-                        <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
+                        <input type="text" id="directChatInput" placeholder="Type a message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="neon-btn-pro"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
@@ -184,42 +177,32 @@
 
             <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
                 <div class="lyrics-header">
-                    <h3>Live Lyrics 🎤</h3>
+                    <h3 id="lyricsPanelTitle">Live Lyrics 🎤</h3>
                     <button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
-                <div class="lyrics-content">
-                    <p class="lyrics-text placeholder-glow">Vibing to the soul...<br>Lyrics sync active.</p>
+                <div class="lyrics-content" id="lyricsContentArea">
+                    <p class="lyrics-text placeholder-glow">Vibing to the soul...</p>
                 </div>
             </div>
         </div>
 
         <div id="profileSidebar" class="profile-sidebar glass-widget-heavy">
-            <div class="sidebar-header">
-                <button id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+            <div class="sidebar-header"><button id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="profile-card">
-                <div class="prof-img-box">
-                    <img id="sideProfAvatar" src="darkeio.jpg" alt="Profile">
-                    <div class="online-dot"></div>
-                </div>
+                <div class="prof-img-box"><img id="sideProfAvatar" src="darkeio.jpg"><div class="online-dot"></div></div>
                 <h2 id="profName" class="hologram-text">Name</h2>
                 <div class="user-badge" id="userBadge">Elite Member</div>
-                <div class="relation-badge" id="profRelation" style="margin-bottom: 20px; font-size: 12px; color: var(--neon-main); font-weight:bold;">Relation</div>
+                <div class="relation-badge" id="profRelation" style="margin-bottom: 20px; font-size: 12px; color: var(--neon-main); font-weight:bold;">Vibe Listener</div>
                 
                 <ul class="prof-stats glass-widget">
                     <li><i class="fa-solid fa-cloud"></i> <strong>Vault:</strong> <span id="profSongCount">0</span> Songs</li>
-                    <li><i class="fa-solid fa-clock"></i> <strong>Today:</strong> <span id="statToday">0</span> mins</li>
-                    <li><i class="fa-solid fa-calendar-week"></i> <strong>Week:</strong> <span id="statWeek">0</span> mins</li>
-                    <li><i class="fa-solid fa-calendar-days"></i> <strong>Month:</strong> <span id="statMonth">0</span> mins</li>
+                    <li><i class="fa-solid fa-clock"></i> <strong>Time:</strong> <span id="statToday">0</span> mins</li>
                 </ul>
 
                 <div class="capsule-section glass-widget">
                     <p class="section-micro-title">💞 Memory Capsule</p>
-                    <div id="capsuleList" class="capsule-scroll">
-                        <p class="empty-msg" style="font-size:10px; color:#aaa; text-align:center;">Abhi koi yaad kaid nahi hui...</p>
-                    </div>
+                    <div id="capsuleList" class="capsule-scroll"><p class="empty-msg">Abhi koi yaad kaid nahi hui...</p></div>
                 </div>
-
                 <button id="logoutBtn" class="logout-btn" style="margin-top:auto;"><i class="fa-solid fa-power-off"></i> LOGOUT</button>
             </div>
         </div>
@@ -229,6 +212,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=15.0"></script>
+    <script type="module" src="script.js?v=16.0"></script>
 </body>
 </html>
