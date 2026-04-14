@@ -3,38 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARSHAD Music | Ultra Pro</title>
+    <title>ARSHAD Music | Vision 2050</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
+    <div class="live-aura"></div> <div class="app-container">
         
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
                 <div class="logo-glow"></div>
-                <i class="fa-solid fa-bolt-lightning"></i>
+                <i class="fa-solid fa-compact-disc spin-slow"></i>
                 <h1>ARSHAD<span>PRO</span></h1>
+                <div class="loading-track">
+                    <div class="loading-progress"></div>
+                </div>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="login-card">
+            <div class="cyber-login-card">
                 <div class="login-header">
-                    <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
-                    <h2>VIP लाउंज</h2>
-                    <p>Identity Verification Required</p>
+                    <div class="fingerprint-box">
+                        <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
+                        <div class="scan-line"></div>
+                    </div>
+                    <h2>SYSTEM LOGIN</h2>
+                    <p>Enter VIP Credentials</p>
                 </div>
                 <div class="input-box">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="username" placeholder="पहचान (Username)" autocomplete="off">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                    <input type="text" id="username" placeholder="Username" autocomplete="off">
                 </div>
                 <div class="input-box">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="password" placeholder="ख़ुफ़िया चाबी (Passcode)">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="password" placeholder="Passcode">
                 </div>
-                <button id="loginBtn">अंदर आएं <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
-                <p id="loginError" class="error">ग़लत पहचान मेरे दोस्त!</p>
+                <button id="loginBtn">ACCESS TERMINAL <i class="fa-solid fa-bolt"></i></button>
+                <p id="loginError" class="error">Access Denied: Invalid Identity</p>
             </div>
         </div>
 
@@ -43,26 +49,28 @@
             <header class="main-header">
                 <div class="greet-area">
                     <p id="timeGreeting">Good Evening,</p>
-                    <h2 id="userName" class="neon-text">Dark_eio</h2>
+                    <h2 id="userName" class="hologram-text">Dark_eio</h2>
                 </div>
                 <div class="status-widgets">
                     <div class="clock-chip" id="liveClock">00:00</div>
-                    <div class="vip-tag">VIP</div>
+                    <div class="visualizer hidden" id="eqBars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
                 </div>
             </header>
 
             <div class="search-bar-v2" id="searchSection">
                 <div class="search-inner">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchInput" placeholder="कोई अज़ीज़ नग्मा तलाशें...">
-                    <button id="searchBtn">खोजें</button>
+                    <input type="text" id="searchInput" placeholder="Search the universe...">
+                    <button id="searchBtn">GO</button>
                 </div>
             </div>
 
             <section class="music-library">
                 <div class="lib-header">
                     <h3 id="listHeading">Discovery</h3>
-                    <div id="floatingQuote" class="quote-text">सुकून भरे नग्मे...</div>
+                    <div id="floatingQuote" class="quote-text">Vibe higher...</div>
                 </div>
                 <div id="songsList" class="songs-grid-vertical">
                     </div>
@@ -77,8 +85,9 @@
 
                 <div class="player-main-ui">
                     <div class="now-playing">
-                        <div class="disk-wrapper">
+                        <div class="vinyl-record" id="vinylDisk">
                             <img id="playerCover" src="https://via.placeholder.com/80" alt="disk">
+                            <div class="record-hole"></div>
                         </div>
                         <div class="song-meta">
                             <h4 id="playerTitle">Arshad Music</h4>
@@ -95,9 +104,9 @@
             </div>
 
             <nav class="dock-nav">
-                <div class="dock-item active" id="btnHome"><i class="fa-solid fa-house-chimney-window"></i><span>Home</span></div>
-                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-heart-pulse"></i><span>Playlist</span></div>
-                <div class="dock-item" id="btnVIP"><i class="fa-solid fa-gem"></i><span>Premium</span></div>
+                <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Explore</span></div>
+                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-heart-pulse"></i><span>Library</span></div>
+                <div class="dock-item" id="btnVIP"><i class="fa-solid fa-shield-halved"></i><span>Pro</span></div>
             </nav>
         </div>
 
