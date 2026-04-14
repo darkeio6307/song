@@ -1,8 +1,8 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v11.0 (The Auto-Sync Update)
+ * 🌌 ARSHAD SUPREME ENGINE v12.0 (The Dock & Auto-Sync Update)
  * Optimized for: Tecno Pova 7
- * FIXED: Auto-FM Sync, Custom Welcomes, AI Daily Mix, Removed Chat
+ * FIXED: GM/GN Greetings, Dock Chat UI, Host Auto-Sync FM, Custom Titles
  * =========================================================================
  */
 
@@ -43,7 +43,7 @@ let myPlaylist = [];
 let currentIndex = 0;
 let isPlaylistView = false;
 let isBroadcastingFM = false;
-let isListeningToFM = false; // Track if someone is tuned into FM
+let isListeningToFM = false; // FM Auto Sync tracker
 let sleepTimeout = null;
 
 window.playSong = playSong;
@@ -53,11 +53,11 @@ window.toggleFav = toggleFav;
 window.onload = () => {
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     
-    // Safety Force Enter
+    // Safety Force Enter if Firebase lags
     const forceEnter = setTimeout(() => {
         if (!splash.classList.contains('hidden')) {
             splash.classList.add('hidden');
-            if (savedUser) bootSession(savedUser, false); // false = no toast on forced boot
+            if (savedUser) bootSession(savedUser, false); // false = no toast on emergency boot
             else login.classList.remove('hidden');
         }
     }, 3500);
@@ -128,7 +128,15 @@ async function bootSession(u, showWelcomeToast = false) {
         document.getElementById('userName').innerText = currentUser;
         document.getElementById('profName').innerText = currentUser;
 
-        // Custom Welcome Message (Feature 4)
+        // === Feature: GM/GA/GE/GN Time Greeting ===
+        const hrs = new Date().getHours();
+        let timeGreet = "Good Morning,";
+        if(hrs >= 12 && hrs < 17) timeGreet = "Good Afternoon,";
+        else if(hrs >= 17 && hrs < 21) timeGreet = "Good Evening,";
+        else if(hrs >= 21 || hrs < 4) timeGreet = "Good Night,";
+        document.getElementById('timeGreeting').innerText = timeGreet;
+
+        // === Feature: Custom Welcomes ===
         if(showWelcomeToast) {
             let welcomeMsg = "";
             const lowerU = currentUser.toLowerCase();
@@ -143,8 +151,8 @@ async function bootSession(u, showWelcomeToast = false) {
         if(currentUser.toLowerCase() === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
         else fmBroadcastBtn.classList.add('hidden');
 
-        // Dynamic Daily Mix (Feature 5)
-        document.getElementById('mixTitle').innerText = `${currentUser}'s Daily Vibe ✨`;
+        // Dynamic Daily Mix (Name removed, static AI title)
+        document.getElementById('mixTitle').innerText = `Daily Vibe ✨`;
         dailyMixBanner.classList.remove('hidden');
 
         // Load Vault
@@ -153,9 +161,10 @@ async function bootSession(u, showWelcomeToast = false) {
         document.getElementById('profSongCount').innerText = myPlaylist.length;
 
         // Init Background Systems
-        fetchMusic("Latest Trending Hindi");
+        fetchMusic("Top Lofi Hindi");
         listenToGlobalFM();
         loadLoveCapsule();
+        loadVibeChat();
         
     } catch(e) { console.log("Booted locally."); }
 }
@@ -204,10 +213,7 @@ async function toggleFav(e, i) {
     await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
     if(isPlaylistView) renderLibrary();
-    else {
-        // Just update icon visually
-        e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
-    }
+    else e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
 }
 
 function playSong(i) {
@@ -228,10 +234,11 @@ function playSong(i) {
 
     if(currentUser !== "Muskan") checkLoveCapsule(song);
     
-    // If Dark_eio is broadcasting, update the global FM state
-    if(isBroadcastingFM) broadcastFM(song);
+    // === FEATURE 2: AUTO-SYNC BROADCAST ===
+    if(isBroadcastingFM && currentUser.toLowerCase() === 'dark_eio') {
+        broadcastFM(song); // Will trigger listener's phones automatically
+    }
 
-    // Update Lyrics
     document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
@@ -279,7 +286,7 @@ audio.ontimeupdate = () => {
         seekSlider.value = (audio.currentTime/audio.duration)*100; 
         document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); 
         document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
-        if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.02; // Crossfade
+        if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.02; 
     } 
 };
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
@@ -312,22 +319,31 @@ function listenToGlobalFM() {
             fmLiveTag.classList.remove('hidden');
             fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> ${d.host}'s Live Radio`;
             
-            // If the user has clicked the tag and is actively listening, AUTO-CHANGE THE SONG!
+            // --- Auto Sync Logic ---
+            // Agar pehle se sun raha hai, aur database me gana change hua, to bina button dabaye automatic badal do!
             if (isListeningToFM) {
-                if (audio.src !== d.audio) {
+                if (audio.src !== d.audio) { // Check if new song is different
                     showToast(`Host changed track! 📻`);
                     const newSong = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
                     currentQueue = [newSong];
-                    playSong(0);
+                    playSong(0); // This plays the new song immediately
                 }
             }
 
-            // Click to Opt-in to Auto-Sync
+            // Pehli baar Tune In karne ke liye
             fmLiveTag.onclick = () => {
-                isListeningToFM = true;
-                showToast(`Tuning into ${d.host}'s Vibe... Auto-Sync Enabled! 📻`);
-                const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
-                currentQueue = [s]; playSong(0);
+                if(!isListeningToFM) {
+                    isListeningToFM = true;
+                    fmLiveTag.style.color = "#00ff88"; // Green tag to show tuned in
+                    showToast(`Tuning in... Auto-Sync Enabled! 📻`);
+                    const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
+                    currentQueue = [s]; playSong(0);
+                } else {
+                    isListeningToFM = false; // Disconnect
+                    fmLiveTag.style.color = "#ff3366";
+                    showToast(`Disconnected from Radio.`);
+                    audio.pause();
+                }
             };
 
         } else {
@@ -368,10 +384,44 @@ function loadLoveCapsule() {
     });
 }
 
-// === 🛠️ 8. GENERAL UI & AI DAILY MIX ===
+// === 💬 8. DOCK CHAT & UI ===
+document.getElementById('btnChatToggle').onclick = () => {
+    document.getElementById('chatWidget').classList.add('show');
+    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('btnChatToggle').classList.add('active');
+};
+document.getElementById('closeChatBtn').onclick = () => {
+    document.getElementById('chatWidget').classList.remove('show');
+    document.getElementById('btnChatToggle').classList.remove('active');
+    document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active');
+};
+
+function loadVibeChat() {
+    onSnapshot(query(collection(db, "globalChat"), orderBy("timestamp", "desc"), limit(50)), (snap) => {
+        const area = document.getElementById('chatMessages');
+        area.innerHTML = '';
+        const msgs = [];
+        snap.forEach(d => msgs.push(d.data()));
+        msgs.reverse().forEach(m => {
+            const div = document.createElement('div');
+            div.className = `chat-msg ${m.sender === currentUser ? 'mine' : ''}`;
+            div.innerHTML = `<span>${m.sender}</span>${m.text}`;
+            area.appendChild(div);
+        });
+        area.scrollTop = area.scrollHeight;
+    });
+}
+
+document.getElementById('sendChatBtn').onclick = async () => {
+    const inp = document.getElementById('chatInput');
+    if(!inp.value.trim()) return;
+    await addDoc(collection(db, "globalChat"), { sender: currentUser, text: inp.value, timestamp: Date.now() });
+    inp.value = '';
+};
+
+// === 🛠️ 9. GENERAL UI & AI DAILY MIX ===
 document.getElementById('playDailyMixBtn').onclick = () => {
     isPlaylistView = false;
-    // Feature 5: AI generated mix completely random generic vibes
     const genericMoods = ["Trending English Beats", "Aesthetic Lofi", "Global Top 50", "Romantic Hits", "Coke Studio Best", "Electronic Dance Chill"];
     const randomVibe = genericMoods[Math.floor(Math.random() * genericMoods.length)];
     fetchMusic(randomVibe);
@@ -386,12 +436,8 @@ document.getElementById('searchBtn').onclick = () => {
     else fetchMusic(q);
 };
 
-// Voice Mic Placeholder Action
-document.getElementById('micBtn').onclick = () => {
-    showToast("Voice AI connecting...");
-};
+document.getElementById('micBtn').onclick = () => showToast("Voice AI coming soon!");
 
-// Lyrics & Profile Sidebar
 document.getElementById('openLyricsArea').onclick = (e) => {
     if(e.target.closest('.playback-controls') || e.target.closest('.seek-wrapper')) return;
     document.getElementById('lyricsPanel').classList.add('show');
@@ -408,8 +454,8 @@ document.getElementById('btnHome').onclick = () => {
     document.getElementById('searchSection').style.display = 'block'; 
     dailyMixBanner.classList.remove('hidden'); 
     fetchMusic("Top Trending Hits"); 
+    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active'));
     document.getElementById('btnHome').classList.add('active');
-    document.getElementById('btnPlaylist').classList.remove('active');
 };
 document.getElementById('btnPlaylist').onclick = () => { 
     isPlaylistView = true; 
@@ -417,8 +463,8 @@ document.getElementById('btnPlaylist').onclick = () => {
     dailyMixBanner.classList.add('hidden'); 
     currentQueue = myPlaylist; 
     renderLibrary(); 
+    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active'));
     document.getElementById('btnPlaylist').classList.add('active');
-    document.getElementById('btnHome').classList.remove('active');
     document.getElementById('listHeading').innerText = "Personal Cloud Vault";
 };
 
