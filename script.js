@@ -1,10 +1,9 @@
-// VIP Users Database
+// === THE VIP DATABASE (सिर्फ 4 ख़ास आईडी) ===
 const vipDB = { 
-    "Dark_eio": "moh0909", 
-    "Muskan": "love2026", 
-    "Sanskar": "yaar123", 
-    "Harsh": "dost123", 
-    "Preeti": "bff" 
+    "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", themeName: "Dark Neon", seed: "Dark" },
+    "Muskan": { pass: "Love", relation: "Wife ❤️", theme: "theme-muskan", themeName: "Romantic Rose", seed: "Muskan" },
+    "Preeti": { pass: "bff", relation: "pure Best friend 🤞", theme: "theme-preeti", themeName: "BFF Vibes", seed: "Preeti" },
+    "guest": { pass: "1234", relation: "friend 🤝", theme: "theme-guest", themeName: "Minimalist Green", seed: "Guest" }
 };
 
 // Elements
@@ -14,58 +13,67 @@ const app = document.getElementById('mainApp');
 const audio = document.getElementById('audioEngine');
 const playBtn = document.getElementById('playBtn');
 const seekSlider = document.getElementById('seekSlider');
-const timeCurr = document.getElementById('timeCurrent');
-const timeTotal = document.getElementById('timeTotal');
+const vinylDisk = document.getElementById('vinylDisk');
+const visualizer = document.getElementById('eqBars');
 const songsList = document.getElementById('songsList');
 const searchInput = document.getElementById('searchInput');
 
+// Profile Elements
+const profileSidebar = document.getElementById('profileSidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
 let currentUser = "";
-let currentQueue = []; // जो गाने अभी चल रहे हैं
-let myPlaylist = []; // हर यूजर की अपनी प्लेलिस्ट
+let currentQueue = []; 
+let myPlaylist = []; 
 let currentIndex = 0;
-let isPlaylistView = false; // टैब ट्रैक करने के लिए
+let isPlaylistView = false; 
 
-// 1. Splash Screen Timer
-setTimeout(() => {
-    splash.classList.add('hidden');
-    login.classList.remove('hidden');
-}, 2500);
+// 1. Splash
+setTimeout(() => { splash.classList.add('hidden'); login.classList.remove('hidden'); }, 2500);
 
-// 2. Real-time Clock & Greetings
+// 2. Clock & Greetings
 setInterval(() => {
     const now = new Date();
-    let hr = now.getHours();
-    let min = now.getMinutes();
+    let hr = now.getHours(), min = now.getMinutes();
     const ampm = hr >= 12 ? 'PM' : 'AM';
-    hr = hr % 12 || 12;
-    document.getElementById('liveClock').innerText = `${hr}:${min < 10 ? '0'+min : min} ${ampm}`;
-    
-    let greet = "Good Morning,";
-    const realHour = now.getHours();
-    if(realHour >= 12 && realHour < 17) greet = "Good Afternoon,";
-    else if(realHour >= 17 && realHour < 21) greet = "Good Evening,";
-    else if(realHour >= 21 || realHour < 4) greet = "शब-बख़ैर,";
-    document.getElementById('timeGreeting').innerText = greet;
+    document.getElementById('timeGreeting').innerText = (hr >= 12 && hr < 17) ? "Good Afternoon," : (hr >= 17 && hr < 21) ? "Good Evening," : (hr >= 21 || hr < 4) ? "शब-बख़ैर," : "Good Morning,";
 }, 1000);
 
-// 3. Login & Init User
+// 3. Login & Theme Setup
 document.getElementById('loginBtn').onclick = () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     
-    if (vipDB[u] && vipDB[u] === p) {
-        currentUser = u;
+    // Check if user exists in our DB
+    const userKeys = Object.keys(vipDB);
+    const validUser = userKeys.find(key => key.toLowerCase() === u.toLowerCase());
+
+    if (validUser && vipDB[validUser].pass === p) {
+        currentUser = validUser;
+        const userData = vipDB[validUser];
+
+        // Apply Custom Theme
+        document.body.className = userData.theme;
         
-        // यूज़र की प्लेलिस्ट लोकल स्टोरेज से निकालो
+        // Load User Playlist
         const savedDB = localStorage.getItem('arshad_db_' + currentUser);
         myPlaylist = savedDB ? JSON.parse(savedDB) : [];
 
+        // Set UI Details
+        document.getElementById('userName').innerText = currentUser;
+        document.getElementById('userAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.seed}`;
+        
+        // Set Profile Sidebar Details
+        document.getElementById('sideProfAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.seed}`;
+        document.getElementById('profName').innerText = currentUser;
+        document.getElementById('profRelation').innerText = userData.relation;
+        document.getElementById('profThemeName').innerText = userData.themeName;
+        document.getElementById('profSongCount').innerText = myPlaylist.length;
+
         login.classList.add('hidden');
         app.classList.remove('hidden');
-        document.getElementById('userName').innerText = u;
-        
-        showToast(`Welcome to VIP, ${u}!`);
-        fetchMusic("Trending Bollywood"); // लॉगिन करते ही होम पेज पर गाने आ जाएंगे
+        showToast(`Welcome, ${currentUser}`);
+        fetchMusic("Top Lofi Hindi"); 
     } else {
         document.getElementById('loginError').style.display = 'block';
     }
@@ -75,12 +83,36 @@ function showToast(msg) {
     const t = document.getElementById('toast');
     t.innerText = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
+    setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// 4. API Music Fetcher
+// --- PROFILE SIDEBAR LOGIC ---
+document.getElementById('profileBtn').onclick = () => {
+    document.getElementById('profSongCount').innerText = myPlaylist.length; // Update count live
+    profileSidebar.classList.add('open');
+    sidebarOverlay.classList.add('show');
+};
+document.getElementById('closeProfileBtn').onclick = closeProfile;
+sidebarOverlay.onclick = closeProfile;
+
+function closeProfile() {
+    profileSidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('show');
+}
+
+// Logout
+document.getElementById('logoutBtn').onclick = () => {
+    closeProfile();
+    audio.pause();
+    app.classList.add('hidden');
+    login.classList.remove('hidden');
+    document.getElementById('password').value = '';
+    showToast("Logged Out Successfully");
+};
+
+// 4. API Fetch
 async function fetchMusic(query) {
-    document.getElementById('listHeading').innerText = "ढूंढ रहे हैं...";
+    document.getElementById('listHeading').innerText = "Scanning...";
     songsList.innerHTML = '';
     try {
         const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${query}`);
@@ -88,26 +120,22 @@ async function fetchMusic(query) {
         if(data.success && data.data.results.length > 0) {
             currentQueue = data.data.results;
             renderLibrary();
-            document.getElementById('listHeading').innerText = `'${query}' के बेहतरीन नग्मे`;
+            document.getElementById('listHeading').innerText = `'${query}' के रिज़ल्ट्स`;
         } else {
             document.getElementById('listHeading').innerText = "कुछ नहीं मिला!";
         }
-    } catch (e) {
-        document.getElementById('listHeading').innerText = "Network Error!";
-    }
+    } catch (e) { document.getElementById('listHeading').innerText = "Network Error!"; }
 }
 
-// Render Songs (With Heart Logic)
 function renderLibrary() {
     songsList.innerHTML = '';
     currentQueue.forEach((song, i) => {
         const div = document.createElement('div');
         div.className = 'song-card';
-        
-        // चेक करो गाना प्लेलिस्ट में है या नहीं
         const isFav = myPlaylist.some(s => s.id === song.id);
         const heartClass = isFav ? "fa-solid fa-heart" : "fa-regular fa-heart";
-        const heartColor = isFav ? "#ff007f" : "#888";
+        // Let CSS variable handle heart color
+        const heartColor = isFav ? "var(--neon-main)" : "#666";
 
         div.innerHTML = `
             <img src="${song.image[2].url}" onclick="playSong(${i})">
@@ -123,112 +151,118 @@ function renderLibrary() {
     });
 }
 
-// 5. Playlist Add/Remove Logic
 window.toggleFav = function(event, index) {
-    event.stopPropagation(); // ताकि गाना प्ले न हो जाए
-    
+    event.stopPropagation(); 
     const song = currentQueue[index];
     const existsIndex = myPlaylist.findIndex(s => s.id === song.id);
     
     if (existsIndex > -1) {
         myPlaylist.splice(existsIndex, 1);
-        showToast("Playlist से हटाया! 💔");
+        showToast("Removed from Vault");
     } else {
         myPlaylist.push(song);
-        showToast("Playlist में महफ़ूज़! ❤️");
+        showToast("Saved to Vault ❤️");
     }
-    
-    // सिर्फ इसी यूज़र के नाम से डेटाबेस सेव करो
     localStorage.setItem('arshad_db_' + currentUser, JSON.stringify(myPlaylist));
-    
-    if (isPlaylistView) {
-        currentQueue = myPlaylist; // अगर प्लेलिस्ट में हैं, तो तुरंत अपडेट करो
-    }
+    if (isPlaylistView) currentQueue = myPlaylist; 
     renderLibrary();
 };
 
-// 6. Audio Player Core
+// 5. Playback & Visuals
 window.playSong = function(index) {
     currentIndex = index;
     const song = currentQueue[index];
     
     document.getElementById('playerTitle').innerText = song.name;
     document.getElementById('playerArtist').innerText = song.artists.primary[0].name;
-    document.getElementById('playerCover').src = song.image[2].url;
+    document.getElementById('playerCover').src = song.image[1].url; 
     
     audio.src = song.downloadUrl[4].url;
     audio.play();
-    
-    playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-    document.querySelector('.disk-wrapper').classList.add('spin');
+    updatePlayState(true);
 };
+
+function updatePlayState(isPlaying) {
+    if(isPlaying) {
+        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        vinylDisk.classList.add('spin-vinyl');
+        visualizer.classList.remove('hidden');
+    } else {
+        playBtn.innerHTML = '<i class="fa-solid fa-play" style="padding-left:3px"></i>';
+        vinylDisk.classList.remove('spin-vinyl');
+        visualizer.classList.add('hidden');
+    }
+}
 
 playBtn.onclick = () => {
-    if(audio.paused && currentQueue.length > 0) {
-        audio.play();
-        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-        document.querySelector('.disk-wrapper').classList.add('spin');
-    } else if (!audio.paused) {
-        audio.pause();
-        playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-        document.querySelector('.disk-wrapper').classList.remove('spin');
-    }
+    if(audio.paused && currentQueue.length > 0) { audio.play(); updatePlayState(true); } 
+    else if (!audio.paused) { audio.pause(); updatePlayState(false); }
 };
 
-// --- AUTO PLAY FIX ---
-audio.onended = () => {
-    if (currentQueue.length > 0) {
-        playSong((currentIndex + 1) % currentQueue.length); // गाना खत्म होने पर अगला गाना
-    }
-};
-
+audio.onended = () => { if (currentQueue.length > 0) playSong((currentIndex + 1) % currentQueue.length); };
 document.getElementById('nextBtn').onclick = () => { if(currentQueue.length > 0) playSong((currentIndex + 1) % currentQueue.length); };
 document.getElementById('prevBtn').onclick = () => { if(currentQueue.length > 0) playSong((currentIndex - 1 + currentQueue.length) % currentQueue.length); };
 
-// Seekbar Logic
 audio.ontimeupdate = () => {
-    const { duration, currentTime } = audio;
-    if(isNaN(duration)) return;
-    
-    seekSlider.value = (currentTime / duration) * 100;
-    timeCurr.innerText = formatTime(currentTime);
-    timeTotal.innerText = formatTime(duration);
+    if(isNaN(audio.duration)) return;
+    seekSlider.value = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('timeCurrent').innerText = formatTime(audio.currentTime);
+    document.getElementById('timeTotal').innerText = formatTime(audio.duration);
 };
-
-seekSlider.oninput = () => {
-    audio.currentTime = (seekSlider.value / 100) * audio.duration;
-};
+seekSlider.oninput = () => { audio.currentTime = (seekSlider.value / 100) * audio.duration; };
 
 function formatTime(sec) {
-    let m = Math.floor(sec / 60);
-    let s = Math.floor(sec % 60);
+    let m = Math.floor(sec / 60); let s = Math.floor(sec % 60);
     return `${m}:${s < 10 ? '0'+s : s}`;
 }
 
-// 7. Navigation Tabs & Search
+// --- NEW FEATURES: DOWNLOAD & SHARE ---
+document.getElementById('downloadBtn').onclick = () => {
+    if(currentQueue.length === 0) return;
+    const song = currentQueue[currentIndex];
+    const link = document.createElement('a');
+    link.href = song.downloadUrl[4].url;
+    link.download = song.name + '.mp3'; // Forces download
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Downloading... ⬇️");
+};
+
+document.getElementById('shareBtn').onclick = () => {
+    if(currentQueue.length === 0) return;
+    const song = currentQueue[currentIndex];
+    if (navigator.share) {
+        navigator.share({
+            title: song.name,
+            text: `Listen to ${song.name} on ARSHAD Music!`,
+            url: song.url
+        });
+    } else {
+        showToast("Share copied to clipboard!");
+    }
+};
+
+// Navigation
 document.getElementById('btnHome').onclick = () => {
     isPlaylistView = false;
     document.querySelector('.dock-item.active').classList.remove('active');
     document.getElementById('btnHome').classList.add('active');
     document.getElementById('searchSection').style.display = 'block';
-    
-    fetchMusic("Trending Hindi"); // वापस होम पर ट्रेंडिंग गाने
+    fetchMusic("Trending Hindi"); 
 };
 
 document.getElementById('btnPlaylist').onclick = () => {
     isPlaylistView = true;
     document.querySelector('.dock-item.active').classList.remove('active');
     document.getElementById('btnPlaylist').classList.add('active');
-    document.getElementById('searchSection').style.display = 'none'; // प्लेलिस्ट में सर्च छुपाओ
-    
+    document.getElementById('searchSection').style.display = 'none'; 
     currentQueue = myPlaylist;
-    document.getElementById('listHeading').innerText = "Your Personal Vibe ❤️";
+    document.getElementById('listHeading').innerText = "Personal Vault";
     
-    if(myPlaylist.length === 0) {
-        songsList.innerHTML = "<p style='text-align:center; color:#888; margin-top:30px;'>अभी तक कोई गाना सेव नहीं किया मेरे भाई!</p>";
-    } else {
-        renderLibrary();
-    }
+    if(myPlaylist.length === 0) songsList.innerHTML = "<p style='text-align:center; color:#666; margin-top:30px;'>Vault is empty. Add some tracks!</p>";
+    else renderLibrary();
 };
 
 document.getElementById('searchBtn').onclick = () => {
@@ -236,4 +270,4 @@ document.getElementById('searchBtn').onclick = () => {
     if(!isPlaylistView && val) fetchMusic(val);
 };
 
-document.getElementById('btnVIP').onclick = () => showToast("Premium Activated!");
+document.getElementById('btnVIP').onclick = () => showToast("Pro Features Coming Soon!");
