@@ -52,11 +52,10 @@ let statsInterval;
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
-// === 🛑 AUTO-LOGIN & SAFETY VALVE (Fixed) ===
+// === 🛑 AUTO-LOGIN & SAFETY VALVE ===
 window.onload = async () => {
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     
-    // Safety Valve: Agar 5 sec tak screen na hate, toh zabardasti hatao
     const safetyValve = setTimeout(() => {
         if (splash && !splash.classList.contains('hidden')) {
             splash.classList.add('hidden');
@@ -66,7 +65,7 @@ window.onload = async () => {
     }, 5000);
 
     if (savedUser) {
-        showToast("Welcome Back, Master...");
+        showToast("ख़ुश-आमदीद, मेरे आका...");
         await initializeUserSession(savedUser);
         clearTimeout(safetyValve);
     } else {
@@ -134,16 +133,13 @@ async function initializeUserSession(u) {
         let userData = vipDB[currentUser] || (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
         document.body.className = userData.theme;
         
-        // Vault Sync
         const vaultSnap = await getDoc(doc(db, "vaults", currentUser));
         myPlaylist = vaultSnap.exists() ? vaultSnap.data().songs : [];
         
-        // Stats Sync
         const statsRef = doc(db, "stats", currentUser);
         const statsSnap = await getDoc(statsRef);
         if (!statsSnap.exists()) await setDoc(statsRef, { today: 0, week: 0, month: 0 });
 
-        // UI Setup
         document.getElementById('userName').innerText = currentUser;
         document.getElementById('userAvatar').src = userData.avatar;
         document.getElementById('sideProfAvatar').src = userData.avatar;
@@ -152,7 +148,6 @@ async function initializeUserSession(u) {
         document.getElementById('profThemeName').innerText = userData.themeName;
         document.getElementById('profSongCount').innerText = myPlaylist.length;
 
-        // Smart Greeting (Fix Integrated)
         updateTimeGreeting();
 
         splash.classList.add('hidden');
@@ -175,11 +170,17 @@ function updateTimeGreeting() {
     if(greetElement) greetElement.innerText = greeting;
 }
 
-// === 4. CLOUD STATS & LIVE ACTIVITY ===
+// === 4. CLOUD STATS & LIVE ACTIVITY (Story Heartbeat Fix) ===
 function startCloudTimer() {
     updateStatsUI();
     statsInterval = setInterval(async () => {
         sessionSeconds++;
+        
+        // हर 30 सेकंड में लाइव स्टेटस अपडेट करो (ताकि आप 'ताज़ा' दिखें)
+        if (sessionSeconds % 30 === 0 && !audio.paused) {
+            updateLiveStatus(true, currentQueue[currentIndex]);
+        }
+
         if (sessionSeconds % 60 === 0) {
             const statsRef = doc(db, "stats", currentUser);
             await updateDoc(statsRef, { today: increment(1), week: increment(1), month: increment(1) });
@@ -202,10 +203,14 @@ function listenToLiveActivity() {
     onSnapshot(collection(db, "liveStatus"), (snap) => {
         liveStoriesContainer.innerHTML = '';
         let hasLive = false;
+        const timeLimit = Date.now() - (120 * 1000); // 2 मिनट का फिल्टर
+
         snap.forEach((docSnap) => {
             const user = docSnap.id;
             const data = docSnap.data();
-            if (user !== currentUser && data.isPlaying) {
+            
+            // सिर्फ उन्हें दिखाओ जो 'Playing' हैं और जिनका डेटा 2 मिनट के अंदर ताज़ा हुआ है
+            if (user !== currentUser && data.isPlaying && data.lastSeen > timeLimit) {
                 hasLive = true;
                 const story = document.createElement('div');
                 story.className = 'story-item';
@@ -224,8 +229,19 @@ function listenToLiveActivity() {
 async function updateLiveStatus(isPlaying, song = null) {
     const ref = doc(db, "liveStatus", currentUser);
     if(isPlaying && song) {
-        await setDoc(ref, { isPlaying: true, songName: song.name, artist: song.artists.primary[0].name, cover: song.image[2].url, audio: song.downloadUrl[4].url, songId: song.id, avatar: vipDB[currentUser]?.avatar || "guest.jpg", timestamp: new Date() });
-    } else { await updateDoc(ref, { isPlaying: false }); }
+        await setDoc(ref, { 
+            isPlaying: true, 
+            songName: song.name, 
+            artist: song.artists.primary[0].name, 
+            cover: song.image[2].url, 
+            audio: song.downloadUrl[4].url, 
+            songId: song.id, 
+            avatar: vipDB[currentUser]?.avatar || "guest.jpg", 
+            lastSeen: Date.now() // धड़कन (timestamp) दर्ज करें
+        });
+    } else { 
+        await updateDoc(ref, { isPlaying: false }); 
+    }
 }
 
 // === 5. MUSIC ENGINE ===
@@ -308,6 +324,11 @@ document.addEventListener('click', (e) => {
     const r = document.createElement('div'); r.className = 'touch-ripple'; r.style.left = `${e.clientX-20}px`; r.style.top = `${e.clientY-20}px`;
     document.body.appendChild(r); setTimeout(() => r.remove(), 600);
 });
+
+// App Close Cleanup
+window.onbeforeunload = () => {
+    updateLiveStatus(false);
+};
 
 // === 📲 APP INSTALL LOGIC ===
 let deferredPrompt;
