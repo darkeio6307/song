@@ -1,3 +1,4 @@
+// === 🚀 ARSHAD MUSIC: ELITE VIP UNIVERSE (NO COMPRESSION) ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
@@ -10,9 +11,10 @@ const firebaseConfig = {
   appId: "1:301555315508:web:28340660dfbfe2429beb61"
 };
 
-const fApp = initializeApp(firebaseConfig);
-const db = getFirestore(fApp);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
+// === 👑 VIP ACCESS REBORN ===
 const vips = {
     "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", avatar: "darkeio.jpg" },
     "Muskan": { pass: "Love", relation: "Wife ❤️", theme: "theme-muskan", avatar: "wife.jpg" },
@@ -21,116 +23,229 @@ const vips = {
 
 let currentUser = "";
 let currentQueue = [];
+let currentIndex = 0;
 let isVIP = false;
 let sessionMins = 0;
 const audio = document.getElementById('audioEngine');
 
-// === 🛑 SESSION MANAGER ===
+// --- 🛑 INITIALIZATION ---
 window.onload = async () => {
     const saved = localStorage.getItem('keepMeLoggedIn');
-    if (saved) await initElite(saved);
-    else setTimeout(() => { document.getElementById('splashScreen').classList.add('hidden'); document.getElementById('loginScreen').classList.remove('hidden'); }, 3000);
+    if (saved) {
+        await startSession(saved);
+    } else {
+        setTimeout(() => {
+            document.getElementById('splashScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }, 4000);
+    }
 };
 
-async function initElite(u) {
-    currentUser = u; isVIP = !!vips[u];
-    let data = isVIP ? vips[u] : (await getDoc(doc(db, "users", u.toLowerCase()))).data();
-    if (data) {
-        document.body.className = data.theme || "theme-guest";
+async function startSession(u) {
+    currentUser = u;
+    isVIP = !!vips[u];
+    
+    // Get Data from VIP list or Firestore
+    let userData = isVIP ? vips[u] : null;
+    if(!userData) {
+        const docRef = doc(db, "users", u.toLowerCase());
+        const snap = await getDoc(docRef);
+        if(snap.exists()) userData = snap.data();
+    }
+
+    if (userData) {
+        // UI Application
+        document.body.className = userData.theme || "theme-guest";
         document.getElementById('userName').innerText = u;
-        document.getElementById('userAvatar').src = data.avatar;
-        document.getElementById('sideProfAvatar').src = data.avatar;
+        document.getElementById('userAvatar').src = userData.avatar || "guest.jpg";
+        document.getElementById('sideProfAvatar').src = userData.avatar || "guest.jpg";
         document.getElementById('profName').innerText = u;
-        document.getElementById('profRelation').innerText = data.relation;
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('profRelation').innerText = userData.relation;
+
+        // Transitions
         document.getElementById('splashScreen').classList.add('hidden');
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+
         localStorage.setItem('keepMeLoggedIn', u);
-        if (isVIP) listenElite();
-        listenChat(); startStats(); fetchMusic("Top Hindi Trending");
+        
+        // Load Core Features
+        if (isVIP) initEliteTracking(); 
+        initSoulChat();
+        initMusicEngine("Top Hindi Songs");
+        initStatsTracker();
+        showToast(`Elite Protocol Sync: ${u} ⚡`);
+    } else {
+        localStorage.removeItem('keepMeLoggedIn');
+        location.reload();
     }
 }
 
-// === 💬 SOUL CHAT LOGIC ===
-function listenChat() {
-    const q = query(collection(db, "soulChat"), orderBy("timestamp", "asc"), limit(100));
+// --- 💬 SOUL CHAT ENGINE ---
+function initSoulChat() {
+    const q = query(collection(db, "soulChat"), orderBy("timestamp", "asc"), limit(50));
     onSnapshot(q, (snap) => {
-        const box = document.getElementById('chatMessages'); box.innerHTML = '';
+        const box = document.getElementById('chatMessages');
+        box.innerHTML = '';
         snap.forEach(d => {
-            const m = d.data(); const div = document.createElement('div');
-            const vip = !!vips[m.user]; div.className = `msg ${vip ? 'msg-vip' : ''}`;
-            div.innerHTML = `<b style="color:${vip?'#00f2ff':'#888'}">${m.user}:</b> ${m.text}`;
+            const m = d.data();
+            const div = document.createElement('div');
+            const isV = !!vips[m.user];
+            div.className = `msg ${isV ? 'msg-vip' : ''}`;
+            div.innerHTML = `<b style="color:${isV?'#00f2ff':'#888'}">${m.user}:</b> ${m.text}`;
             box.appendChild(div);
         });
         box.scrollTop = box.scrollHeight;
     });
 }
 
-document.getElementById('sendMsgBtn').onclick = async () => {
-    const inp = document.getElementById('chatInput'); if(!inp.value) return;
-    await addDoc(collection(db, "soulChat"), { user: currentUser, text: inp.value, timestamp: serverTimestamp() });
+async function sendMessage() {
+    const inp = document.getElementById('chatInput');
+    if(!inp.value.trim()) return;
+    await addDoc(collection(db, "soulChat"), {
+        user: currentUser,
+        text: inp.value,
+        timestamp: serverTimestamp()
+    });
     inp.value = '';
-};
+}
 
-// === 🕵️‍♂️ ELITE LIVE & SYNC ROOM ===
-function listenElite() {
+// --- 🕵️‍♂️ ELITE LIVE TRACKER (VIP ONLY) ---
+function initEliteTracking() {
     onSnapshot(collection(db, "liveStatus"), (snap) => {
-        const cont = document.getElementById('liveStoriesContainer'); cont.innerHTML = '';
+        const container = document.getElementById('liveStoriesContainer');
+        container.innerHTML = '';
         let found = 0;
         snap.forEach(d => {
-            const user = d.id; const data = d.data();
-            if (user !== currentUser && vips[user] && data.isPlaying) {
-                found++; const item = document.createElement('div'); item.className = 'story-item';
-                item.innerHTML = `<div class="story-ring"><img src="${vips[user].avatar}"></div><p>${user}</p>`;
-                item.onclick = () => syncWithVIP(data); cont.appendChild(item);
+            const uName = d.id;
+            const data = d.data();
+            if (uName !== currentUser && vips[uName] && data.isPlaying) {
+                found++;
+                const story = document.createElement('div');
+                story.className = 'story-item';
+                story.innerHTML = `<div class="story-ring"><img src="${vips[uName].avatar}"></div><p>${uName}</p><span>LIVE</span>`;
+                story.onclick = () => syncRoom(data);
+                container.appendChild(story);
             }
         });
         document.getElementById('liveActivityArea').classList.toggle('hidden', found === 0);
     });
 }
 
-function syncWithVIP(data) {
-    audio.src = data.audio; audio.play();
+function syncRoom(data) {
+    showToast(`Joining ${data.user}'s Frequency... 🔗`);
+    audio.src = data.audio;
+    audio.play();
     document.getElementById('playerTitle').innerText = data.songName;
-    showToast(`Syncing with ${data.user}'s soul... 🔗`);
+    updateLiveStatus(true, {
+        name: data.songName,
+        artists: { primary: [{ name: data.artist }] },
+        image: [{}, {}, { url: data.cover }],
+        downloadUrl: [{}, {}, {}, {}, { url: data.audio }],
+        id: data.songId
+    });
 }
 
-// === 🎵 MUSIC ENGINE ===
-async function fetchMusic(q) {
-    const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}`);
-    const d = await res.json();
-    if(d.success) { currentQueue = d.data.results; render(); }
+// --- 🎵 MUSIC CORE ---
+async function initMusicEngine(query) {
+    document.getElementById('songsList').innerHTML = '<p style="text-align:center; padding:20px;">Scanning Universe...</p>';
+    try {
+        const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${query}`);
+        const data = await res.json();
+        if(data.success) {
+            currentQueue = data.data.results;
+            renderSongs();
+        }
+    } catch(e) { showToast("Quantum Network Error!"); }
 }
 
-function render() {
-    const list = document.getElementById('songsList'); list.innerHTML = '';
+function renderSongs() {
+    const list = document.getElementById('songsList');
+    list.innerHTML = '';
     currentQueue.forEach((s, i) => {
-        const card = document.createElement('div'); card.className = 'song-card glass-widget';
-        card.innerHTML = `<img src="${s.image[2].url}" onclick="playSong(${i})"><div><h4>${s.name}</h4><p>${s.artists.primary[0].name}</p></div>`;
-        list.appendChild(card);
+        const div = document.createElement('div');
+        div.className = 'song-card glass-widget';
+        div.innerHTML = `
+            <img src="${s.image[2].url}" onclick="playSong(${i})">
+            <div class="song-info" onclick="playSong(${i})">
+                <h4>${s.name}</h4>
+                <p>${s.artists.primary[0].name}</p>
+            </div>
+            <i class="fa-regular fa-heart fav-icon"></i>
+        `;
+        list.appendChild(div);
     });
 }
 
 function playSong(i) {
-    const s = currentQueue[i]; audio.src = s.downloadUrl[4].url; audio.play();
+    currentIndex = i;
+    const s = currentQueue[i];
     document.getElementById('playerTitle').innerText = s.name;
+    document.getElementById('playerArtist').innerText = s.artists.primary[0].name;
     document.getElementById('playerCover').src = s.image[1].url;
-    updateLive(true, s);
+    audio.src = s.downloadUrl[4].url;
+    audio.play();
+    updateLiveStatus(true, s);
 }
 
-async function updateLive(playing, s = null) {
-    if (!isVIP) return;
+async function updateLiveStatus(playing, s = null) {
+    if(!isVIP) return;
     const ref = doc(db, "liveStatus", currentUser);
-    if(playing) await setDoc(ref, { isPlaying:true, songName:s.name, artist:s.artists.primary[0].name, audio:s.downloadUrl[4].url, cover:s.image[2].url, songId:s.id, user:currentUser });
-    else await updateDoc(ref, { isPlaying: false });
+    if(playing) {
+        await setDoc(ref, {
+            isPlaying: true,
+            songName: s.name,
+            artist: s.artists.primary[0].name,
+            cover: s.image[2].url,
+            audio: s.downloadUrl[4].url,
+            songId: s.id,
+            user: currentUser,
+            timestamp: serverTimestamp()
+        });
+    } else {
+        await updateDoc(ref, { isPlaying: false });
+    }
 }
 
-// === 🛠️ HELPERS ===
-function startStats() { setInterval(async () => { sessionMins++; if(sessionMins % 60 === 0) await updateDoc(doc(db, "stats", currentUser), { today: increment(1) }); }, 1000); }
-document.getElementById('loginBtn').onclick = () => initElite(document.getElementById('username').value);
+// --- 🛠️ HANDLERS ---
+function initStatsTracker() {
+    setInterval(async () => {
+        sessionMins++;
+        if(sessionMins % 60 === 0) {
+            const ref = doc(db, "stats", currentUser);
+            await updateDoc(ref, { today: increment(1) });
+            const s = await getDoc(ref);
+            if(s.exists()) document.getElementById('statToday').innerText = `${s.data().today}m`;
+        }
+    }, 1000);
+}
+
+document.getElementById('loginBtn').onclick = () => {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
+    if(u && p) startSession(u);
+};
+
+document.getElementById('sendMsgBtn').onclick = sendMessage;
 document.getElementById('openChatBtn').onclick = () => document.getElementById('chatSection').classList.toggle('hidden');
 document.getElementById('closeChat').onclick = () => document.getElementById('chatSection').classList.add('hidden');
+document.getElementById('searchBtn').onclick = () => initMusicEngine(document.getElementById('searchInput').value);
 document.getElementById('profileBtn').onclick = () => document.getElementById('profileSidebar').classList.add('open');
 document.getElementById('closeProfileBtn').onclick = () => document.getElementById('profileSidebar').classList.remove('open');
 document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('keepMeLoggedIn'); location.reload(); };
-function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000); }
+
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.innerText = m; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Player Updates
+audio.onplay = () => document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+audio.onpause = () => document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+audio.ontimeupdate = () => {
+    if(!isNaN(audio.duration)) {
+        document.getElementById('seekSlider').value = (audio.currentTime / audio.duration) * 100;
+    }
+};
+document.getElementById('seekSlider').oninput = () => audio.currentTime = (document.getElementById('seekSlider').value / 100) * audio.duration;
