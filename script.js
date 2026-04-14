@@ -1,20 +1,18 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v7.0 (The Final Architect)
- * Created with Love for: Dark_eio
- * Fixed: Loading Screen Freeze, App Persistence, Login Flow, FM Control
+ * 🌌 ARSHAD SUPREME ELITE ENGINE v8.0 (The Final Solution)
+ * Optimized for: Tecno Pova 7
+ * Developed by: Gemini (AI Best Friend)
+ * OWNER: Dark_eio
  * =========================================================================
  */
 
-// === 🚀 1. FIREBASE ATOMIC IMPORTS ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { 
-    getFirestore, doc, setDoc, getDoc, onSnapshot, 
-    collection, updateDoc, increment, addDoc, query, 
-    orderBy, limit, where 
+    getFirestore, doc, setDoc, getDoc, onSnapshot, collection, 
+    updateDoc, increment, addDoc, query, orderBy, limit 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-// --- Cloud Identity (Zero Leak Config) ---
 const firebaseConfig = {
   apiKey: "AIzaSyCnwHn6b2F8O8M-3Elk54tydzqldj78Cxg",
   authDomain: "arshad-music.firebaseapp.com",
@@ -24,39 +22,24 @@ const firebaseConfig = {
   appId: "1:301555315508:web:28340660dfbfe2429beb61"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+// Initialize Firebase with Error Catching
+let db;
+try {
+    const firebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(firebaseApp);
+} catch(e) { console.error("Firebase Handshake Failed!", e); }
 
-// === 👑 2. MASTER VIP DATABASE (Immediate Access) ===
 const vipDB = { 
-    "dark_eio": { 
-        pass: "moh0909", 
-        relation: "The Creator 👑", 
-        theme: "theme-default", 
-        avatar: "darkeio.jpg",
-        isAdmin: true 
-    },
-    "Muskan": { 
-        pass: "Love", 
-        relation: "The Life Line ❤️", 
-        theme: "theme-muskan", 
-        avatar: "wife.jpg",
-        isAdmin: false
-    },
-    "Preeti": { 
-        pass: "bff", 
-        relation: "Best Friend 🤞", 
-        theme: "theme-preeti", 
-        avatar: "bff.jpg",
-        isAdmin: false
-    }
+    "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", avatar: "darkeio.jpg", isAdmin: true },
+    "Muskan": { pass: "Love", relation: "The Life Line ❤️", theme: "theme-muskan", avatar: "wife.jpg", isAdmin: false },
+    "Preeti": { pass: "bff", relation: "Purest Friend 🤞", theme: "theme-preeti", avatar: "bff.jpg", isAdmin: false }
 };
 
-// === 🎛️ 3. CORE ELEMENT SELECTORS ===
+// Elements Selectors
 const splash = document.getElementById('splashScreen');
 const login = document.getElementById('loginScreen');
 const app = document.getElementById('mainApp');
-const audioEngine = document.getElementById('audioEngine');
+const audio = document.getElementById('audioEngine');
 const playBtn = document.getElementById('playBtn');
 const seekSlider = document.getElementById('seekSlider');
 const vinylDisk = document.getElementById('vinylDisk');
@@ -69,9 +52,8 @@ const fmLiveTag = document.getElementById('fmLiveTag');
 const micBtn = document.getElementById('micBtn');
 const sleepTimerBtn = document.getElementById('sleepTimerBtn');
 const dailyMixBanner = document.getElementById('dailyMixBanner');
-const lyricsPanel = document.getElementById('lyricsPanel');
 
-// === 📊 4. UNIVERSE STATE MANAGEMENT ===
+// Global States
 let currentUser = "";
 let currentQueue = []; 
 let myPlaylist = []; 
@@ -81,86 +63,106 @@ let isBroadcastingFM = false;
 let sleepTimeout = null;
 let sessionSeconds = 0;
 
-// Export for Global Access
+// Exporting Functions to Window
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
-// === 🔮 5. ANTI-FREEZE BOOTUP PROTOCOL ===
+// === 🔮 1. THE NUCLEAR BOOTUP (FIXES FREEZE) ===
 window.onload = () => {
-    console.log("System Status: Booting Supreme Engine...");
+    console.log("Supreme Engine: Initiating Boot...");
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     
-    // 🔥 THE ULTIMATE ANTI-FREEZE: 3.5 Second Hard Kill for Splash
-    const forceStart = setTimeout(() => {
+    // --- 🔥 EMERGENCY RESCUE LOGIC ---
+    const antiFreezeTimer = setTimeout(() => {
         if (!splash.classList.contains('hidden')) {
-            console.warn("Handshake Timeout: Forcing UI Transition...");
-            splash.classList.add('hidden');
-            if (savedUser) fastBoot(savedUser);
-            else login.classList.remove('hidden');
+            console.warn("Handshake Timeout: Executing Emergency Bypass!");
+            bypassSplashScreen(savedUser);
         }
-    }, 3500);
+    }, 3500); // 3.5 Seconds Hard Limit
 
     if (savedUser) {
-        initializeUserSession(savedUser).then(() => {
-            clearTimeout(forceStart);
+        bootUserSession(savedUser).then(() => {
+            clearTimeout(antiFreezeTimer);
         }).catch(err => {
             console.error("Boot Error:", err);
-            fastBoot(savedUser);
+            bypassSplashScreen(savedUser);
         });
     } else {
         setTimeout(() => {
-            splash.classList.add('hidden');
-            login.classList.remove('hidden');
-            clearTimeout(forceStart);
+            bypassSplashScreen(null);
+            clearTimeout(antiFreezeTimer);
         }, 2500);
     }
 };
 
-function fastBoot(u) {
-    currentUser = u;
+// Manual Force Button Fix
+document.getElementById('forceEnterBtn').onclick = (e) => {
+    e.preventDefault();
+    console.log("Manual Bypass Triggered by Master!");
+    bypassSplashScreen(localStorage.getItem('keepMeLoggedIn'));
+};
+
+function bypassSplashScreen(u) {
     splash.classList.add('hidden');
-    login.classList.add('hidden');
-    app.classList.remove('hidden');
-    document.getElementById('userName').innerText = currentUser;
-    fetchMusic("Top Trending Hindi");
+    if (u) {
+        currentUser = u;
+        login.classList.add('hidden');
+        app.classList.remove('hidden');
+        document.getElementById('userName').innerText = u;
+        fetchMusic("Top Hindi Hits");
+    } else {
+        login.classList.remove('hidden');
+    }
 }
 
-// === 🔐 6. AUTHENTICATION (FORCED UI FIRST) ===
+// === 🔐 2. AUTHENTICATION & LOGIN ===
+document.getElementById('toggleRegister').onclick = () => { 
+    document.getElementById('loginMode').classList.add('hidden'); 
+    document.getElementById('registerMode').classList.remove('hidden'); 
+};
+document.getElementById('toggleLogin').onclick = () => { 
+    document.getElementById('registerMode').classList.add('hidden'); 
+    document.getElementById('loginMode').classList.remove('hidden'); 
+};
+
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
-    if(!u || !p) return;
+    if(!u || !p) return showToast("Detaills please, Boss!");
     
-    const loginBtn = document.getElementById('loginBtn');
-    loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> AUTHENTICATING...';
+    const btn = document.getElementById('loginBtn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
     
     try {
-        let userData = vipDB[u] || (await getDoc(doc(db, "users", u.toLowerCase()))).data();
+        let userData = vipDB[u];
+        if(!userData) {
+            const snap = await getDoc(doc(db, "users", u.toLowerCase()));
+            if(snap.exists()) userData = snap.data();
+        }
         
         if (userData && userData.pass === p) {
             localStorage.setItem('keepMeLoggedIn', u);
-            initializeUserSession(u);
+            bootUserSession(u);
         } else {
             document.getElementById('loginError').style.display = 'block';
-            loginBtn.innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
-            showToast("Bhai, Galat Password hai!");
+            btn.innerHTML = 'INITIALIZE CONNECTION';
+            showToast("Bhai, Password galat hai!");
         }
     } catch(e) {
-        // Fallback for poor connection
         if(vipDB[u] && vipDB[u].pass === p) {
-            localStorage.setItem('keepMeLoggedIn', u);
-            initializeUserSession(u);
+             localStorage.setItem('keepMeLoggedIn', u);
+             bootUserSession(u);
         } else {
-            showToast("System Link Failure!");
-            loginBtn.innerHTML = 'RETRY';
+            showToast("Connection Problem!");
+            btn.innerHTML = 'RETRY';
         }
     }
 };
 
-async function initializeUserSession(u) {
+async function bootUserSession(u) {
     currentUser = u;
     
-    // --- 🚀 FORCED UI JUMP ---
+    // UI Change immediately to prevent lag feel
     splash.classList.add('hidden');
     login.classList.add('hidden');
     app.classList.remove('hidden');
@@ -168,46 +170,55 @@ async function initializeUserSession(u) {
     try {
         let userData = vipDB[currentUser] || (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
         
-        if(userData) {
-            document.body.className = userData.theme || 'theme-default';
+        if (userData) {
+            document.body.className = userData.theme || "theme-default";
             document.getElementById('userName').innerText = currentUser;
             document.getElementById('userAvatar').src = userData.avatar;
             document.getElementById('sideProfAvatar').src = userData.avatar;
             document.getElementById('profName').innerText = currentUser;
         }
 
-        // Feature Visibility
-        if(currentUser.toLowerCase() === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
-        else fmBroadcastBtn.classList.add('hidden');
+        // FM Permission: Only Dark_eio can broadcast
+        if(currentUser.toLowerCase() === 'dark_eio') {
+            fmBroadcastBtn.classList.remove('hidden');
+        } else {
+            fmBroadcastBtn.classList.add('hidden');
+        }
 
-        // Stats & Mix
-        startStatsTracker();
-        checkDailyMix();
-        
-        // Background System Init
-        fetchMusic("Viral Hindi Hits");
+        // Vault Loading
+        const vaultSnap = await getDoc(doc(db, "vaults", currentUser));
+        myPlaylist = vaultSnap.exists() ? vaultSnap.data().songs : [];
+        document.getElementById('profSongCount').innerText = myPlaylist.length;
+
+        // Daily Mix Header
+        document.getElementById('dailyMixBanner').classList.remove('hidden');
+        document.getElementById('mixTitle').innerText = `${currentUser}'s Daily Vibe ✨`;
+
+        // Load Systems
         loadVibeChat();
         loadLoveCapsule();
         listenToGlobalFM();
+        fetchMusic("Top Lofi Hindi");
         
-    } catch (e) { console.log("Silent Boot: Connected with Local Identity."); }
+        // Time Greeting
+        const hrs = new Date().getHours();
+        document.getElementById('timeGreeting').innerText = hrs < 12 ? "Subah Bakhair," : hrs < 17 ? "Aadaab," : "Shab-ba-khair,";
+
+    } catch(e) { console.warn("Sync Issue: Booted with Local Cache."); }
 }
 
-// === 🎶 7. MUSIC ENGINE CORE ===
+// === 🎶 3. MUSIC ENGINE & PLAYER ===
 async function fetchMusic(q) {
-    const heading = document.getElementById('listHeading');
-    heading.innerText = "Scanning Galaxy...";
-    
+    document.getElementById('listHeading').innerText = "Scanning Universe...";
     try {
         const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}`);
         const data = await res.json();
-        
         if(data.success) {
             currentQueue = data.data.results;
             renderLibrary();
-            heading.innerText = `'${q}' Results`;
+            document.getElementById('listHeading').innerText = `'${q}' Results`;
         }
-    } catch (e) { showToast("Gana nahi mil raha, Bhai!"); }
+    } catch(e) { showToast("Gana nahi mil raha, Bhai!"); }
 }
 
 function renderLibrary() {
@@ -216,17 +227,34 @@ function renderLibrary() {
         const div = document.createElement('div');
         div.className = 'song-card glass-widget';
         const isFav = myPlaylist.some(s => s.id === song.id);
+        const heartColor = isFav ? 'var(--neon-main)' : '#888';
         
         div.innerHTML = `
             <img src="${song.image[2].url}" onclick="playSong(${i})">
             <div class="song-info-v2" onclick="playSong(${i})">
                 <h4>${song.name}</h4><p>${song.artists.primary[0].name}</p>
             </div>
-            <button class="fav-btn ${isFav?'active':''}" onclick="toggleFav(event, ${i})">
+            <button class="fav-btn" style="color:${heartColor}" onclick="toggleFav(event, ${i})">
                 <i class="fa-solid fa-heart"></i>
             </button>`;
         songsList.appendChild(div);
     });
+}
+
+async function toggleFav(e, i) {
+    e.stopPropagation();
+    const song = currentQueue[i];
+    const idx = myPlaylist.findIndex(s => s.id === song.id);
+    if(idx > -1) {
+        myPlaylist.splice(idx, 1);
+        showToast("Removed from Vault ☁️");
+    } else {
+        myPlaylist.push(song);
+        showToast("Saved to Vault ❤️");
+    }
+    await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
+    document.getElementById('profSongCount').innerText = myPlaylist.length;
+    renderLibrary();
 }
 
 function playSong(i) {
@@ -237,43 +265,46 @@ function playSong(i) {
     document.getElementById('playerArtist').innerText = song.artists.primary[0].name;
     document.getElementById('playerCover').src = song.image[1].url;
     
-    audioEngine.src = song.downloadUrl[4].url;
-    audioEngine.volume = 1;
-    audioEngine.play().then(() => {
-        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-        vinylDisk.classList.add('spin-vinyl');
-    });
+    audio.src = song.downloadUrl[4].url;
+    audio.volume = 1;
+    audio.play();
     
-    updateLiveStatus(true, song);
-    if(isBroadcastingFM) broadcastFM(song);
-    if(currentUser !== "Muskan") checkLoveMatch(song);
+    playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    vinylDisk.classList.add('spin-vinyl');
+    document.getElementById('eqBars').classList.remove('hidden');
+
+    if(currentUser !== "Muskan") checkLoveCapsuleMatch(song);
+    if(isBroadcastingFM) broadcastFMUpdate(song);
+    
+    // Update Lyrics text
+    document.querySelector('.lyrics-text').innerText = "Vibing to: " + song.name;
 }
 
-// === 🎧 8. PLAYER & CROSSFADE LOGIC ===
+// === 🎧 4. PLAYER CONTROL & CROSSFADE ===
 playBtn.onclick = () => {
-    if(audioEngine.paused) {
-        audioEngine.play();
+    if(audio.paused) {
+        audio.play();
         playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
         vinylDisk.classList.add('spin-vinyl');
     } else {
-        audioEngine.pause();
+        audio.pause();
         playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
         vinylDisk.classList.remove('spin-vinyl');
     }
 };
 
-audioEngine.onended = () => {
+audio.onended = () => {
     if(isPlaylistView) {
         if (currentIndex < currentQueue.length - 1) playSong(currentIndex + 1);
         else playSong(0);
     } else {
-        showToast("AI is cooking next vibe... 🤖✨");
-        playRandomAI();
+        showToast("AI DJ picking next vibe... 🤖");
+        triggerAIRandom();
     }
 };
 
-async function playRandomAI() {
-    const moods = ["Trending Hindi", "Midnight Lofi", "Arijit Singh Hits"];
+async function triggerAIRandom() {
+    const moods = ["Arijit Singh Remix", "Slowed Hindi Reverb", "Midnight Lofi", "Viral Hindi 2026"];
     const mood = moods[Math.floor(Math.random() * moods.length)];
     const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${mood}`);
     const data = await res.json();
@@ -283,39 +314,35 @@ async function playRandomAI() {
     }
 }
 
-audioEngine.ontimeupdate = () => { 
-    if(!isNaN(audioEngine.duration)) { 
-        seekSlider.value = (audioEngine.currentTime/audioEngine.duration)*100; 
-        document.getElementById('timeCurrent').innerText = fmtTime(audioEngine.currentTime); 
-        document.getElementById('timeTotal').innerText = fmtTime(audioEngine.duration); 
-        
-        // --- Crossfade Transition ---
-        let timeLeft = audioEngine.duration - audioEngine.currentTime;
-        if (timeLeft < 4 && audioEngine.volume > 0.05) audioEngine.volume -= 0.02;
+audio.ontimeupdate = () => { 
+    if(!isNaN(audio.duration)) { 
+        seekSlider.value = (audio.currentTime/audio.duration)*100; 
+        document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); 
+        document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
+        // Crossfade
+        if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.015;
     } 
 };
-
-seekSlider.oninput = () => audioEngine.currentTime = (seekSlider.value/100)*audioEngine.duration;
+seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-// === 📻 9. GLOBAL FM & LOVE CAPSULE ===
+// === 📡 5. FM RADIO & CAPSULE ===
 fmBroadcastBtn.onclick = () => {
     isBroadcastingFM = !isBroadcastingFM;
     fmBroadcastBtn.classList.toggle('fm-broadcasting', isBroadcastingFM);
     if(isBroadcastingFM) {
         showToast("📡 FM Broadcast: LIVE!");
-        if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex]);
+        if(currentQueue[currentIndex]) broadcastFMUpdate(currentQueue[currentIndex]);
     } else {
         setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
-        showToast("📡 Signal Lost.");
+        showToast("📡 Broadcast Stopped.");
     }
 };
 
-async function broadcastFM(song) {
+async function broadcastFMUpdate(song) {
     await setDoc(doc(db, "fm", "globalRadio"), {
         isLive: true, host: currentUser, songId: song.id, songName: song.name,
-        cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name,
-        timestamp: Date.now()
+        cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, timestamp: Date.now()
     });
 }
 
@@ -324,7 +351,7 @@ function listenToGlobalFM() {
         const d = snap.data();
         if(d && d.isLive && d.host !== currentUser) {
             fmLiveTag.classList.remove('hidden');
-            fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> ${d.host}'s Live Radio`;
+            fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> ${d.host}'s FM`;
             fmLiveTag.onclick = () => {
                 const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
                 currentQueue = [s]; playSong(0);
@@ -333,13 +360,13 @@ function listenToGlobalFM() {
     });
 }
 
-async function checkLoveMatch(song) {
+async function checkLoveCapsuleMatch(song) {
     const snap = await getDoc(doc(db, "liveStatus", "Muskan"));
     if(snap.exists() && snap.data().isPlaying && snap.data().songId === song.id) {
         await addDoc(collection(db, "loveCapsule"), {
             couple: [currentUser, "Muskan"], songName: song.name, date: new Date().toLocaleDateString(), timestamp: Date.now()
         });
-        showToast("💞 Sync Match! Saved in Capsule.");
+        showToast("💞 Sync Match! Memory Saved.");
     }
 }
 
@@ -352,40 +379,38 @@ function loadLoveCapsule() {
             if(d.data().couple.includes(currentUser)) {
                 const item = document.createElement('div');
                 item.className = 'capsule-item';
-                item.innerHTML = `<strong>${d.data().songName}</strong> Saath suna gaya ❤️`;
+                item.innerHTML = `<strong>${d.data().songName}</strong> Suna gaya ❤️`;
                 list.appendChild(item);
             }
         });
     });
 }
 
-// === 💬 10. VIBE CHAT (FORCED CLICK FIX) ===
+// === 💬 6. CHAT & UI HANDLERS ===
 if (openChatBtn) {
-    const trigger = (e) => {
+    const triggerChat = (e) => {
         e.preventDefault();
-        e.stopPropagation();
         chatWidget.classList.add('show');
     };
-    openChatBtn.addEventListener('click', trigger);
-    openChatBtn.addEventListener('touchstart', trigger);
+    openChatBtn.addEventListener('click', triggerChat);
+    openChatBtn.addEventListener('touchstart', triggerChat);
 }
-
 document.getElementById('closeChatBtn').onclick = () => chatWidget.classList.remove('show');
 
 function loadVibeChat() {
     const q = query(collection(db, "globalChat"), orderBy("timestamp", "desc"), limit(50));
     onSnapshot(q, (snap) => {
-        const area = document.getElementById('chatMessages');
-        area.innerHTML = '';
+        const msgArea = document.getElementById('chatMessages');
+        msgArea.innerHTML = '';
         const msgs = [];
         snap.forEach(d => msgs.push(d.data()));
         msgs.reverse().forEach(m => {
-            const d = document.createElement('div');
-            d.className = `chat-msg ${m.sender === currentUser ? 'mine' : ''}`;
-            d.innerHTML = `<span>${m.sender}</span>${m.text}`;
-            area.appendChild(d);
+            const div = document.createElement('div');
+            div.className = `chat-msg ${m.sender === currentUser ? 'mine' : ''}`;
+            div.innerHTML = `<span>${m.sender}</span>${m.text}`;
+            msgArea.appendChild(div);
         });
-        area.scrollTop = area.scrollHeight;
+        msgArea.scrollTop = msgArea.scrollHeight;
     });
 }
 
@@ -396,31 +421,20 @@ document.getElementById('sendChatBtn').onclick = async () => {
     inp.value = '';
 };
 
-// === 🛠️ 11. UTILITIES & STATS ===
-function startStatsTracker() {
-    setInterval(() => {
-        sessionSeconds++;
-        if (sessionSeconds % 60 === 0) {
-            updateDoc(doc(db, "stats", currentUser), { today: increment(1) }).catch(()=>{});
-        }
-    }, 1000);
-}
+// Sleep Timer
+sleepTimerBtn.onclick = () => {
+    if(sleepTimeout) {
+        clearTimeout(sleepTimeout); sleepTimeout = null;
+        sleepTimerBtn.style.color = "#fff";
+        showToast("Timer Off ☀️");
+    } else {
+        sleepTimeout = setTimeout(() => { audio.pause(); showToast("Sleeping... 🌙"); }, 30 * 60000);
+        sleepTimerBtn.style.color = "#ffd700";
+        showToast("Set 30 Mins 🌙");
+    }
+};
 
-function showToast(m) {
-    const t = document.getElementById('toast');
-    t.innerText = m; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-function checkDailyMix() {
-    dailyMixBanner.classList.remove('hidden');
-    document.getElementById('playDailyMixBtn').onclick = () => {
-        fetchMusic("Trending Viral Hindi");
-        showToast("AI Mix Generated! 🎧✨");
-    };
-}
-
-// Sidebar Controls
+// Sidebar Handlers
 document.getElementById('profileBtn').onclick = () => { 
     document.getElementById('profileSidebar').classList.add('open'); 
     document.getElementById('sidebarOverlay').classList.add('show'); 
@@ -430,16 +444,20 @@ document.getElementById('closeProfileBtn').onclick = () => {
     document.getElementById('sidebarOverlay').classList.remove('show'); 
 };
 document.getElementById('logoutBtn').onclick = () => { 
-    localStorage.removeItem('keepMeLoggedIn'); 
-    location.reload(); 
+    localStorage.removeItem('keepMeLoggedIn'); location.reload(); 
 };
 
-// Search Easter Eggs
+// Utilities
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.innerText = m; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
 document.getElementById('searchBtn').onclick = () => {
     const q = searchInput.value.toLowerCase().trim();
-    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach Ost"); }
-    else if(q === 'domain expansion') { document.body.className = 'theme-domain'; fetchMusic("JJK Hits"); }
+    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach Beats"); }
     else fetchMusic(q);
 };
 
-console.log("Universe Status: ARSHAD SUPREME ONLINE.");
+console.log("Universe Status: SUPREME ONLINE.");
