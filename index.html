@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=11.0">
+    <link rel="stylesheet" href="style.css?v=12.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
 </head>
@@ -21,7 +21,7 @@
                     <i class="fa-solid fa-compact-disc spin-fast"></i>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Quantum Syncing with Cloud Universe...</p>
+                <p class="sync-text">Quantum Syncing with Cloud...</p>
                 <div class="loading-track">
                     <div class="loading-progress"></div>
                 </div>
@@ -72,7 +72,7 @@
             
             <header class="main-header">
                 <div class="greet-area">
-                    <p id="timeGreeting">Aadaab,</p>
+                    <p id="timeGreeting">Good Morning,</p>
                     <h2 id="userName" class="hologram-text">User</h2>
                 </div>
                 <div class="status-widgets">
@@ -157,7 +157,20 @@
             <nav class="dock-nav glass-widget-heavy">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>
+                <div class="dock-item" id="btnChatToggle"><i class="fa-solid fa-comments"></i><span>Chat</span></div>
             </nav>
+
+            <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
+                <div class="chat-header">
+                    <h3>Live Vibe Chat 💬</h3>
+                    <button id="closeChatBtn"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Message to listeners..." autocomplete="off">
+                    <button id="sendChatBtn" class="neon-btn-pro"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
 
             <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
                 <div class="lyrics-header">
@@ -201,6 +214,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=11.0"></script>
+    <script type="module" src="script.js?v=12.0"></script>
 </body>
 </html>
