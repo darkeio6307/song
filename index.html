@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=16.0">
+    <link rel="stylesheet" href="style.css?v=17.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
 </head>
@@ -26,7 +26,7 @@
                     <div class="wave wave5"></div>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Tuning into the Universe...</p>
+                <p class="sync-text">Tuning into the Infinite Universe...</p>
                 <div class="loading-track"><div class="loading-progress"></div></div>
                 <button id="forceEnterBtn" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
@@ -92,7 +92,7 @@
                     <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;">
                         <i class="fa-solid fa-microphone"></i>
                     </button>
-                    <input type="text" id="searchInput" placeholder="Search 50+ songs or say 'Bankai'...">
+                    <input type="text" id="searchInput" placeholder="Search universe or say 'Bankai'...">
                     <button id="searchBtn">GO</button>
                 </div>
             </div>
@@ -104,15 +104,20 @@
                 <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
             </div>
 
-            <section class="music-library">
+            <section class="music-library" id="musicLibraryContainer">
                 <div class="lib-header">
-                    <h3 id="listHeading">Top 50 Discovery</h3>
+                    <h3 id="listHeading">Infinite Discovery</h3>
                     <div class="visualizer hidden" id="eqBars">
                         <span></span><span></span><span></span><span></span>
                     </div>
                 </div>
                 <div id="songsList" class="songs-grid-vertical"></div>
-                <div class="bottom-padding"></div> </section>
+                
+                <div id="infiniteLoader" class="hidden" style="text-align: center; padding: 20px; color: var(--neon-main); font-size: 12px; font-weight: bold; letter-spacing: 1px;">
+                    <i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes...
+                </div>
+                <div class="bottom-padding"></div>
+            </section>
 
             <div class="pro-player glass-widget-heavy" id="proPlayerArea">
                 <div class="seek-wrapper">
@@ -150,7 +155,6 @@
             </nav>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
-                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-header">
                         <h3>Galaxy Souls 🌌</h3>
@@ -212,6 +216,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=16.0"></script>
+    <script type="module" src="script.js?v=17.0"></script>
 </body>
 </html>
