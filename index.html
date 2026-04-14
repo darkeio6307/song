@@ -5,38 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=19.0">
-    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css?v=20.0"> <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
-
+    
     <script>
-        // 1. सबसे पहले पुराने Cache और Service Worker का गला घोंट दो
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
-            });
+            navigator.serviceWorker.getRegistrations().then(function(r) { for(let i of r) i.unregister(); });
         }
-
-        // 2. ज़बरदस्ती ऐप खोलने वाला फंक्शन (ये कभी फ़्रीज़ नहीं होगा)
-        function forceOpenApp() {
+        function forceRescue() {
             document.getElementById('splashScreen').style.display = 'none';
-            if (localStorage.getItem('keepMeLoggedIn')) {
+            if(localStorage.getItem('keepMeLoggedIn')) {
                 document.getElementById('mainApp').classList.remove('hidden');
-                document.getElementById('userName').innerText = localStorage.getItem('keepMeLoggedIn');
             } else {
                 document.getElementById('loginScreen').classList.remove('hidden');
             }
         }
-
-        // 3. अगर 3.5 सेकंड में कुछ नहीं हुआ, तो खुद खोल दो
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                var splash = document.getElementById('splashScreen');
-                if (splash && splash.style.display !== 'none') {
-                    forceOpenApp();
-                }
-            }, 3500);
-        });
+        window.addEventListener('load', () => { setTimeout(() => { forceRescue(); }, 3500); });
     </script>
 </head>
 <body class="theme-default">
@@ -48,101 +32,79 @@
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
                 <div class="supreme-music-logo">
-                    <div class="wave wave1"></div>
-                    <div class="wave wave2"></div>
-                    <div class="wave wave3"></div>
+                    <div class="wave wave1"></div><div class="wave wave2"></div>
                     <i class="fa-solid fa-headphones-simple"></i>
-                    <div class="wave wave4"></div>
-                    <div class="wave wave5"></div>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Tuning into the Infinite Universe...</p>
-                <button onclick="forceOpenApp()" class="emergency-btn">FORCE ENTER ⚡</button>
+                <p class="sync-text">Loading the Infinite Universe...</p>
+                <button onclick="forceRescue()" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="glass-orb orb-1"></div><div class="glass-orb orb-2"></div><div class="glass-orb orb-3"></div>
+            <div class="glass-orb orb-1"></div><div class="glass-orb orb-2"></div>
             <div class="cyber-login-card glass-panel">
                 <div class="login-header">
-                    <div class="supreme-music-logo" style="transform: scale(0.6); margin-bottom: 0; margin-top: -20px;">
-                        <i class="fa-solid fa-fingerprint"></i>
-                    </div>
                     <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
                 </div>
-
                 <div id="loginMode">
                     <div class="input-box ultra-glass-input">
                         <i class="fa-solid fa-user-astronaut"></i>
-                        <input type="text" id="username" placeholder="Codename (Username)" autocomplete="off">
+                        <input type="text" id="username" placeholder="Codename" autocomplete="off">
                     </div>
                     <div class="input-box ultra-glass-input">
                         <i class="fa-solid fa-key"></i>
-                        <input type="password" id="password" placeholder="Cipher Key (Passcode)">
+                        <input type="password" id="password" placeholder="Passcode">
                     </div>
-                    <button id="loginBtn" class="neon-btn-pro">INITIALIZE <i class="fa-solid fa-bolt"></i></button>
-                    <p id="loginError" class="error">Auth Failed: Intruder Detected!</p>
-                    <p id="toggleRegister" class="toggle-link">नए मेहमान हैं? यहाँ रजिस्टर करें</p>
-                </div>
-
-                <div id="registerMode" class="hidden">
-                    <div class="input-box ultra-glass-input">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <input type="text" id="regUsername" placeholder="New Codename" autocomplete="off">
-                    </div>
-                    <div class="input-box ultra-glass-input">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="regPassword" placeholder="Create Cipher Key">
-                    </div>
-                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
-                    <p id="toggleLogin" class="toggle-link">पहले से आईडी है? लॉग-इन करें</p>
+                    <button id="loginBtn" class="neon-btn-pro">ENTER <i class="fa-solid fa-bolt"></i></button>
+                    <p id="loginError" class="error">Auth Failed!</p>
                 </div>
             </div>
         </div>
 
         <div id="mainApp" class="main-app hidden">
             
-            <header class="main-header">
-                <div class="greet-area">
-                    <p id="timeGreeting">Aadaab,</p>
-                    <h2 id="userName" class="hologram-text">User</h2>
-                </div>
-                <div class="status-widgets">
-                    <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #00ff88; cursor: pointer; border-color:#00ff88;">
-                        <i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>LIVE FM</span>
+            <div class="fixed-top-section">
+                <header class="main-header">
+                    <div class="greet-area">
+                        <p id="timeGreeting">Aadaab,</p>
+                        <h2 id="userName" class="hologram-text">User</h2>
                     </div>
-                    <div class="profile-trigger glass-widget" id="profileBtn">
-                        <img src="darkeio.jpg" alt="avatar" id="userAvatar">
+                    <div class="status-widgets">
+                        <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #00ff88; cursor: pointer; border-color:#00ff88;">
+                            <i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>FM LIVE</span>
+                        </div>
+                        <div class="profile-trigger glass-widget" id="profileBtn" onclick="document.getElementById('profileSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show');">
+                            <img src="darkeio.jpg" alt="avatar" id="userAvatar">
+                        </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
-            <div class="search-bar-v2" id="searchSection">
-                <div class="search-inner glass-widget">
-                    <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;"><i class="fa-solid fa-microphone"></i></button>
-                    <input type="text" id="searchInput" placeholder="Search universe or say 'Bankai'...">
-                    <button id="searchBtn">GO</button>
+                <div class="search-bar-v2" id="searchSection">
+                    <div class="search-inner glass-widget">
+                        <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;"><i class="fa-solid fa-microphone"></i></button>
+                        <input type="text" id="searchInput" placeholder="Search universe...">
+                        <button id="searchBtn">GO</button>
+                    </div>
+                </div>
+
+                <div class="ai-mood-matrix" id="moodMatrix">
+                    <button class="mood-chip" data-mood="Viral Hindi">🔥 Viral</button>
+                    <button class="mood-chip" data-mood="Sad Lofi Hindi">💔 Sad</button>
+                    <button class="mood-chip" data-mood="Deep Focus Study">📚 Focus</button>
+                    <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
                 </div>
             </div>
 
-            <div class="ai-mood-matrix" id="moodMatrix">
-                <button class="mood-chip" data-mood="Latest Workout Gym Phonk">🔥 Gym</button>
-                <button class="mood-chip" data-mood="Sad Lofi Broken Heart">💔 Sad</button>
-                <button class="mood-chip" data-mood="Deep Focus Study Lofi">📚 Focus</button>
-                <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
-            </div>
-
-            <section class="music-library" id="musicLibraryContainer">
+            <div class="scrollable-content-area" id="musicLibraryContainer">
                 <div class="lib-header">
                     <h3 id="listHeading">Infinite Discovery</h3>
-                    <div class="visualizer hidden" id="eqBars">
-                        <span></span><span></span><span></span><span></span>
-                    </div>
                 </div>
+                
                 <div id="songsList" class="songs-grid-vertical"></div>
+                
                 <div id="infiniteLoader" class="hidden loader-text"><i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes...</div>
-                <div class="bottom-padding"></div>
-            </section>
+            </div>
 
             <div class="pro-player glass-widget-heavy" id="proPlayerArea">
                 <div class="seek-wrapper">
@@ -152,20 +114,12 @@
                 </div>
 
                 <div class="player-main-ui">
-                    <div class="now-playing" id="openLyricsArea">
-                        <div class="vinyl-record" id="vinylDisk">
-                            <img id="playerCover" src="https://via.placeholder.com/80" alt="disk">
-                            <div class="record-hole"></div>
-                        </div>
-                        <div class="song-meta">
-                            <h4 id="playerTitle">Arshad Music</h4>
-                            <p id="playerArtist">Elite Edition</p>
-                        </div>
+                    <div class="now-playing" onclick="document.getElementById('lyricsPanel').classList.add('show')">
+                        <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="https://via.placeholder.com/80"><div class="record-hole"></div></div>
+                        <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
                     </div>
-                    
                     <div class="playback-controls">
-                        <button id="driveModeBtn" class="action-btn" title="Focus Mode"><i class="fa-solid fa-car"></i></button>
-                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Broadcast FM"><i class="fa-solid fa-satellite-dish"></i></button>
+                        <button id="fmBroadcastBtn" class="action-btn hidden"><i class="fa-solid fa-satellite-dish"></i></button>
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
@@ -175,70 +129,76 @@
 
             <nav class="dock-nav glass-widget-heavy" id="bottomDock">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
-                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>
-                <div class="dock-item" id="btnChatToggle"><i class="fa-solid fa-comments"></i><span>Live Chat</span></div>
+                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>Vault</span></div>
+                <div class="dock-item" id="btnChatToggle" onclick="document.getElementById('chatWidget').classList.add('show');"><i class="fa-solid fa-comments"></i><span>Chat</span></div>
             </nav>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
-                <div id="chatContactsView" class="chat-view">
-                    <div class="chat-header">
-                        <h3>Galaxy Souls 🌌</h3>
-                        <button id="closeChatBtn"><i class="fa-solid fa-chevron-down"></i></button>
+                
+                <div class="chat-live-status-area">
+                    <div class="chat-header" style="border-bottom:none; padding-bottom:5px;">
+                        <h3 style="color:var(--neon-main); font-size:14px;"><i class="fa-solid fa-satellite-dish"></i> Live Galaxy Souls</h3>
+                        <button onclick="document.getElementById('chatWidget').classList.remove('show');" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
-                    <div id="onlineUsersList" class="contacts-list"><p class="empty-msg">Scanning for online souls...</p></div>
+                    <div class="stories-scroll" id="liveStoriesContainer" style="padding: 0 20px 10px;"></div>
+                </div>
+
+                <div id="chatContactsView" class="chat-view" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div id="onlineUsersList" class="contacts-list">
+                        <p class="empty-msg">Searching the cosmos...</p>
+                    </div>
                 </div>
 
                 <div id="chatRoomView" class="chat-view hidden">
                     <div class="chat-header whatsapp-header">
                         <button id="backToContactsBtn"><i class="fa-solid fa-arrow-left"></i></button>
-                        <img id="chatPartnerAvatar" src="darkeio.jpg" alt="Partner">
+                        <img id="chatPartnerAvatar" src="darkeio.jpg">
                         <h3 id="chatPartnerName">User</h3>
                     </div>
                     <div id="directMessages" class="chat-messages whatsapp-bg"></div>
                     <div class="chat-input-area">
-                        <input type="text" id="directChatInput" placeholder="Type a message..." autocomplete="off">
+                        <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="neon-btn-pro"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
             </div>
 
             <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
-                <div class="lyrics-header">
-                    <h3 id="lyricsPanelTitle">Live Lyrics 🎤</h3>
-                    <button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button>
-                </div>
-                <div class="lyrics-content" id="lyricsContentArea">
-                    <p class="lyrics-text placeholder-glow">Vibing to the soul...</p>
-                </div>
+                <div class="lyrics-header"><h3>Live Lyrics 🎤</h3><button onclick="document.getElementById('lyricsPanel').classList.remove('show');" style="background:none; border:none; color:#ff3366; font-size:24px;"><i class="fa-solid fa-chevron-down"></i></button></div>
+                <div class="lyrics-content"><p class="lyrics-text placeholder-glow">Vibing to the soul...</p></div>
             </div>
         </div>
 
         <div id="profileSidebar" class="profile-sidebar glass-widget-heavy">
-            <div class="sidebar-header"><button id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button></div>
-            <div class="profile-card">
-                <div class="prof-img-box"><img id="sideProfAvatar" src="darkeio.jpg"><div class="online-dot"></div></div>
-                <h2 id="profName" class="hologram-text">Name</h2>
-                <div class="user-badge" id="userBadge">Elite Member</div>
-                <div class="relation-badge" id="profRelation" style="margin-bottom: 20px; font-size: 12px; color: var(--neon-main); font-weight:bold;">Vibe Listener</div>
-                
-                <ul class="prof-stats glass-widget">
-                    <li><i class="fa-solid fa-cloud"></i> <strong>Vault:</strong> <span id="profSongCount">0</span> Songs</li>
-                    <li><i class="fa-solid fa-clock"></i> <strong>Time:</strong> <span id="statToday">0</span> mins</li>
-                </ul>
-
-                <div class="capsule-section glass-widget">
-                    <p class="section-micro-title">💞 Memory Capsule</p>
-                    <div id="capsuleList" class="capsule-scroll"><p class="empty-msg">Abhi koi yaad kaid nahi hui...</p></div>
+            <div class="sidebar-header"><button onclick="document.getElementById('profileSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show');"><i class="fa-solid fa-arrow-right"></i></button></div>
+            
+            <div class="new-prof-header">
+                <img id="sideProfAvatar" src="darkeio.jpg">
+                <div>
+                    <h2 id="profName">Name</h2>
+                    <p id="userBadge" class="gradient-text">Elite Member</p>
                 </div>
-                <button id="logoutBtn" class="logout-btn" style="margin-top:auto;"><i class="fa-solid fa-power-off"></i> LOGOUT</button>
             </div>
+
+            <div class="sidebar-menu">
+                <div class="menu-item"><i class="fa-solid fa-cloud"></i> <div><h4>Your Vault</h4><p><span id="profSongCount">0</span> Saved Tracks</p></div></div>
+                <div class="menu-item"><i class="fa-solid fa-clock"></i> <div><h4>Listening Time</h4><p><span id="statToday">0</span> mins today</p></div></div>
+                <div class="menu-item"><i class="fa-solid fa-heart-pulse"></i> <div><h4>Love Capsule</h4><p id="capsuleStatusText">Check your synced memories</p></div></div>
+            </div>
+
+            <div class="capsule-section glass-widget" id="sidebarCapsuleArea" style="margin-top: 15px;">
+                <p class="section-micro-title" style="margin-bottom: 5px;">💞 Synced Memories</p>
+                <div id="capsuleList" class="capsule-scroll"><p style="font-size:10px; color:#aaa;">Abhi koi yaad kaid nahi hui...</p></div>
+            </div>
+
+            <button id="logoutBtn" class="logout-btn-new"><i class="fa-solid fa-right-from-bracket"></i> Disconnect</button>
         </div>
         
-        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="document.getElementById('profileSidebar').classList.remove('open'); this.classList.remove('show');"></div>
         <div id="toast" class="toast-popup">Confirmed!</div>
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=19.0"></script>
+    <script type="module" src="script.js?v=20.0"></script>
 </body>
 </html>
