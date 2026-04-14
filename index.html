@@ -12,36 +12,54 @@
 
     <div id="splashScreen" class="splash-screen">
         <div class="loader-content">
-            <div class="hologram-circle"><i class="fa-solid fa-compact-disc"></i></div>
-            <h1 class="glitch-text">ARSHAD<span>VIP</span></h1>
-            <p class="sync-text">Loading Elite Experience...</p>
+            <div class="hologram-circle">
+                <i class="fa-solid fa-compact-disc spin-fast"></i>
+            </div>
+            <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">VIP</span></h1>
+            <p class="sync-text">INITIALIZING ELITE PROTOCOLS...</p>
             <div class="loading-track"><div class="loading-progress"></div></div>
         </div>
     </div>
 
     <div id="loginScreen" class="login-screen hidden">
         <div class="cyber-login-card glass-widget-heavy">
-            <h2 id="loginTitle">ELITE PORTAL</h2>
+            <div class="login-header">
+                <div class="hex-badge"><i class="fa-solid fa-fingerprint"></i><div class="scan-line"></div></div>
+                <h2 id="loginTitle">ELITE PORTAL</h2>
+                <p>Cloud Authentication Required</p>
+            </div>
             <div id="loginMode">
-                <input type="text" id="username" class="glass-input" placeholder="Identity (Username)">
-                <input type="password" id="password" class="glass-input" placeholder="Cipher (Passcode)">
-                <button id="loginBtn" class="neon-btn-pro">INITIALIZE ⚡</button>
-                <p id="loginError" class="error">Access Denied: Intruder Alert!</p>
-                <p id="toggleRegister" class="toggle-link">New VIP? Register Here</p>
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="username" class="glass-input" placeholder="Identity (Username)">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="password" class="glass-input" placeholder="Cipher (Passcode)">
+                </div>
+                <button id="loginBtn" class="neon-btn-pro">ACCESS PORTAL ⚡</button>
+                <p id="loginError" class="error">Unauthorized Access Detected!</p>
+                <p id="toggleRegister" class="toggle-link">New VIP? Create Identity</p>
             </div>
             <div id="registerMode" class="hidden">
-                <input type="text" id="regUsername" class="glass-input" placeholder="New ID">
-                <input type="password" id="regPassword" class="glass-input" placeholder="New Cipher">
-                <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">CREATE ACCESS</button>
-                <p id="toggleLogin" class="toggle-link">Back to Portal</p>
+                <input type="text" id="regUsername" class="glass-input" placeholder="New Username">
+                <input type="password" id="regPassword" class="glass-input" placeholder="New Passcode">
+                <button id="registerBtn" class="neon-btn-pro">REGISTER IDENTITY</button>
+                <p id="toggleLogin" class="toggle-link">Already a Member? Login</p>
             </div>
         </div>
     </div>
 
     <div id="mainApp" class="main-app hidden">
         <header class="main-header">
-            <div class="greet-area"><p id="timeGreeting">Welcome,</p><h2 id="userName" class="hologram-text">Dark_eio</h2></div>
-            <div class="profile-trigger glass-widget" id="profileBtn"><img id="userAvatar" src="guest.jpg"></div>
+            <div class="greet-area">
+                <p id="timeGreeting">Welcome back,</p>
+                <h2 id="userName" class="hologram-text">Dark_eio</h2>
+            </div>
+            <div class="header-actions">
+                <div class="session-timer glass-widget"><i class="fa-solid fa-clock"></i> <span id="statToday">0m</span></div>
+                <div class="profile-trigger glass-widget" id="profileBtn"><img id="userAvatar" src="darkeio.jpg"></div>
+            </div>
         </header>
 
         <div class="live-stories-wrapper hidden" id="liveActivityArea">
@@ -49,12 +67,21 @@
             <div class="stories-scroll" id="liveStoriesContainer"></div>
         </div>
 
-        <div class="search-bar"><div class="search-inner glass-widget"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchInput" placeholder="Search the soul..."><button id="searchBtn">GO</button></div></div>
+        <div class="search-section">
+            <div class="search-inner glass-widget">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search the soul of music...">
+                <button id="searchBtn">SCAN</button>
+            </div>
+        </div>
 
         <div id="chatSection" class="chat-container glass-widget hidden">
             <div class="chat-header"><span>Elite Soul Chat</span><button id="closeChat"><i class="fa-solid fa-xmark"></i></button></div>
             <div id="chatMessages" class="chat-messages"></div>
-            <div class="chat-input-area"><input type="text" id="chatInput" placeholder="Say something..."><button id="sendMsgBtn"><i class="fa-solid fa-paper-plane"></i></button></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Write a message...">
+                <button id="sendMsgBtn"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
         </div>
 
         <section class="music-library">
@@ -63,14 +90,20 @@
         </section>
 
         <div class="pro-player glass-widget-heavy">
-            <div class="seek-box"><input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider"></div>
-            <div class="player-main-ui">
-                <div class="now-playing">
-                    <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="guest.jpg"><div id="notesContainer"></div></div>
-                    <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Universe</p></div>
+            <div class="seek-control">
+                <span class="time">0:00</span>
+                <input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider">
+                <span class="time">0:00</span>
+            </div>
+            <div class="player-content">
+                <div class="now-playing-box">
+                    <div class="vinyl-disk" id="vinylDisk"><img id="playerCover" src="guest.jpg"></div>
+                    <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
                 </div>
-                <div class="playback-controls">
-                    <button id="playBtn" class="play-trigger"><i class="fa-solid fa-play"></i></button>
+                <div class="controls">
+                    <button id="prevBtn"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="playBtn" class="play-main"><i class="fa-solid fa-play"></i></button>
+                    <button id="nextBtn"><i class="fa-solid fa-forward-step"></i></button>
                     <button id="openChatBtn"><i class="fa-solid fa-comment-dots"></i></button>
                 </div>
             </div>
@@ -85,20 +118,18 @@
     <div id="profileSidebar" class="profile-sidebar glass-widget-heavy">
         <div class="sidebar-header"><button id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button></div>
         <div class="profile-card">
-            <img id="sideProfAvatar" src="guest.jpg">
+            <div class="avatar-box"><img id="sideProfAvatar" src="darkeio.jpg"></div>
             <h2 id="profName">Dark_eio</h2>
             <div id="profRelation" class="relation-badge">Creator</div>
-            <ul class="prof-stats glass-widget">
-                <li><i class="fa-solid fa-palette"></i> <strong>Theme:</strong> <span id="profThemeName">Neon</span></li>
-                <li><i class="fa-solid fa-clock"></i> <strong>Today:</strong> <span id="statToday">0m</span></li>
-                <li><i class="fa-solid fa-music"></i> <strong>Vault:</strong> <span id="profSongCount">0</span></li>
-            </ul>
-            <button id="installAppBtn" class="neon-btn-pro install-btn" style="display:none;">INSTALL APP</button>
-            <button id="logoutBtn" class="logout-btn">LOGOUT</button>
+            <div class="stats-grid glass-widget">
+                <div class="stat-item"><i class="fa-solid fa-palette"></i><p>Theme</p><span id="profThemeName">Neon</span></div>
+                <div class="stat-item"><i class="fa-solid fa-music"></i><p>Vault</p><span id="profSongCount">0</span></div>
+            </div>
+            <button id="installAppBtn" class="neon-btn-pro" style="display:none; margin-top:20px;">INSTALL APP</button>
+            <button id="logoutBtn" class="logout-btn">DISCONNECT</button>
         </div>
     </div>
 
-    <div id="sidebarOverlay" class="sidebar-overlay"></div>
     <div id="toast" class="toast-popup">Confirmed!</div>
     <audio id="audioEngine"></audio>
     <script type="module" src="script.js"></script>
