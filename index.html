@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20.0"> <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css?v=22.0">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
     <script>
@@ -31,33 +32,49 @@
         
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
-                <div class="supreme-music-logo">
-                    <div class="wave wave1"></div><div class="wave wave2"></div>
-                    <i class="fa-solid fa-headphones-simple"></i>
+                <div class="hologram-circle">
+                    <i class="fa-solid fa-compact-disc spin-fast"></i>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Loading the Infinite Universe...</p>
+                <p class="sync-text">Tuning into the Infinite Universe...</p>
+                <div class="loading-track"><div class="loading-progress"></div></div>
                 <button onclick="forceRescue()" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="glass-orb orb-1"></div><div class="glass-orb orb-2"></div>
-            <div class="cyber-login-card glass-panel">
+            <div class="cyber-login-card">
                 <div class="login-header">
-                    <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
+                    <div class="hex-badge">
+                        <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
+                        <div class="scan-line"></div>
+                    </div>
+                    <h2 id="loginTitle">ELITE PORTAL</h2>
                 </div>
                 <div id="loginMode">
-                    <div class="input-box ultra-glass-input">
+                    <div class="input-box glass-input">
                         <i class="fa-solid fa-user-astronaut"></i>
                         <input type="text" id="username" placeholder="Codename" autocomplete="off">
                     </div>
-                    <div class="input-box ultra-glass-input">
+                    <div class="input-box glass-input">
                         <i class="fa-solid fa-key"></i>
                         <input type="password" id="password" placeholder="Passcode">
                     </div>
                     <button id="loginBtn" class="neon-btn-pro">ENTER <i class="fa-solid fa-bolt"></i></button>
                     <p id="loginError" class="error">Auth Failed!</p>
+                    <p id="toggleRegister" class="toggle-link">Create New Identity</p>
+                </div>
+                <div id="registerMode" class="hidden">
+                    <div class="input-box glass-input">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <input type="text" id="regUsername" placeholder="New Codename" autocomplete="off">
+                    </div>
+                    <div class="input-box glass-input">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="regPassword" placeholder="Create Passcode">
+                    </div>
+                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                    <p id="toggleLogin" class="toggle-link">Back to Login</p>
                 </div>
             </div>
         </div>
@@ -100,10 +117,9 @@
                 <div class="lib-header">
                     <h3 id="listHeading">Infinite Discovery</h3>
                 </div>
-                
                 <div id="songsList" class="songs-grid-vertical"></div>
-                
                 <div id="infiniteLoader" class="hidden loader-text"><i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes...</div>
+                <div class="scroll-bottom-pad"></div> 
             </div>
 
             <div class="pro-player glass-widget-heavy" id="proPlayerArea">
@@ -134,7 +150,6 @@
             </nav>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
-                
                 <div class="chat-live-status-area">
                     <div class="chat-header" style="border-bottom:none; padding-bottom:5px;">
                         <h3 style="color:var(--neon-main); font-size:14px;"><i class="fa-solid fa-satellite-dish"></i> Live Galaxy Souls</h3>
@@ -144,9 +159,7 @@
                 </div>
 
                 <div id="chatContactsView" class="chat-view" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                    <div id="onlineUsersList" class="contacts-list">
-                        <p class="empty-msg">Searching the cosmos...</p>
-                    </div>
+                    <div id="onlineUsersList" class="contacts-list"><p class="empty-msg">Searching the cosmos...</p></div>
                 </div>
 
                 <div id="chatRoomView" class="chat-view hidden">
@@ -174,20 +187,22 @@
             
             <div class="new-prof-header">
                 <img id="sideProfAvatar" src="darkeio.jpg">
-                <div>
-                    <h2 id="profName">Name</h2>
+                <div style="text-align: left;">
+                    <h2 id="profName" style="font-size: 22px; font-weight: 800;">Name</h2>
                     <p id="userBadge" class="gradient-text">Elite Member</p>
+                    <p id="profRelation" style="font-size: 10px; color: #ccc; margin-top: 2px;">Vibe Listener</p>
                 </div>
             </div>
 
             <div class="sidebar-menu">
                 <div class="menu-item"><i class="fa-solid fa-cloud"></i> <div><h4>Your Vault</h4><p><span id="profSongCount">0</span> Saved Tracks</p></div></div>
-                <div class="menu-item"><i class="fa-solid fa-clock"></i> <div><h4>Listening Time</h4><p><span id="statToday">0</span> mins today</p></div></div>
-                <div class="menu-item"><i class="fa-solid fa-heart-pulse"></i> <div><h4>Love Capsule</h4><p id="capsuleStatusText">Check your synced memories</p></div></div>
+                <div class="menu-item"><i class="fa-solid fa-clock"></i> <div><h4>Today's Vibe</h4><p><span id="statToday">0</span> mins played</p></div></div>
+                <div class="menu-item"><i class="fa-solid fa-calendar-week"></i> <div><h4>This Week</h4><p><span id="statWeek">0</span> mins played</p></div></div>
+                <div class="menu-item"><i class="fa-solid fa-calendar-days"></i> <div><h4>This Month</h4><p><span id="statMonth">0</span> mins played</p></div></div>
             </div>
 
-            <div class="capsule-section glass-widget" id="sidebarCapsuleArea" style="margin-top: 15px;">
-                <p class="section-micro-title" style="margin-bottom: 5px;">💞 Synced Memories</p>
+            <div class="capsule-section glass-widget" style="margin-top: 15px; padding: 15px;">
+                <p class="section-micro-title" style="margin-bottom: 5px; color: #ff007f; font-weight: bold; font-size: 12px;">💞 Memory Capsule</p>
                 <div id="capsuleList" class="capsule-scroll"><p style="font-size:10px; color:#aaa;">Abhi koi yaad kaid nahi hui...</p></div>
             </div>
 
@@ -199,6 +214,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=20.0"></script>
+    <script type="module" src="script.js?v=22.0"></script>
 </body>
 </html>
