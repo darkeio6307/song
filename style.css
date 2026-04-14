@@ -14,29 +14,56 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 
 .glass-widget { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; }
 .glass-widget-heavy { background: var(--glass-heavy); backdrop-filter: blur(35px); border: 1px solid var(--glass-border); }
-.neon-btn-pro { background: linear-gradient(45deg, var(--neon-main), var(--neon-sec)); color: #fff; border: none; font-weight: 800; cursor: pointer; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,242,255,0.4); }
+.neon-btn-pro { background: linear-gradient(45deg, var(--neon-main), var(--neon-sec)); color: #fff; border: none; font-weight: 800; cursor: pointer; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,242,255,0.4); text-transform: uppercase;}
 .neon-btn-pro:active { transform: scale(0.95); }
 
-/* Auras */
 .live-aura, .live-aura-secondary { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; pointer-events: none; z-index: 0; }
 .live-aura { top: -20%; left: -20%; width: 140%; height: 140%; background: var(--neon-sec); animation: breath 10s infinite alternate; }
 .live-aura-secondary { bottom: -20%; right: -20%; width: 120%; height: 120%; background: var(--neon-main); animation: breath 15s infinite alternate-reverse; }
 @keyframes breath { 0% { transform: scale(0.8); } 100% { transform: scale(1.1); } }
 
-.app-container { width: 100%; max-width: 480px; height: 100%; margin: 0 auto; position: relative; z-index: 1; overflow: hidden; }
+.app-container { width: 100%; max-width: 480px; height: 100%; margin: 0 auto; position: relative; z-index: 1; overflow: hidden; display: flex; flex-direction: column; }
+.main-app { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; }
 .hidden { display: none !important; }
 
-/* === SCROLLING FIX (THE MOST IMPORTANT PART) === */
+/* === 🚀 RESTORED SPLASH SCREEN === */
+.splash-screen { position: absolute; inset: 0; background: var(--bg-gradient); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.loader-content { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+.hologram-circle { position: relative; width: 120px; height: 120px; border-radius: 50%; border: 2px dashed var(--neon-main); display: flex; justify-content: center; align-items: center; margin-bottom: 20px; animation: spinDashed 10s linear infinite; box-shadow: 0 0 30px var(--neon-sec); }
+@keyframes spinDashed { to { transform: rotate(360deg); } }
+.hologram-circle i { font-size: 50px; color: var(--neon-main); }
+.glitch-text { font-size: 36px; font-weight: 900; letter-spacing: 4px; margin-bottom: 10px; position: relative; color: #fff; text-align: center; display: block; width: 100%; }
+.pro-badge { font-size: 14px; background: var(--neon-sec); color: #fff; padding: 2px 10px; border-radius: 12px; position: absolute; top: -15px; margin-left: 5px; }
+.loading-track { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 15px; }
+.loading-progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-main), var(--neon-sec)); animation: loadLine 3s forwards; }
+@keyframes loadLine { to { width: 100%; } }
+.sync-text { font-size: 12px; color: #aaa; letter-spacing: 1px; margin-top: 10px; }
+.emergency-btn { background: transparent; border: 1px solid rgba(0,242,255,0.3); color: rgba(0,242,255,0.6); padding: 8px 20px; border-radius: 12px; margin-top: 40px; font-size: 11px; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
+
+/* === 🔐 RESTORED CYBER LOGIN === */
+.login-screen { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a0b2e 0%, #000 100%); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.cyber-login-card { width: 100%; max-width: 380px; padding: 40px 30px; border-radius: 35px; text-align: center; background: rgba(15, 15, 25, 0.8); border: 1px solid var(--neon-main); box-shadow: 0 0 40px rgba(0, 242, 255, 0.15); backdrop-filter: blur(25px); }
+.hex-badge { position: relative; width: 80px; height: 80px; margin: 0 auto 25px; display: flex; justify-content: center; align-items: center; background: rgba(0, 242, 255, 0.05); border: 2px solid var(--neon-main); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+.scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--neon-main); box-shadow: 0 0 15px var(--neon-main); animation: scanUpDown 2s infinite; }
+@keyframes scanUpDown { 0%, 100% { top: 0%; } 50% { top: 100%; } }
+.login-header h2 { font-size: 28px; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-main)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+.glass-input { margin-bottom: 20px; border-radius: 18px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 15px; }
+.glass-input i { color: var(--neon-main); font-size: 16px; }
+.glass-input input { flex: 1; padding: 18px 10px; background: transparent; border: none; color: #fff; font-size: 15px; outline: none; }
+#loginBtn, #registerBtn { width: 100%; padding: 18px; border-radius: 18px; font-size: 16px; margin-top: 15px; letter-spacing: 1.5px; }
+.error { color: #ff3366; font-size: 13px; margin-top: 15px; font-weight: bold; display: none; }
+.toggle-link { font-size: 13px; color: var(--neon-main); margin-top: 20px; cursor: pointer; display: inline-block; font-weight: bold; }
+
+/* === 📜 SCROLLING AREA === */
 .fixed-top-section { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: linear-gradient(to bottom, rgba(5,5,10,0.95) 60%, transparent); padding-bottom: 10px; }
-.scrollable-content-area { position: absolute; top: 220px; /* Below the fixed header/search */ bottom: 180px; /* Above the player/dock */ left: 0; right: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 20px; scrollbar-width: none; }
+.scrollable-content-area { position: absolute; top: 220px; bottom: 180px; left: 0; right: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 20px; scrollbar-width: none; }
 .scrollable-content-area::-webkit-scrollbar { display: none; }
 
-/* Headers & Inputs */
 .main-header { padding: 45px 20px 10px; display: flex; justify-content: space-between; align-items: flex-end; }
 #timeGreeting { font-size: 13px; color: #ccc; font-weight: 500; }
 .hologram-text { font-size: 26px; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-main)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .status-widgets { display: flex; align-items: center; gap: 10px; }
-.session-timer { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+.session-timer { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 6px; }
 .profile-trigger { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--neon-main); cursor: pointer; padding: 2px; }
 .profile-trigger img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
@@ -45,25 +72,25 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .search-inner input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; font-size: 14px; }
 .search-inner button { background: #fff; color: #000; border: none; padding: 8px 18px; border-radius: 15px; font-weight: 800; cursor: pointer; }
 
-/* AI Moods */
 .ai-mood-matrix { padding: 5px 20px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
 .ai-mood-matrix::-webkit-scrollbar { display: none; }
 .mood-chip { padding: 8px 16px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; font-size: 12px; white-space: nowrap; cursor: pointer; transition: 0.3s; }
 .mood-chip:active { background: var(--neon-main); color: #000; }
 
-/* Songs Grid */
-.lib-header { margin-bottom: 10px; font-size: 14px; color: #ddd; }
+.lib-header { margin-bottom: 10px; font-size: 14px; color: #ddd; padding-top: 10px; }
 .songs-grid-vertical { display: flex; flex-direction: column; gap: 10px; }
-.song-card { display: flex; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 18px; cursor: pointer; transition: 0.2s; }
+.song-card { display: flex; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 18px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
 .song-card:active { transform: scale(0.97); border-color: var(--neon-main); background: rgba(0,242,255,0.05); }
 .song-card img { width: 50px; height: 50px; border-radius: 12px; margin-right: 15px; object-fit: cover; }
 .song-info-v2 { flex: 1; overflow: hidden; }
 .song-info-v2 h4 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .song-info-v2 p { font-size: 11px; color: #aaa; margin-top: 3px; }
 .fav-btn { background: none; border: none; font-size: 20px; padding: 10px; cursor: pointer; }
+.loader-text { text-align: center; padding: 15px; color: var(--neon-main); font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+.scroll-bottom-pad { height: 230px; width: 100%; flex-shrink: 0; }
 
-/* Player */
-.pro-player { position: absolute; bottom: 85px; left: 15px; right: 15px; border-radius: 25px; padding: 15px 20px; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.4); }
+/* === 🎧 PLAYER === */
+.pro-player { position: absolute; bottom: 95px; left: 15px; right: 15px; border-radius: 25px; padding: 15px 20px; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
 .seek-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .time-label { font-size: 10px; color: #aaa; font-weight: bold; width: 35px; text-align: center; }
 .custom-slider { flex: 1; height: 4px; appearance: none; background: rgba(255,255,255,0.1); border-radius: 5px; }
@@ -86,7 +113,7 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .dock-item.active { color: var(--neon-main); }
 .dock-item.active i { transform: translateY(-3px); filter: drop-shadow(0 0 10px var(--neon-main)); }
 
-/* === NEW SIDEBAR DESIGN === */
+/* Sidebar */
 .profile-sidebar { position: absolute; top: 0; right: -100%; width: 85%; height: 100%; z-index: 3001; transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(10, 10, 15, 0.98); padding: 30px 20px; border-radius: 30px 0 0 30px; border-left: 1px solid var(--glass-border); display: flex; flex-direction: column; }
 .profile-sidebar.open { right: 0; }
 .sidebar-header button { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; float: right; margin-bottom: 20px; }
@@ -94,17 +121,15 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .new-prof-header img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--neon-main); }
 .gradient-text { font-size: 11px; font-weight: bold; background: linear-gradient(90deg, #00ff88, #00f2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 1px; }
 .sidebar-menu { flex: 1; display: flex; flex-direction: column; gap: 15px; }
-.menu-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px; border: 1px solid transparent; cursor: pointer; transition: 0.2s; }
-.menu-item:active { background: rgba(255,255,255,0.08); border-color: var(--neon-main); }
+.menu-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px; border: 1px solid transparent; transition: 0.2s; }
 .menu-item i { font-size: 20px; color: var(--neon-main); width: 25px; text-align: center; }
 .menu-item h4 { font-size: 14px; font-weight: 600; color: #fff; }
 .menu-item p { font-size: 11px; color: #888; margin-top: 2px; }
 .logout-btn-new { padding: 15px; border-radius: 15px; background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
-.logout-btn-new:active { background: #ff3366; color: #fff; }
 .sidebar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 3000; display: none; }
 .sidebar-overlay.show { display: block; }
 
-/* Live Stories in Chat */
+/* Live Stories */
 .chat-live-status-area { margin-bottom: 10px; }
 .stories-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
 .stories-scroll::-webkit-scrollbar { display: none; }
@@ -113,8 +138,8 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .story-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #000; }
 .story-item p { font-size: 10px; font-weight: bold; text-align: center; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
 
-/* Rest of Chat UI */
-.chat-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 75vh; background: rgba(10, 10, 20, 0.98); border-top: 2px solid var(--neon-main); z-index: 1000000 !important; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; transform: translateY(120%); transition: 0.4s; overflow: hidden;}
+/* Chat Panel */
+.chat-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 75vh; background: rgba(10, 10, 20, 0.98); border-top: 2px solid var(--neon-main); z-index: 1000000 !important; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; transform: translateY(120%); transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden;}
 .chat-panel.show { transform: translateY(0); }
 .chat-view { display: flex; flex-direction: column; height: 100%; width: 100%; }
 .contacts-list { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: none; }
@@ -122,21 +147,20 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .contact-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #00ff88; }
 .fm-listener-badge { font-size: 9px; background: var(--neon-sec); padding: 2px 6px; border-radius: 8px; color:#fff; }
 .whatsapp-header { padding: 15px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.5); }
-.whatsapp-header img { width: 40px; height: 40px; border-radius: 50%; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.whatsapp-bg { background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; }
 .chat-msg { padding: 10px 14px; border-radius: 15px; max-width: 80%; font-size: 13px; line-height: 1.4; }
-.chat-msg.them { background: rgba(40,50,60,0.9); border-top-left-radius: 4px; align-self: flex-start; color: #fff; }
+.chat-msg.them { background: rgba(40,50,60,0.9); border-top-left-radius: 4px; align-self: flex-start; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 .chat-msg.mine { background: linear-gradient(45deg, #0088ff, var(--neon-main)); border-top-right-radius: 4px; align-self: flex-end; color: #fff; }
-.chat-input-area { padding: 15px; display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: env(safe-area-inset-bottom); }
-.chat-input-area input { flex: 1; padding: 14px 20px; border-radius: 25px; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 14px; }
+.chat-input-area { padding: 15px; display: flex; gap: 10px; background: rgba(10,20,30,0.95); margin-bottom: env(safe-area-inset-bottom); }
+.chat-input-area input { flex: 1; padding: 14px 20px; border-radius: 25px; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 14px; outline: none; }
 
-/* Login, Splash, Toast basics */
-.login-screen { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a0b2e 0%, #000 100%); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-.cyber-login-card { width: 100%; max-width: 380px; padding: 40px 30px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.15); border-radius: 40px; text-align: center; z-index: 5; }
-.ultra-glass-input { margin-bottom: 20px; border-radius: 20px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; padding: 0 15px; }
-.ultra-glass-input i { color: var(--neon-main); }
-.ultra-glass-input input { flex: 1; padding: 18px 10px; background: transparent; border: none; color: #fff; font-size: 15px; }
-.splash-screen { position: absolute; inset: 0; background: var(--bg-gradient); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+/* Lyrics Panel */
+.lyrics-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 75vh; border-radius: 30px 30px 0 0; background: rgba(10, 10, 15, 0.98); border-top: 2px solid var(--neon-main); z-index: 1000000 !important; display: flex; flex-direction: column; transform: translateY(120%); opacity: 0; transition: 0.4s; pointer-events: none; }
+.lyrics-panel.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.lyrics-header { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
+.lyrics-content { flex: 1; padding: 30px; display: flex; justify-content: center; align-items: center; text-align: center; }
+.lyrics-text { font-size: 22px; font-weight: 800; line-height: 1.6; color: rgba(255,255,255,0.6); }
+
 .toast-popup { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, var(--neon-main), var(--neon-sec)); padding: 12px 30px; border-radius: 30px; font-weight: 800; font-size: 13px; color: #fff; transition: 0.5s; z-index: 9999999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); white-space: nowrap; }
 .toast-popup.show { top: 50px; }
-.loader-text { text-align: center; padding: 15px; color: var(--neon-main); font-size: 12px; font-weight: bold; }
