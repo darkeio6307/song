@@ -507,108 +507,76 @@ sleepTimerBtn.onclick = () => {
 };
 
 // === FEATURE 19: LIVE FM RADIO ===
-// ================== 🔥 FM SYSTEM UPGRADE START ==================
+// ================== 📡 FM LISTENER SYSTEM ==================
 
-let autoFM = true;
 let isListeningFM = false;
+let autoFM = true;
 
-// 🔒 Only DARK_EIO can see FM button
-if(currentUser && currentUser.toLowerCase() !== "dark_eio") {
-    fmBroadcastBtn.style.display = "none";
-}
-
-// 🎯 FM Button Logic (Host + Listener)
-fmBroadcastBtn.onclick = () => {
-
-    // 🎧 अगर listener है → leave करेगा
-    if(isListeningFM && currentUser.toLowerCase() !== "dark_eio") {
-        leaveFM();
-        return;
-    }
-
-    // 👑 Host control
-    isBroadcastingFM = !isBroadcastingFM;
-
-    if(isBroadcastingFM) {
-        fmBroadcastBtn.classList.add('fm-broadcasting');
-        showToast("📡 LIVE FM Started!");
-
-        if(currentQueue.length > 0) {
-            broadcastFMState(currentQueue[currentIndex]);
-        }
-
-    } else {
-        fmBroadcastBtn.classList.remove('fm-broadcasting');
-
-        setDoc(doc(db, "fm", "globalRadio"), {
-            isLive: false,
-            listeners: 0
-        });
-
-        showToast("📡 FM Stopped!");
-    }
-};
-
-// 📡 Broadcast Data
-async function broadcastFMState(song) {
-
-    await setDoc(doc(db, "fm", "globalRadio"), {
-        isLive: true,
-        host: currentUser,
-        songId: song.id,
-        songName: song.name,
-        cover: song.image[2].url,
-        audio: song.downloadUrl[4].url,
-        artist: song.artists.primary[0].name,
-        timestamp: Date.now(),
-        listeners: increment(0)
-    });
-}
-
-// 📡 Listen FM (Auto Join + Sync)
+// 📡 Listen FM (Auto Join + Perfect Sync)
 function listenToGlobalFM() {
+
+    let joinedOnce = false; // 🔥 duplicate listener count fix
 
     onSnapshot(doc(db, "fm", "globalRadio"), async (docSnap) => {
 
-        if(!docSnap.exists()) return;
+        if (!docSnap.exists()) return;
 
         const fmData = docSnap.data();
 
-        if(fmData.isLive && fmData.host !== currentUser) {
+        if (fmData.isLive && fmData.host !== currentUser) {
 
             isListeningFM = true;
 
+            // 🔔 Show LIVE tag
             fmLiveTag.classList.remove('hidden');
+            fmLiveTag.innerText = `📡 ${fmData.host} LIVE`;
 
-            audio.src = fmData.audio;
+            // 🎧 Only update audio if changed
+            if (audio.src !== fmData.audio) {
 
-            // 🔥 PERFECT SYNC
-            let delay = (Date.now() - fmData.timestamp) / 1000;
-            if(delay < 0) delay = 0;
+                audio.src = fmData.audio;
 
-            audio.currentTime = delay;
+                // 🔥 PERFECT SYNC (real-time delay sync)
+                let delay = (Date.now() - fmData.timestamp) / 1000;
+                if (delay < 0) delay = 0;
 
-            if(autoFM) {
+                audio.currentTime = delay;
+            }
+
+            // ▶ Auto Play (safe)
+            if (autoFM && audio.paused) {
                 audio.play();
             }
 
+            // 🎶 UI Update
             document.getElementById('playerTitle').innerText = fmData.songName;
             document.getElementById('playerArtist').innerText = fmData.artist;
             document.getElementById('playerCover').src = fmData.cover;
 
-            // 👥 Listener Count
-            await updateDoc(doc(db, "fm", "globalRadio"), {
-                listeners: increment(1)
-            });
+            // 👥 Listener Count (only once)
+            if (!joinedOnce) {
+                joinedOnce = true;
+
+                await updateDoc(doc(db, "fm", "globalRadio"), {
+                    listeners: increment(1)
+                });
+            }
 
         } else {
+
+            // ❌ FM off / host same user
             fmLiveTag.classList.add('hidden');
+
+            isListeningFM = false;
+            joinedOnce = false;
         }
     });
 }
 
-// ❌ Leave FM
+// ❌ Leave FM manually
 function leaveFM() {
+
+    if (!isListeningFM) return;
 
     isListeningFM = false;
 
@@ -622,6 +590,8 @@ function leaveFM() {
         listeners: increment(-1)
     });
 }
+
+// ================== 📡 END ==================
 
 // ================== 🔥 FM SYSTEM UPGRADE END ==================
 
