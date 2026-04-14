@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ARSHAD Vibes | Supreme Elite</title>
+    <title>ARSHAD Vibes | Supreme Universe</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
 </head>
 <body class="theme-default">
+
     <div class="live-aura" id="bgAura"></div>
     <div class="live-aura-secondary"></div>
 
@@ -21,7 +23,7 @@
                     <i class="fa-solid fa-compact-disc spin-fast"></i>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Quantum Syncing with Cloud Universe...</p>
+                <p class="sync-text">Establishing Quantum Link...</p>
                 <div class="loading-track">
                     <div class="loading-progress"></div>
                 </div>
@@ -36,34 +38,38 @@
                         <div class="scan-line"></div>
                     </div>
                     <h2 id="loginTitle">ELITE PORTAL</h2>
-                    <p id="loginSubTitle">Cloud Authentication Required</p>
+                    <p id="loginSubTitle">Authentication for the Chosen Ones</p>
                 </div>
 
                 <div id="loginMode">
                     <div class="input-box glass-input">
                         <i class="fa-solid fa-user-astronaut"></i>
-                        <input type="text" id="username" placeholder="Identity (Username)" autocomplete="off">
+                        <input type="text" id="username" placeholder="Codename (Username)" autocomplete="off">
                     </div>
                     <div class="input-box glass-input">
                         <i class="fa-solid fa-key"></i>
-                        <input type="password" id="password" placeholder="Cipher (Passcode)">
+                        <input type="password" id="password" placeholder="Cipher Key (Passcode)">
                     </div>
-                    <button id="loginBtn" class="neon-btn-pro">INITIALIZE <i class="fa-solid fa-bolt"></i></button>
-                    <p id="loginError" class="error">Auth Failed: Intruder Detected!</p>
-                    <p id="toggleRegister" class="toggle-link">नए मेहमान हैं? यहाँ रजिस्टर करें</p>
+                    <button id="loginBtn" class="neon-btn-pro">
+                        INITIALIZE CONNECTION <i class="fa-solid fa-bolt"></i>
+                    </button>
+                    <p id="loginError" class="error">Access Denied: Intruder Detected!</p>
+                    <p id="toggleRegister" class="toggle-link">New guest? Create your Identity</p>
                 </div>
 
                 <div id="registerMode" class="hidden">
                     <div class="input-box glass-input">
                         <i class="fa-solid fa-user-plus"></i>
-                        <input type="text" id="regUsername" placeholder="New Username" autocomplete="off">
+                        <input type="text" id="regUsername" placeholder="New Codename" autocomplete="off">
                     </div>
                     <div class="input-box glass-input">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="regPassword" placeholder="Create Passcode">
+                        <input type="password" id="regPassword" placeholder="Create Cipher Key">
                     </div>
-                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
-                    <p id="toggleLogin" class="toggle-link">पहले से आईडी है? लॉग-इन करें</p>
+                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">
+                        FORGE IDENTITY <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </button>
+                    <p id="toggleLogin" class="toggle-link">Already have an ID? Enter Portal</p>
                 </div>
             </div>
         </div>
@@ -76,10 +82,10 @@
                     <h2 id="userName" class="hologram-text">Dark_eio</h2>
                 </div>
                 <div class="status-widgets">
-                    <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #ff3366;">
+                    <div id="fmLiveTag" class="session-timer glass-widget hidden">
                         <i class="fa-solid fa-tower-broadcast fade-blink"></i> LIVE FM
                     </div>
-                    <div class="session-timer glass-widget" title="Listening Time">
+                    <div class="session-timer glass-widget" title="Cloud Connection Status">
                         <i class="fa-solid fa-cloud"></i> <span id="cloudStatus">Synced</span>
                     </div>
                     <div class="profile-trigger glass-widget" id="profileBtn">
@@ -89,31 +95,31 @@
             </header>
 
             <div class="live-stories-wrapper hidden" id="liveActivityArea">
-                <p class="section-micro-title">Live VIPs Activity</p>
+                <p class="section-micro-title">VIP Real-Time Sync</p>
                 <div class="stories-scroll" id="liveStoriesContainer"></div>
             </div>
 
             <div class="search-bar-v2" id="searchSection">
                 <div class="search-inner glass-widget">
-                    <button id="micBtn" class="action-btn" style="color: var(--neon-main); margin-right: 10px;">
+                    <button id="micBtn" class="action-btn" title="Ask AI DJ">
                         <i class="fa-solid fa-microphone"></i>
                     </button>
-                    <input type="text" id="searchInput" placeholder="Search universe or say 'Bankai'...">
-                    <button id="searchBtn">GO</button>
+                    <input type="text" id="searchInput" placeholder="Search the galaxy or say 'Bankai'...">
+                    <button id="searchBtn">SCAN</button>
                 </div>
             </div>
 
             <div id="dailyMixBanner" class="daily-mix-card hidden">
                 <div class="mix-info">
-                    <h3 id="mixTitle">Your Daily Vibe ✨</h3>
-                    <p>AI picks based on your psychology!</p>
+                    <h3 id="mixTitle">Elite Daily Vibe ✨</h3>
+                    <p>AI picks tailored to your mental state.</p>
                 </div>
                 <button id="playDailyMixBtn"><i class="fa-solid fa-play"></i></button>
             </div>
 
             <section class="music-library">
                 <div class="lib-header">
-                    <h3 id="listHeading">Discovery</h3>
+                    <h3 id="listHeading">Discovery Zone</h3>
                     <div class="visualizer hidden" id="eqBars">
                         <span></span><span></span><span></span><span></span>
                     </div>
@@ -129,7 +135,7 @@
                 </div>
 
                 <div class="player-main-ui">
-                    <div class="now-playing">
+                    <div class="now-playing" id="openLyricsArea">
                         <div class="vinyl-record" id="vinylDisk">
                             <img id="playerCover" src="https://via.placeholder.com/80" alt="disk">
                             <div class="record-hole"></div>
@@ -137,18 +143,18 @@
                         </div>
                         <div class="song-meta">
                             <h4 id="playerTitle">Arshad Music</h4>
-                            <p id="playerArtist">Supreme Elite</p>
+                            <p id="playerArtist">Elite Supreme Edition</p>
                         </div>
                     </div>
                     
                     <div class="playback-controls">
-                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Broadcast FM">
+                        <button id="fmBroadcastBtn" class="action-btn hidden" title="Start FM Broadcast">
                             <i class="fa-solid fa-satellite-dish"></i>
                         </button>
-                        <button id="prevBtn"><i class="fa-solid fa-backward-fast"></i></button>
+                        <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
-                        <button id="nextBtn"><i class="fa-solid fa-forward-fast"></i></button>
-                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer">
+                        <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
+                        <button id="sleepTimerBtn" class="action-btn" title="Set Sleep Timer">
                             <i class="fa-solid fa-moon"></i>
                         </button>
                     </div>
@@ -156,32 +162,32 @@
             </div>
 
             <nav class="dock-nav glass-widget-heavy">
-                <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Explore</span></div>
-                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>
-                <div class="dock-item" id="btnVIP"><i class="fa-solid fa-shield-halved"></i><span>Pro</span></div>
+                <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
+                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>The Vault</span></div>
+                <div class="dock-item" id="btnVIP"><i class="fa-solid fa-crown"></i><span>Elite</span></div>
             </nav>
 
             <button id="openChatBtn" class="floating-chat-btn"><i class="fa-solid fa-comments"></i></button>
 
-            <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
+            <div id="chatWidget" class="chat-panel hidden">
                 <div class="chat-header">
                     <h3>Vibe Chat 💬</h3>
                     <button id="closeChatBtn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div id="chatMessages" class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
+                    <input type="text" id="chatInput" placeholder="Send a vibe..." autocomplete="off">
                     <button id="sendChatBtn" class="neon-btn-pro"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
 
-            <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
+            <div id="lyricsPanel" class="lyrics-panel hidden">
                 <div class="lyrics-header">
                     <h3>Live Lyrics 🎤</h3>
                     <button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
                 <div class="lyrics-content">
-                    <p class="lyrics-text placeholder-glow">Vibing to the soul...<br>Lyrics sync active.</p>
+                    <p class="lyrics-text placeholder-glow">Vibing with the Universe...<br>AI is syncing the soul.</p>
                 </div>
             </div>
         </div>
@@ -196,16 +202,17 @@
                     <div class="online-dot"></div>
                 </div>
                 <h2 id="profName" class="hologram-text">Dark_eio</h2>
-                <div class="user-badge" id="userBadge">Elite Member</div>
+                <div class="user-badge" id="userBadge">Cosmic Rookie</div>
                 
                 <ul class="prof-stats glass-widget">
-                    <li><i class="fa-solid fa-cloud"></i> <strong>Vault:</strong> <span id="profSongCount">0</span> Songs</li>
+                    <li><i class="fa-solid fa-cloud-bolt"></i> <strong>Vault:</strong> <span id="profSongCount">0</span> Items</li>
+                    <li><i class="fa-solid fa-clock"></i> <strong>Session:</strong> <span id="statSession">0m</span></li>
                 </ul>
 
                 <div class="capsule-section glass-widget">
-                    <p class="section-micro-title">💞 Love Capsule</p>
+                    <p class="section-micro-title">💞 Memory Capsule</p>
                     <div id="capsuleList" class="capsule-scroll">
-                        <p class="empty-msg" style="font-size:10px; color:#aaa;">कोई यादगार लम्हा अभी दर्ज नहीं हुआ...</p>
+                        <p class="empty-msg" style="font-size:10px; color:#aaa; text-align:center;">Abhi koi yaad kaid nahi hui...</p>
                     </div>
                 </div>
 
@@ -219,7 +226,6 @@
 
     <audio id="audioEngine"></audio>
     
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>
