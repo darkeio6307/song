@@ -1,8 +1,8 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v22.0 (The Classic Restored Edition)
+ * 🌌 ARSHAD SUPREME ENGINE v23.0 (The Flawless Chat Edition)
  * Optimized for: Tecno Pova 7
- * FIXED: FM Play/Pause Sync, Restored Classic Login/Splash, Stable Scroll
+ * FIXED: Chat Panel Click Bug, Live Story Integration, Absolute Smoothness
  * =========================================================================
  */
 
@@ -19,10 +19,7 @@ const firebaseConfig = {
 };
 
 let db = null;
-try {
-    const firebaseApp = initializeApp(firebaseConfig);
-    db = getFirestore(firebaseApp);
-} catch(e) { console.error("Firebase Connect Failed!"); }
+try { const firebaseApp = initializeApp(firebaseConfig); db = getFirestore(firebaseApp); } catch(e) { console.error("Firebase Offline"); }
 
 const vipDB = { 
     "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "The Creator 👑", badge: "Universe Lord", theme: "theme-default", avatar: "darkeio.jpg" },
@@ -36,31 +33,17 @@ const playBtn = document.getElementById('playBtn');
 const fmBroadcastBtn = document.getElementById('fmBroadcastBtn');
 const fmLiveTag = document.getElementById('fmLiveTag');
 
-let currentUser = "";
-let currentDisplay = "";
-let currentQueue = [];
-let myPlaylist = [];
-let currentIndex = 0;
-let isPlaylistView = false;
-let isBroadcastingFM = false;
-let isListeningToFM = false;
-let currentFMSongId = null; 
-let currentChatPartner = null;
-let chatUnsub = null;
+let currentUser = ""; let currentDisplay = "";
+let currentQueue = []; let myPlaylist = []; let currentIndex = 0;
+let isPlaylistView = false; let isBroadcastingFM = false; let isListeningToFM = false;
+let currentFMSongId = null; let currentChatPartner = null; let chatUnsub = null;
 
-let currentPage = 1;
-let currentQuery = "Top Hindi Hits";
-let isLoadingMore = false;
-let hasMoreSongs = true;
+let currentPage = 1; let currentQuery = "Top Hindi Hits";
+let isLoadingMore = false; let hasMoreSongs = true;
 
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
-window.playSong = playSong;
-window.toggleFav = toggleFav;
 
 // === 🔐 1. AUTHENTICATION ===
-document.getElementById('toggleRegister').onclick = () => { document.getElementById('loginMode').classList.add('hidden'); document.getElementById('registerMode').classList.remove('hidden'); };
-document.getElementById('toggleLogin').onclick = () => { document.getElementById('registerMode').classList.add('hidden'); document.getElementById('loginMode').classList.remove('hidden'); };
-
 document.getElementById('loginBtn').onclick = async () => {
     vibeClick();
     const rawUser = document.getElementById('username').value.trim();
@@ -76,12 +59,10 @@ document.getElementById('loginBtn').onclick = async () => {
     }
     
     if (userData && userData.pass === p) {
-        localStorage.setItem('keepMeLoggedIn', rawUser); 
-        bootSession(rawUser, true, userData);
+        localStorage.setItem('keepMeLoggedIn', rawUser); bootSession(rawUser, true, userData);
     } else {
         document.getElementById('loginError').style.display = 'block';
-        document.getElementById('loginBtn').innerHTML = 'ENTER <i class="fa-solid fa-bolt"></i>'; 
-        showToast("Galat Password!");
+        document.getElementById('loginBtn').innerHTML = 'ENTER <i class="fa-solid fa-bolt"></i>'; showToast("Galat Password!");
     }
 };
 
@@ -91,12 +72,7 @@ window.onload = () => {
         const u = savedUser.toLowerCase();
         let userData = vipDB[u];
         if(userData) { bootSession(savedUser, false, userData); }
-        else { 
-            if(db) getDoc(doc(db, "users", u)).then(snap => {
-                if(snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); }
-                else bypassBoot();
-            }).catch(() => bypassBoot());
-        }
+        else { if(db) getDoc(doc(db, "users", u)).then(snap => { if(snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } else bypassBoot(); }).catch(() => bypassBoot()); }
     }
 };
 
@@ -104,12 +80,9 @@ function bypassBoot() { document.getElementById('splashScreen').style.display = 
 
 // === 🌌 2. MASTER SESSION ===
 async function bootSession(rawName, showWelcome = false, userData) {
-    currentDisplay = rawName;
-    currentUser = rawName.toLowerCase();
+    currentDisplay = rawName; currentUser = rawName.toLowerCase();
     
-    document.getElementById('splashScreen').style.display = 'none'; 
-    document.getElementById('loginScreen').classList.add('hidden'); 
-    app.classList.remove('hidden');
+    document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.add('hidden'); app.classList.remove('hidden');
 
     if(userData) {
         document.body.className = userData.theme || "theme-default";
@@ -119,8 +92,7 @@ async function bootSession(rawName, showWelcome = false, userData) {
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
     }
     
-    document.getElementById('userName').innerText = currentDisplay;
-    document.getElementById('profName').innerText = currentDisplay;
+    document.getElementById('userName').innerText = currentDisplay; document.getElementById('profName').innerText = currentDisplay;
 
     const hrs = new Date().getHours();
     let greet = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
@@ -139,67 +111,43 @@ async function bootSession(rawName, showWelcome = false, userData) {
         const vSnap = await getDoc(doc(db, "vaults", currentUser));
         myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
         document.getElementById('profSongCount').innerText = myPlaylist.length;
-        
-        trackAndLoadStats();
-        listenToGlobalFM();
-        loadLoveCapsule();
-        listenToLiveActivity(); 
+        trackAndLoadStats(); listenToGlobalFM(); loadLoveCapsule();
     }
-    
     fetchMusic("Trending Hit Songs"); 
 }
 
 function trackAndLoadStats() {
     setInterval(() => { updateDoc(doc(db, "stats", currentUser), { today: increment(1), week: increment(1), month: increment(1) }).catch(()=>{}); }, 60000);
     onSnapshot(doc(db, "stats", currentUser), (snap) => {
-        if(snap.exists()) { 
-            const d = snap.data();
-            document.getElementById('statToday').innerText = d.today || 0; 
-            document.getElementById('statWeek').innerText = d.week || 0; 
-            document.getElementById('statMonth').innerText = d.month || 0; 
-        } else { setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0 }); }
+        if(snap.exists()) { const d = snap.data(); document.getElementById('statToday').innerText = d.today || 0; document.getElementById('statWeek').innerText = d.week || 0; document.getElementById('statMonth').innerText = d.month || 0; } 
+        else { setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0 }); }
     });
 }
 
 // === 🎶 3. SCROLLING MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
-    const heading = document.getElementById('listHeading');
-    const loader = document.getElementById('infiniteLoader');
-    
-    if(!isLoadMore) {
-        currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy...";
-        hasMoreSongs = true; currentQueue = [];
-    } else { loader.classList.remove('hidden'); }
-    
+    const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
+    if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; } 
+    else { loader.classList.remove('hidden'); }
     isLoadingMore = true;
     try {
         const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}&page=${currentPage}&limit=50`);
         const data = await res.json();
-        
         if(data.success && data.data.results.length > 0) {
-            const startIndex = currentQueue.length;
-            currentQueue = [...currentQueue, ...data.data.results];
+            const startIndex = currentQueue.length; currentQueue = [...currentQueue, ...data.data.results];
             if(isLoadMore) appendLibrary(data.data.results, startIndex);
             else { renderLibrary(); heading.innerText = `'${q}' - Infinite Vibes`; }
-        } else {
-            hasMoreSongs = false;
-            if(!isLoadMore) showToast("No matches found.");
-        }
+        } else { hasMoreSongs = false; if(!isLoadMore) showToast("No matches found."); }
     } catch(e) { if(!isLoadMore) showToast("Network Drop!"); }
-    
     isLoadingMore = false; loader.classList.add('hidden');
 }
 
 function renderLibrary() { document.getElementById('songsList').innerHTML = ''; appendLibrary(currentQueue, 0); }
-
 function appendLibrary(songs, startIndex) {
     const list = document.getElementById('songsList');
     songs.forEach((song, i) => {
-        const globalIndex = startIndex + i;
-        const div = document.createElement('div');
-        div.className = 'song-card glass-widget';
+        const globalIndex = startIndex + i; const div = document.createElement('div'); div.className = 'song-card glass-widget';
         const isFav = myPlaylist.some(s => s.id === song.id);
-        
         div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${globalIndex})" loading="lazy">
             <div class="song-info-v2" onclick="playSong(${globalIndex})"><h4>${song.name}</h4><p>${song.artists.primary[0].name}</p></div>
             <button class="fav-btn" style="color:${isFav?'var(--neon-main)':'#555'}" onclick="toggleFav(event, ${globalIndex})"><i class="fa-solid fa-heart"></i></button>`;
@@ -209,37 +157,29 @@ function appendLibrary(songs, startIndex) {
 
 document.getElementById('musicLibraryContainer').addEventListener('scroll', function() {
     if(isPlaylistView || !hasMoreSongs || isLoadingMore) return; 
-    if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150) {
-        currentPage++; fetchMusic(currentQuery, true);
-    }
+    if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150) { currentPage++; fetchMusic(currentQuery, true); }
 });
 
 async function toggleFav(e, globalIndex) {
     vibeClick(); e.stopPropagation();
-    const song = currentQueue[globalIndex];
-    const idx = myPlaylist.findIndex(s => s.id === song.id);
+    const song = currentQueue[globalIndex]; const idx = myPlaylist.findIndex(s => s.id === song.id);
     if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Vault"); } 
     else { myPlaylist.push(song); showToast("Saved to Vault ❤️"); }
     if(db) await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
     if(isPlaylistView) renderLibrary(); else e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
 }
+window.toggleFav = toggleFav; window.playSong = playSong;
 
 function playSong(i) {
     currentIndex = i; const song = currentQueue[i];
-    document.getElementById('playerTitle').innerText = song.name;
-    document.getElementById('playerArtist').innerText = song.artists.primary[0].name;
-    document.getElementById('playerCover').src = song.image[1].url;
+    document.getElementById('playerTitle').innerText = song.name; document.getElementById('playerArtist').innerText = song.artists.primary[0].name; document.getElementById('playerCover').src = song.image[1].url;
     document.getElementById('bgAura').style.background = `url(${song.image[1].url})`; document.getElementById('bgAura').style.backgroundSize = "cover";
-    
-    audio.src = song.downloadUrl[4].url; audio.volume = 1; audio.play().catch(e=>console.log(e));
-    document.getElementById('vinylDisk').classList.add('spin-vinyl');
-    playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-    
+    audio.src = song.downloadUrl[4].url; audio.volume = 1; audio.play().catch(e=>{});
+    document.getElementById('vinylDisk').classList.add('spin-vinyl'); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
     if(currentUser !== "muskan" && db) checkLoveCapsule(song);
     if(isBroadcastingFM && currentUser === 'dark_eio' && db) broadcastFM(song, true);
     if(db) updateLiveStatus(true, song);
-    
     document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
@@ -247,7 +187,7 @@ function playSong(i) {
 playBtn.onclick = () => {
     vibeClick();
     if(audio.paused) {
-        audio.play().catch(e=>console.log(e)); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl');
+        audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl');
         if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], true);
         if(db) updateLiveStatus(true, currentQueue[currentIndex]);
     } else {
@@ -260,14 +200,8 @@ playBtn.onclick = () => {
 document.getElementById('nextBtn').onclick = () => { vibeClick(); audio.onended(); };
 document.getElementById('prevBtn').onclick = () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); };
 audio.onended = () => { if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } else fetchMusic("Trending Viral Hits", false); };
-
 audio.ontimeupdate = () => { 
-    if(!isNaN(audio.duration)) { 
-        seekSlider.value = (audio.currentTime/audio.duration)*100; 
-        document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); 
-        document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
-        if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.02; 
-    } 
+    if(!isNaN(audio.duration)) { seekSlider.value = (audio.currentTime/audio.duration)*100; document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); document.getElementById('timeTotal').innerText = fmtTime(audio.duration); if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.02; } 
 };
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
@@ -280,10 +214,9 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => micBtn.style.color = 'var(--neon-main)';
 }
 
-// === 📡 6. FM KILL SWITCH & SAFE SYNC (BUG FIXED) ===
+// === 📡 6. FM KILL SWITCH & SAFE SYNC ===
 fmBroadcastBtn.onclick = () => {
-    vibeClick(); isBroadcastingFM = !isBroadcastingFM;
-    fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
+    vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
     if(isBroadcastingFM) { showToast("📡 FM Broadcast: LIVE!"); if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused); } 
     else { if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); showToast("📡 Broadcast Ended."); }
 };
@@ -298,27 +231,18 @@ function listenToGlobalFM() {
     onSnapshot(doc(db, "fm", "globalRadio"), (snap) => {
         const d = snap.data();
         if(d && d.isLive && d.hostId !== currentUser) {
-            fmLiveTag.classList.remove('hidden'); fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>${d.host}'s FM</span>`;
-            currentFMSongId = d.songId; 
-            
+            fmLiveTag.classList.remove('hidden'); fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>${d.host}'s FM</span>`; currentFMSongId = d.songId; 
             if (isListeningToFM) {
-                if (audio.src !== d.audio) {
-                    showToast(`Host changed track! 📻`);
-                    const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
-                    currentQueue = [s]; playSong(0); 
-                }
-                // Safe Play/Pause Sync with slight delay to avoid DOM Exception
+                if (audio.src !== d.audio) { showToast(`Host changed track! 📻`); const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); }
                 setTimeout(() => {
                     if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); } 
-                    else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>console.log(e)); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); }
+                    else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); }
                 }, 300);
             }
-
             fmLiveTag.onclick = () => {
                 if(!isListeningToFM) {
                     isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; 
-                    const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
-                    currentQueue = [s]; playSong(0); 
+                    const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); 
                     if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }, 500);
                 } else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
             };
@@ -329,32 +253,37 @@ function listenToGlobalFM() {
     });
 }
 
-// === 👥 7. LIVE ACTIVITY ===
-function listenToLiveActivity() {
-    onSnapshot(collection(db, "liveStatus"), (snap) => {
-        const container = document.getElementById('liveStoriesContainer'); container.innerHTML = '';
-        let activeCount = 0;
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
-            if(docSnap.id !== currentUser && data.isPlaying && data.lastSeen > (Date.now() - 60000)) {
-                activeCount++;
-                const item = document.createElement('div'); item.className = 'story-item';
-                item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
-                item.onclick = () => {
-                    const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] };
-                    currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`);
-                };
-                container.appendChild(item);
-            }
-        });
-        if(activeCount === 0) container.innerHTML = '<p class="empty-msg" style="width:100%; text-align:center; font-size:10px;">Cosmos is quiet...</p>';
-    });
-}
-
-// === 💬 8. WHATSAPP CHAT ===
+// === 💬 7. WHATSAPP CHAT (BUG FIXED: NO 'hidden' CLASS CONFLICT) ===
 document.getElementById('btnChatToggle').addEventListener('click', () => {
-    vibeClick(); document.getElementById('chatWidget').classList.add('show'); document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnChatToggle').classList.add('active');
+    vibeClick(); 
+    // 🔥 Remove any hidden class and add show
+    document.getElementById('chatWidget').classList.remove('hidden');
+    document.getElementById('chatWidget').classList.add('show'); 
+    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
+    document.getElementById('btnChatToggle').classList.add('active');
+    
     if(db) {
+        // Load Live Stories Header
+        onSnapshot(collection(db, "liveStatus"), (snap) => {
+            const container = document.getElementById('liveStoriesContainer'); container.innerHTML = '';
+            let activeCount = 0;
+            snap.forEach(docSnap => {
+                const data = docSnap.data();
+                if(docSnap.id !== currentUser && data.isPlaying && data.lastSeen > (Date.now() - 60000)) {
+                    activeCount++;
+                    const item = document.createElement('div'); item.className = 'story-item';
+                    item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
+                    item.onclick = () => {
+                        const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] };
+                        currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`);
+                    };
+                    container.appendChild(item);
+                }
+            });
+            if(activeCount === 0) container.innerHTML = '<p class="empty-msg" style="font-size:10px;">Cosmos is quiet...</p>';
+        });
+
+        // Load Online Users List
         onSnapshot(collection(db, "liveStatus"), (snap) => {
             if(currentChatPartner) return; 
             const list = document.getElementById('onlineUsersList'); list.innerHTML = '';
@@ -364,9 +293,11 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
                 if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
                     count++;
                     const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
-                    const badge = isListener ? `<span style="font-size:9px; background:var(--neon-main); padding:2px 5px; border-radius:5px; color:#000;">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
+                    const badge = isListener ? `<span class="fm-listener-badge">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
                     const item = document.createElement('div'); item.className = 'contact-item';
                     item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
+                    
+                    // Click to open private chat
                     item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar);
                     list.appendChild(item);
                 }
@@ -376,14 +307,25 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
     }
 });
 
-document.getElementById('backToContactsBtn').onclick = () => { vibeClick(); document.getElementById('chatRoomView').classList.add('hidden'); document.getElementById('chatContactsView').classList.remove('hidden'); currentChatPartner = null; if(chatUnsub) chatUnsub(); };
+document.getElementById('closeChatBtn').onclick = () => {
+    vibeClick(); document.getElementById('chatWidget').classList.remove('show');
+    document.getElementById('btnChatToggle').classList.remove('active');
+    document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active');
+};
+
+document.getElementById('backToContactsBtn').onclick = () => {
+    vibeClick(); document.getElementById('chatRoomView').classList.add('hidden'); document.getElementById('chatContactsView').classList.remove('hidden');
+    currentChatPartner = null; if(chatUnsub) chatUnsub();
+};
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
     document.getElementById('chatContactsView').classList.add('hidden'); document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
+    
     const roomID = [currentUser, partnerId].sort().join("_");
     if(chatUnsub) chatUnsub();
+    
     if (db) {
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
             const area = document.getElementById('directMessages'); area.innerHTML = '';
@@ -403,13 +345,14 @@ document.getElementById('sendDirectChatBtn').onclick = async () => {
     inp.value = '';
 };
 
-// === 🧠 9. AI MOOD ENGINE & UI ===
+// === 🧠 8. AI MOOD ENGINE ===
 document.querySelectorAll('.mood-chip').forEach(btn => { btn.onclick = () => { vibeClick(); isPlaylistView = false; fetchMusic(btn.getAttribute('data-mood')); showToast(`AI generating ${btn.innerText} vibes...`); }; });
 document.getElementById('searchBtn').onclick = () => { vibeClick(); isPlaylistView = false; const q = searchInput.value.trim(); if(q) fetchMusic(q); };
 
 document.getElementById('btnHome').onclick = () => { 
     vibeClick(); isPlaylistView = false; document.getElementById('searchSection').style.display = 'block'; document.getElementById('moodMatrix').style.display = 'flex';
-    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active'); fetchMusic("Trending Hits"); 
+    document.getElementById('listHeading').innerText = "Infinite Discovery";
+    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active'); fetchMusic("Trending Hindi Hits"); 
 };
 document.getElementById('btnPlaylist').onclick = () => { 
     vibeClick(); isPlaylistView = true; document.getElementById('searchSection').style.display = 'none'; document.getElementById('moodMatrix').style.display = 'none';
@@ -443,6 +386,13 @@ async function checkLoveCapsule(song) {
         await addDoc(collection(db, "loveCapsule"), { couple: [currentUser, "muskan"], songName: song.name, date: new Date().toLocaleDateString(), timestamp: Date.now() });
     }
 }
+
+document.getElementById('openLyricsAreaBtn').onclick = (e) => {
+    if(e.target.closest('.playback-controls') || e.target.closest('.seek-wrapper')) return;
+    document.getElementById('lyricsPanel').classList.remove('hidden'); document.getElementById('lyricsPanel').classList.add('show');
+};
+document.getElementById('closeLyricsBtn').onclick = () => document.getElementById('lyricsPanel').classList.remove('show');
+
 window.addEventListener('beforeunload', () => { if(isBroadcastingFM && currentUser === 'dark_eio' && db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); if(db) updateLiveStatus(false); });
 document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); updateLiveStatus(false); location.reload(); };
 function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); }
