@@ -5,9 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=18.0">
+    <link rel="stylesheet" href="style.css?v=19.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
+
+    <script>
+        // 1. सबसे पहले पुराने Cache और Service Worker का गला घोंट दो
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) { registration.unregister(); }
+            });
+        }
+
+        // 2. ज़बरदस्ती ऐप खोलने वाला फंक्शन (ये कभी फ़्रीज़ नहीं होगा)
+        function forceOpenApp() {
+            document.getElementById('splashScreen').style.display = 'none';
+            if (localStorage.getItem('keepMeLoggedIn')) {
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('userName').innerText = localStorage.getItem('keepMeLoggedIn');
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+            }
+        }
+
+        // 3. अगर 3.5 सेकंड में कुछ नहीं हुआ, तो खुद खोल दो
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var splash = document.getElementById('splashScreen');
+                if (splash && splash.style.display !== 'none') {
+                    forceOpenApp();
+                }
+            }, 3500);
+        });
+    </script>
 </head>
 <body class="theme-default">
     <div class="live-aura" id="bgAura"></div>
@@ -27,16 +57,12 @@
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
                 <p class="sync-text">Tuning into the Infinite Universe...</p>
-                <div class="loading-track"><div class="loading-progress"></div></div>
-                <button id="forceEnterBtn" class="emergency-btn">FORCE ENTER ⚡</button>
+                <button onclick="forceOpenApp()" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="glass-orb orb-1"></div>
-            <div class="glass-orb orb-2"></div>
-            <div class="glass-orb orb-3"></div>
-
+            <div class="glass-orb orb-1"></div><div class="glass-orb orb-2"></div><div class="glass-orb orb-3"></div>
             <div class="cyber-login-card glass-panel">
                 <div class="login-header">
                     <div class="supreme-music-logo" style="transform: scale(0.6); margin-bottom: 0; margin-top: -20px;">
@@ -93,9 +119,7 @@
 
             <div class="search-bar-v2" id="searchSection">
                 <div class="search-inner glass-widget">
-                    <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;">
-                        <i class="fa-solid fa-microphone"></i>
-                    </button>
+                    <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;"><i class="fa-solid fa-microphone"></i></button>
                     <input type="text" id="searchInput" placeholder="Search universe or say 'Bankai'...">
                     <button id="searchBtn">GO</button>
                 </div>
@@ -116,10 +140,7 @@
                     </div>
                 </div>
                 <div id="songsList" class="songs-grid-vertical"></div>
-                
-                <div id="infiniteLoader" class="hidden loader-text">
-                    <i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes from the Cosmos...
-                </div>
+                <div id="infiniteLoader" class="hidden loader-text"><i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes...</div>
                 <div class="bottom-padding"></div>
             </section>
 
@@ -164,9 +185,7 @@
                         <h3>Galaxy Souls 🌌</h3>
                         <button id="closeChatBtn"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
-                    <div id="onlineUsersList" class="contacts-list">
-                        <p class="empty-msg">Scanning for online souls...</p>
-                    </div>
+                    <div id="onlineUsersList" class="contacts-list"><p class="empty-msg">Scanning for online souls...</p></div>
                 </div>
 
                 <div id="chatRoomView" class="chat-view hidden">
@@ -220,6 +239,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=18.0"></script>
+    <script type="module" src="script.js?v=19.0"></script>
 </body>
 </html>
