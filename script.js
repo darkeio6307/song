@@ -1,9 +1,9 @@
-// === THE VIP DATABASE (सिर्फ 4 ख़ास आईडी) ===
+// === THE VIP DATABASE (with Local PFPs from GitHub) ===
 const vipDB = { 
-    "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", themeName: "Dark Neon", seed: "Dark" },
-    "Muskan": { pass: "Love", relation: "Wife ❤️", theme: "theme-muskan", themeName: "Romantic Rose", seed: "Muskan" },
-    "Preeti": { pass: "bff", relation: "pure Best friend 🤞", theme: "theme-preeti", themeName: "BFF Vibes", seed: "Preeti" },
-    "guest": { pass: "1234", relation: "friend 🤝", theme: "theme-guest", themeName: "Minimalist Green", seed: "Guest" }
+    "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", themeName: "Dark Neon", avatar: "darkeio.jpg" },
+    "Muskan": { pass: "Love", relation: "Wife ❤️", theme: "theme-muskan", themeName: "Romantic Rose", avatar: "wife.jpg" },
+    "Preeti": { pass: "bff", relation: "pure Best friend 🤞", theme: "theme-preeti", themeName: "BFF Vibes", avatar: "bff.jpg" },
+    "guest": { pass: "1234", relation: "friend 🤝", theme: "theme-guest", themeName: "Minimalist Green", avatar: "guest.jpg" }
 };
 
 // Elements
@@ -17,6 +17,8 @@ const vinylDisk = document.getElementById('vinylDisk');
 const visualizer = document.getElementById('eqBars');
 const songsList = document.getElementById('songsList');
 const searchInput = document.getElementById('searchInput');
+const bgAura = document.getElementById('bgAura');
+const notesContainer = document.getElementById('notesContainer');
 
 // Profile Elements
 const profileSidebar = document.getElementById('profileSidebar');
@@ -27,6 +29,19 @@ let currentQueue = [];
 let myPlaylist = []; 
 let currentIndex = 0;
 let isPlaylistView = false; 
+let noteInterval;
+
+// --- FEATURE 1: NEON TOUCH RIPPLE ---
+document.addEventListener('click', function(e) {
+    const ripple = document.createElement('div');
+    ripple.className = 'touch-ripple';
+    ripple.style.left = `${e.clientX - 20}px`;
+    ripple.style.top = `${e.clientY - 20}px`;
+    ripple.style.width = '40px';
+    ripple.style.height = '40px';
+    document.body.appendChild(ripple);
+    setTimeout(() => { ripple.remove(); }, 600);
+});
 
 // 1. Splash
 setTimeout(() => { splash.classList.add('hidden'); login.classList.remove('hidden'); }, 2500);
@@ -39,12 +54,11 @@ setInterval(() => {
     document.getElementById('timeGreeting').innerText = (hr >= 12 && hr < 17) ? "Good Afternoon," : (hr >= 17 && hr < 21) ? "Good Evening," : (hr >= 21 || hr < 4) ? "शब-बख़ैर," : "Good Morning,";
 }, 1000);
 
-// 3. Login & Theme Setup
+// 3. Login & Setup Local PFP
 document.getElementById('loginBtn').onclick = () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     
-    // Check if user exists in our DB
     const userKeys = Object.keys(vipDB);
     const validUser = userKeys.find(key => key.toLowerCase() === u.toLowerCase());
 
@@ -55,16 +69,14 @@ document.getElementById('loginBtn').onclick = () => {
         // Apply Custom Theme
         document.body.className = userData.theme;
         
-        // Load User Playlist
         const savedDB = localStorage.getItem('arshad_db_' + currentUser);
         myPlaylist = savedDB ? JSON.parse(savedDB) : [];
 
-        // Set UI Details
+        // Set UI Details & Local PFPs
         document.getElementById('userName').innerText = currentUser;
-        document.getElementById('userAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.seed}`;
+        document.getElementById('userAvatar').src = userData.avatar;
+        document.getElementById('sideProfAvatar').src = userData.avatar;
         
-        // Set Profile Sidebar Details
-        document.getElementById('sideProfAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.seed}`;
         document.getElementById('profName').innerText = currentUser;
         document.getElementById('profRelation').innerText = userData.relation;
         document.getElementById('profThemeName').innerText = userData.themeName;
@@ -86,9 +98,9 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// --- PROFILE SIDEBAR LOGIC ---
+// PROFILE SIDEBAR
 document.getElementById('profileBtn').onclick = () => {
-    document.getElementById('profSongCount').innerText = myPlaylist.length; // Update count live
+    document.getElementById('profSongCount').innerText = myPlaylist.length; 
     profileSidebar.classList.add('open');
     sidebarOverlay.classList.add('show');
 };
@@ -103,7 +115,7 @@ function closeProfile() {
 // Logout
 document.getElementById('logoutBtn').onclick = () => {
     closeProfile();
-    audio.pause();
+    audio.pause(); updatePlayState(false);
     app.classList.add('hidden');
     login.classList.remove('hidden');
     document.getElementById('password').value = '';
@@ -134,7 +146,6 @@ function renderLibrary() {
         div.className = 'song-card';
         const isFav = myPlaylist.some(s => s.id === song.id);
         const heartClass = isFav ? "fa-solid fa-heart" : "fa-regular fa-heart";
-        // Let CSS variable handle heart color
         const heartColor = isFav ? "var(--neon-main)" : "#666";
 
         div.innerHTML = `
@@ -168,7 +179,33 @@ window.toggleFav = function(event, index) {
     renderLibrary();
 };
 
-// 5. Playback & Visuals
+// --- FEATURE 2 & 3: FLOATING NOTES & BEAT SYNC ---
+function createNote() {
+    const note = document.createElement('i');
+    const noteTypes = ['fa-music', 'fa-compact-disc', 'fa-headphones'];
+    note.className = `fa-solid ${noteTypes[Math.floor(Math.random() * noteTypes.length)]} music-note`;
+    note.style.left = `${Math.random() * 40}px`;
+    notesContainer.appendChild(note);
+    setTimeout(() => { note.remove(); }, 2000);
+}
+
+function updatePlayState(isPlaying) {
+    if(isPlaying) {
+        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        vinylDisk.classList.add('spin-vinyl');
+        visualizer.classList.remove('hidden');
+        bgAura.classList.add('beat-sync'); // Beat Sync ON
+        if(!noteInterval) noteInterval = setInterval(createNote, 800); // Floating Notes ON
+    } else {
+        playBtn.innerHTML = '<i class="fa-solid fa-play" style="padding-left:3px"></i>';
+        vinylDisk.classList.remove('spin-vinyl');
+        visualizer.classList.add('hidden');
+        bgAura.classList.remove('beat-sync'); // Beat Sync OFF
+        clearInterval(noteInterval); noteInterval = null; // Floating Notes OFF
+    }
+}
+
+// Playback Logic
 window.playSong = function(index) {
     currentIndex = index;
     const song = currentQueue[index];
@@ -182,18 +219,6 @@ window.playSong = function(index) {
     updatePlayState(true);
 };
 
-function updatePlayState(isPlaying) {
-    if(isPlaying) {
-        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-        vinylDisk.classList.add('spin-vinyl');
-        visualizer.classList.remove('hidden');
-    } else {
-        playBtn.innerHTML = '<i class="fa-solid fa-play" style="padding-left:3px"></i>';
-        vinylDisk.classList.remove('spin-vinyl');
-        visualizer.classList.add('hidden');
-    }
-}
-
 playBtn.onclick = () => {
     if(audio.paused && currentQueue.length > 0) { audio.play(); updatePlayState(true); } 
     else if (!audio.paused) { audio.pause(); updatePlayState(false); }
@@ -203,6 +228,7 @@ audio.onended = () => { if (currentQueue.length > 0) playSong((currentIndex + 1)
 document.getElementById('nextBtn').onclick = () => { if(currentQueue.length > 0) playSong((currentIndex + 1) % currentQueue.length); };
 document.getElementById('prevBtn').onclick = () => { if(currentQueue.length > 0) playSong((currentIndex - 1 + currentQueue.length) % currentQueue.length); };
 
+// Seekbar
 audio.ontimeupdate = () => {
     if(isNaN(audio.duration)) return;
     seekSlider.value = (audio.currentTime / audio.duration) * 100;
@@ -216,32 +242,21 @@ function formatTime(sec) {
     return `${m}:${s < 10 ? '0'+s : s}`;
 }
 
-// --- NEW FEATURES: DOWNLOAD & SHARE ---
+// Download & Share
 document.getElementById('downloadBtn').onclick = () => {
     if(currentQueue.length === 0) return;
     const song = currentQueue[currentIndex];
     const link = document.createElement('a');
-    link.href = song.downloadUrl[4].url;
-    link.download = song.name + '.mp3'; // Forces download
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    link.href = song.downloadUrl[4].url; link.download = song.name + '.mp3'; link.target = '_blank';
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
     showToast("Downloading... ⬇️");
 };
 
 document.getElementById('shareBtn').onclick = () => {
     if(currentQueue.length === 0) return;
     const song = currentQueue[currentIndex];
-    if (navigator.share) {
-        navigator.share({
-            title: song.name,
-            text: `Listen to ${song.name} on ARSHAD Music!`,
-            url: song.url
-        });
-    } else {
-        showToast("Share copied to clipboard!");
-    }
+    if (navigator.share) { navigator.share({ title: song.name, text: `Listen to ${song.name} on ARSHAD Music!`, url: song.url }); } 
+    else { showToast("Share copied!"); }
 };
 
 // Navigation
@@ -260,7 +275,6 @@ document.getElementById('btnPlaylist').onclick = () => {
     document.getElementById('searchSection').style.display = 'none'; 
     currentQueue = myPlaylist;
     document.getElementById('listHeading').innerText = "Personal Vault";
-    
     if(myPlaylist.length === 0) songsList.innerHTML = "<p style='text-align:center; color:#666; margin-top:30px;'>Vault is empty. Add some tracks!</p>";
     else renderLibrary();
 };
