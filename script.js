@@ -1,4 +1,4 @@
-// === 1. FIREBASE SETUP & IMPORTS ===
+// === 1. FIREBASE SETUP ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
@@ -14,15 +14,14 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-// === 2. VIP DATABASE ===
+// === 2. VIP HARDCODED DATABASE (For Admins/Old users) ===
 const vipDB = { 
     "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", themeName: "Dark Neon", avatar: "darkeio.jpg" },
     "Muskan": { pass: "Love", relation: "Wife ❤️", theme: "theme-muskan", themeName: "Romantic Rose", avatar: "wife.jpg" },
-    "Preeti": { pass: "bff", relation: "pure Best friend 🤞", theme: "theme-preeti", themeName: "BFF Vibes", avatar: "bff.jpg" },
-    "guest": { pass: "1234", relation: "friend 🤝", theme: "theme-guest", themeName: "Minimal Green", avatar: "guest.jpg" }
+    "Preeti": { pass: "bff", relation: "pure Best friend 🤞", theme: "theme-preeti", themeName: "BFF Vibes", avatar: "bff.jpg" }
 };
 
-// === DOM ELEMENTS ===
+// Elements
 const splash = document.getElementById('splashScreen');
 const login = document.getElementById('loginScreen');
 const app = document.getElementById('mainApp');
@@ -51,7 +50,6 @@ let noteInterval;
 let sessionSeconds = 0;
 let statsInterval;
 
-// Attach functions to window so inline HTML onclicks work (Module scope fix)
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
@@ -93,20 +91,99 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// === 3. CLOUD LOGIN & INITIALIZATION ===
+// === 3. LOGIN & REGISTRATION LOGIC ===
+
+// Toggle UI
+document.getElementById('toggleRegister').onclick = () => {
+    document.getElementById('loginMode').classList.add('hidden');
+    document.getElementById('registerMode').classList.remove('hidden');
+    document.getElementById('loginTitle').innerText = 'NEW REGISTRATION';
+    document.getElementById('loginSubTitle').innerText = 'Create your cloud identity';
+};
+
+document.getElementById('toggleLogin').onclick = () => {
+    document.getElementById('registerMode').classList.add('hidden');
+    document.getElementById('loginMode').classList.remove('hidden');
+    document.getElementById('loginTitle').innerText = 'ELITE PORTAL';
+    document.getElementById('loginSubTitle').innerText = 'Cloud Authentication Required';
+};
+
+// Registration Logic
+document.getElementById('registerBtn').onclick = async () => {
+    const u = document.getElementById('regUsername').value.trim();
+    const p = document.getElementById('regPassword').value.trim();
+
+    if(!u || !p) { showToast("नाम और पासवर्ड दोनों भरें!"); return; }
+
+    document.getElementById('registerBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CREATING...';
+
+    try {
+        // चेक करो कि ये नाम पहले से तो नहीं है
+        const userRef = doc(db, "users", u.toLowerCase());
+        const checkSnap = await getDoc(userRef);
+
+        const hardcodedExists = Object.keys(vipDB).find(key => key.toLowerCase() === u.toLowerCase());
+
+        if(checkSnap.exists() || hardcodedExists) {
+            showToast("ये नाम पहले से मौजूद है!");
+            document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
+            return;
+        }
+
+        // नया यूज़र डेटाबेस में सेव करो (Guest थीम के साथ)
+        await setDoc(userRef, {
+            pass: p,
+            relation: "Music Lover 🎵",
+            theme: "theme-guest",
+            themeName: "Minimal Green",
+            avatar: "guest.jpg" // डिफ़ॉल्ट गेस्ट PFP
+        });
+
+        showToast("अकाउंट बन गया! अब लॉग-इन करें।");
+        document.getElementById('regUsername').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('toggleLogin').click(); // वापस लॉगिन स्क्रीन पर ले जाओ
+        document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
+
+    } catch(e) {
+        console.error(e);
+        showToast("Registration Error!");
+        document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
+    }
+};
+
+// Login Logic
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
-    const validUser = Object.keys(vipDB).find(k => k.toLowerCase() === u.toLowerCase());
+    
+    if(!u || !p) return;
 
-    if (validUser && vipDB[validUser].pass === p) {
-        currentUser = validUser;
-        const userData = vipDB[validUser];
-        document.body.className = userData.theme;
-        
-        document.getElementById('loginBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CONNECTING...';
-        
-        try {
+    document.getElementById('loginBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CONNECTING...';
+    
+    try {
+        let userData = null;
+        let validUserName = u;
+
+        // 1. पहले Hardcoded VIPs में चेक करो
+        const vipKey = Object.keys(vipDB).find(key => key.toLowerCase() === u.toLowerCase());
+        if (vipKey && vipDB[vipKey].pass === p) {
+            userData = vipDB[vipKey];
+            validUserName = vipKey;
+        } else {
+            // 2. अगर VIP में नहीं है, तो Firebase Database में चेक करो
+            const userRef = doc(db, "users", u.toLowerCase());
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists() && userSnap.data().pass === p) {
+                userData = userSnap.data();
+                validUserName = u; // जो नाम डाला है वही यूज़ करो
+            }
+        }
+
+        if (userData) {
+            currentUser = validUserName;
+            document.body.className = userData.theme;
+            
             // Fetch Cloud Vault
             const vaultRef = doc(db, "vaults", currentUser);
             const vaultSnap = await getDoc(vaultRef);
@@ -114,15 +191,13 @@ document.getElementById('loginBtn').onclick = async () => {
                 myPlaylist = vaultSnap.data().songs || [];
             } else {
                 myPlaylist = [];
-                await setDoc(vaultRef, { songs: [] }); // Init Empty Vault
+                await setDoc(vaultRef, { songs: [] }); 
             }
 
             // Init User Stats in Cloud
             const statsRef = doc(db, "stats", currentUser);
             const statsSnap = await getDoc(statsRef);
-            if (!statsSnap.exists()) {
-                await setDoc(statsRef, { today: 0, week: 0, month: 0 });
-            }
+            if (!statsSnap.exists()) { await setDoc(statsRef, { today: 0, week: 0, month: 0 }); }
 
             // Set UI
             document.getElementById('userName').innerText = currentUser;
@@ -137,32 +212,28 @@ document.getElementById('loginBtn').onclick = async () => {
             app.classList.remove('hidden');
             showToast(`Cloud Connected: ${currentUser}`);
             
-            startCloudTimer(); // Start Tracking Time
-            listenToLiveActivity(); // Start Instagram Stories
+            startCloudTimer(); 
+            listenToLiveActivity(); 
             fetchMusic("Top Lofi Hindi"); 
-        } catch (error) {
-            console.error(error);
-            showToast("Cloud Connection Error!");
+        } else {
+            document.getElementById('loginError').style.display = 'block';
             document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
         }
-    } else {
-        document.getElementById('loginError').style.display = 'block';
+    } catch (error) {
+        console.error(error);
+        showToast("Cloud Connection Error!");
+        document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
     }
 };
 
 // === 4. TIME TRACKING (CLOUD STATS) ===
 function startCloudTimer() {
-    updateStatsUI(); // Initial load
+    updateStatsUI(); 
     statsInterval = setInterval(async () => {
         sessionSeconds++;
-        // हर 60 सेकंड (1 मिनट) में क्लाउड पर डेटा अपडेट करो
         if (sessionSeconds % 60 === 0) {
             const statsRef = doc(db, "stats", currentUser);
-            await updateDoc(statsRef, {
-                today: increment(1),
-                week: increment(1),
-                month: increment(1)
-            });
+            await updateDoc(statsRef, { today: increment(1), week: increment(1), month: increment(1) });
             updateStatsUI();
         }
     }, 1000);
@@ -187,7 +258,6 @@ function listenToLiveActivity() {
         snapshot.forEach((docSnap) => {
             const user = docSnap.id;
             const data = docSnap.data();
-            // Don't show myself, only others who are currently playing
             if (user !== currentUser && data.isPlaying) {
                 hasLive = true;
                 const story = document.createElement('div');
@@ -197,7 +267,6 @@ function listenToLiveActivity() {
                     <p>${user}</p>
                     <span>${data.songName}</span>
                 `;
-                // Click story to play their song
                 story.onclick = () => {
                     const fakeSongObj = { id: data.songId, name: data.songName, artists: { primary: [{ name: data.artist }] }, image: [{},{},{url: data.cover}], downloadUrl: [{},{},{},{},{url: data.audio}] };
                     currentQueue = [fakeSongObj];
@@ -216,6 +285,10 @@ function listenToLiveActivity() {
 
 async function updateMyLiveStatus(isPlaying, songObj = null) {
     const liveRef = doc(db, "liveStatus", currentUser);
+    
+    // Get Avatar (either from hardcoded DB or assume guest)
+    const userAvatar = vipDB[currentUser] ? vipDB[currentUser].avatar : "guest.jpg";
+
     if(isPlaying && songObj) {
         await setDoc(liveRef, {
             isPlaying: true,
@@ -224,7 +297,7 @@ async function updateMyLiveStatus(isPlaying, songObj = null) {
             cover: songObj.image[2].url,
             audio: songObj.downloadUrl[4].url,
             songId: songObj.id,
-            avatar: vipDB[currentUser].avatar,
+            avatar: userAvatar,
             timestamp: new Date()
         });
     } else {
@@ -281,7 +354,6 @@ async function toggleFav(event, index) {
         showToast("Saved to Cloud Vault ☁️❤️");
     }
     
-    // Save to Cloud
     await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
     
@@ -326,7 +398,7 @@ function playSong(index) {
     audio.src = song.downloadUrl[4].url;
     audio.play();
     updatePlayState(true);
-    updateMyLiveStatus(true, song); // Send to Cloud
+    updateMyLiveStatus(true, song); 
 }
 
 playBtn.onclick = () => {
@@ -411,5 +483,6 @@ document.getElementById('logoutBtn').onclick = () => {
     clearInterval(statsInterval);
     app.classList.add('hidden'); login.classList.remove('hidden');
     document.getElementById('password').value = '';
+    document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
     showToast("Disconnected from Cloud");
 };
