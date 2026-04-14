@@ -33,12 +33,14 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .app-container { width: 100%; max-width: 480px; height: 100%; margin: 0 auto; position: relative; display: flex; flex-direction: column; z-index: 1; overflow: hidden; }
 .hidden { display: none !important; }
 
-/* Splash Screen Reborn */
-.splash-screen { position: absolute; inset: 0; background: var(--bg-gradient); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+/* === 🚀 SPLASH SCREEN FIX === */
+.splash-screen { position: absolute; inset: 0; background: var(--bg-gradient); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.loader-content { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
 .hologram-circle { position: relative; width: 120px; height: 120px; border-radius: 50%; border: 2px dashed var(--neon-main); display: flex; justify-content: center; align-items: center; margin-bottom: 20px; animation: spinDashed 10s linear infinite; box-shadow: 0 0 30px var(--neon-sec); }
 @keyframes spinDashed { to { transform: rotate(360deg); } }
 .hologram-circle i { font-size: 50px; color: var(--neon-main); }
-.glitch-text { font-size: 36px; font-weight: 900; letter-spacing: 4px; margin-bottom: 10px; position: relative; color: #fff; }
+.glitch-text { font-size: 36px; font-weight: 900; letter-spacing: 4px; margin-bottom: 10px; position: relative; color: #fff; text-align: center; width: 100%; display: block; }
+.pro-badge { font-size: 14px; background: var(--neon-sec); color: #fff; padding: 2px 8px; border-radius: 10px; position: absolute; top: -15px; margin-left: 5px; }
 .loading-track { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 15px; }
 .loading-progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-main), var(--neon-sec)); animation: loadLine 3.5s forwards; }
 @keyframes loadLine { to { width: 100%; } }
@@ -73,14 +75,15 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .search-inner button { background: #fff; color: #000; border: none; padding: 0 18px; height: 38px; border-radius: 15px; font-weight: 800; cursor: pointer; }
 
 /* Daily Mix Layout Fix */
-.daily-mix-card { margin: 10px 20px; padding: 15px 20px; border-radius: 20px; background: linear-gradient(45deg, rgba(0,242,255,0.15), rgba(176,38,255,0.15)); border: 1px solid var(--neon-main); display: flex; justify-content: space-between; align-items: center; cursor: pointer; backdrop-filter: blur(10px); }
+.daily-mix-card { margin: 10px 20px; padding: 15px 20px; border-radius: 20px; background: linear-gradient(45deg, rgba(0,242,255,0.15), rgba(176,38,255,0.15)); border: 1px solid var(--neon-main); display: flex; justify-content: space-between; align-items: center; cursor: pointer; backdrop-filter: blur(10px); flex-shrink: 0; }
 .mix-info h3 { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
 .mix-info p { font-size: 11px; color: #ccc; }
 #playDailyMixBtn { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #000; border: none; display: flex; justify-content: center; align-items: center; font-size: 16px; box-shadow: 0 0 15px rgba(255,255,255,0.5); cursor: pointer; flex-shrink: 0; }
 
-/* Library UI */
-.music-library { flex: 1; overflow-y: auto; padding: 0 20px 190px; scrollbar-width: none; }
-.lib-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+/* SCROLLING LIBRARY FIX */
+.music-library { flex: 1; overflow-y: auto; padding: 0 20px 190px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.music-library::-webkit-scrollbar { display: none; }
+.lib-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: sticky; top: 0; background: var(--bg-gradient); padding: 10px 0; z-index: 10; }
 .visualizer { display: flex; gap: 3px; height: 15px; align-items: flex-end; }
 .visualizer span { width: 4px; background: var(--neon-main); border-radius: 2px; animation: dance 0.5s ease infinite alternate; }
 .visualizer span:nth-child(2) { animation-delay: 0.2s; background: var(--neon-sec); }
@@ -96,7 +99,7 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .fav-btn { background: none; border: none; font-size: 20px; color: #555; cursor: pointer; transition: 0.3s; padding: 10px; }
 .fav-btn.active { color: #ff007f; filter: drop-shadow(0 0 5px #ff007f); }
 
-/* Pro Player (Raised slightly so dock doesn't overlap) */
+/* Pro Player */
 .pro-player { position: absolute; bottom: 85px; left: 15px; right: 15px; border-radius: 25px; padding: 15px 20px; z-index: 100; border: 1px solid var(--glass-border); box-shadow: 0 -5px 20px rgba(0,0,0,0.4); }
 .seek-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .time-label { font-size: 10px; color: #aaa; font-weight: bold; width: 35px; text-align: center; }
@@ -119,22 +122,41 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .fade-blink { animation: blinkSync 1.5s infinite; }
 @keyframes pulseGlow { to { text-shadow: 0 0 20px #ff0055; transform: scale(1.1); } }
 
-/* === 🧭 BOTTOM DOCK NAV (NEW 3-BUTTON LAYOUT) === */
+/* === 🧭 BOTTOM DOCK NAV === */
 .dock-nav { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); padding: 12px 35px; display: flex; justify-content: space-between; width: 85%; max-width: 380px; border-radius: 30px; z-index: 90; }
 .dock-item { color: #888; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
 .dock-item i { font-size: 20px; transition: 0.3s; }
 .dock-item.active { color: var(--neon-main); }
 .dock-item.active i { transform: translateY(-3px); filter: drop-shadow(0 0 10px var(--neon-main)); }
 
-/* === 💬 CHAT PANEL (Now slides from bottom) === */
-.chat-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 70vh; background: rgba(10, 10, 20, 0.98); border-top: 2px solid var(--neon-main); z-index: 1000000 !important; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; transform: translateY(120%); transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+/* === 💬 WHATSAPP STYLE CHAT PANEL === */
+.chat-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 75vh; background: rgba(10, 10, 20, 0.98); border-top: 2px solid var(--neon-main); z-index: 1000000 !important; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; transform: translateY(120%); transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden;}
 .chat-panel.show { transform: translateY(0); }
-.chat-header { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
+.chat-view { display: flex; flex-direction: column; height: 100%; width: 100%; }
+.chat-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); }
+.chat-header h3 { font-size: 16px; font-weight: 800; }
 .chat-header button { background: none; border: none; color: #ff3366; font-size: 22px; cursor: pointer; }
+
+/* Contacts List */
+.contacts-list { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: none; }
+.contact-item { display: flex; align-items: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+.contact-item:active { transform: scale(0.98); border-color: var(--neon-main); }
+.contact-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid #00ff88; }
+.contact-item h4 { font-size: 15px; font-weight: bold; color: #fff; }
+.contact-item p { font-size: 11px; color: #00ff88; margin-top: 3px; }
+
+/* Whatsapp Style Direct Chat */
+.whatsapp-header { padding: 15px; justify-content: flex-start; gap: 15px; background: rgba(10,20,30,0.9); }
+.whatsapp-header button { color: #fff; font-size: 20px; }
+.whatsapp-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.whatsapp-header h3 { font-size: 16px; color: #fff; }
+.whatsapp-bg { background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; }
+
 .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; }
-.chat-msg { background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 13px; line-height: 1.4; border-bottom-left-radius: 4px; }
-.chat-msg.mine { align-self: flex-end; background: linear-gradient(45deg, var(--neon-main), var(--neon-sec)); border-bottom-left-radius: 18px; border-bottom-right-radius: 4px; color: #fff; }
-.chat-input-area { padding: 15px; display: flex; gap: 10px; border-top: 1px solid var(--glass-border); margin-bottom: env(safe-area-inset-bottom); }
+.chat-msg { padding: 10px 14px; border-radius: 15px; max-width: 80%; font-size: 13px; line-height: 1.4; position: relative; }
+.chat-msg.them { background: rgba(30,40,50,0.9); border-top-left-radius: 4px; align-self: flex-start; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+.chat-msg.mine { background: linear-gradient(45deg, #0088ff, var(--neon-main)); border-top-right-radius: 4px; align-self: flex-end; color: #fff; }
+.chat-input-area { padding: 15px; display: flex; gap: 10px; background: rgba(10,20,30,0.95); margin-bottom: env(safe-area-inset-bottom); }
 .chat-input-area input { flex: 1; padding: 14px 20px; border-radius: 25px; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 14px; outline: none; }
 
 /* Lyrics Panel */
@@ -145,7 +167,7 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .lyrics-content { flex: 1; padding: 30px; display: flex; justify-content: center; align-items: center; text-align: center; }
 .lyrics-text { font-size: 22px; font-weight: 800; line-height: 1.6; color: rgba(255,255,255,0.6); }
 
-/* Sidebar & Capsule */
+/* Sidebar RESTORED (Badges, Stats) */
 .profile-sidebar { position: absolute; top: 0; right: -100%; width: 85%; height: 100%; z-index: 3001; transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(10, 10, 15, 0.98); padding: 30px; border-radius: 30px 0 0 30px; border-left: 1px solid var(--glass-border); display: flex; flex-direction: column; }
 .profile-sidebar.open { right: 0; }
 .sidebar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 3000; display: none; opacity: 0; transition: opacity 0.3s; }
@@ -156,12 +178,15 @@ html, body { width: 100vw; height: 100vh; background: var(--bg-gradient); color:
 .profile-card { text-align: center; flex: 1; display: flex; flex-direction: column; }
 .prof-img-box { width: 100px; height: 100px; margin: 0 auto 15px; border-radius: 50%; padding: 4px; background: linear-gradient(45deg, var(--neon-main), var(--neon-sec)); }
 .prof-img-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.prof-stats { list-style: none; text-align: left; padding: 20px; margin-top: 15px; background: rgba(0,0,0,0.3); border-radius: 20px; }
-.prof-stats li { font-size: 13px; color: #ccc; display: flex; justify-content: space-between; align-items: center; }
-.prof-stats li i { color: var(--neon-main); font-size: 16px; width: 25px; }
+.user-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; text-transform: uppercase; margin-bottom: 5px; }
 
-.capsule-section { margin-top: 20px; padding: 15px; border-radius: 20px; border: 1px solid rgba(255, 0, 127, 0.3); background: rgba(255, 0, 127, 0.05); text-align: left; }
-.capsule-scroll { display: flex; flex-direction: column; gap: 10px; max-height: 150px; overflow-y: auto; scrollbar-width: none; margin-top: 10px; }
+.prof-stats { list-style: none; text-align: left; padding: 15px; margin-top: 10px; background: rgba(0,0,0,0.3); border-radius: 20px; }
+.prof-stats li { font-size: 13px; color: #ccc; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.prof-stats li:last-child { margin-bottom: 0; }
+.prof-stats li i { color: var(--neon-main); font-size: 14px; width: 25px; }
+
+.capsule-section { margin-top: 15px; padding: 15px; border-radius: 20px; border: 1px solid rgba(255, 0, 127, 0.3); background: rgba(255, 0, 127, 0.05); text-align: left; }
+.capsule-scroll { display: flex; flex-direction: column; gap: 10px; max-height: 120px; overflow-y: auto; scrollbar-width: none; margin-top: 10px; }
 .capsule-item { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 12px; border-left: 4px solid #ff007f; font-size: 12px; }
 .capsule-item strong { display: block; color: var(--neon-main); font-size: 13px; margin-bottom: 3px; }
 
