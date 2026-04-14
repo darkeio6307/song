@@ -71,11 +71,9 @@ window.onload = async () => {
     }, 5000);
 
     if (savedUser) {
-        showToast("Welcome Back, Master...");
-        await initializeUserSession(savedUser);
-        clearTimeout(safetyValve);
-    } else {
-        setTimeout(() => { splash.classList.add('hidden'); login.classList.remove('hidden'); clearTimeout(safetyValve); }, 3000);
+    showToast(`Welcome Back, ${savedUser} 👑`);
+} else {
+    showToast("Welcome Listener✨");
     }
 };
 
