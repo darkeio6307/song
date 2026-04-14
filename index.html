@@ -33,19 +33,36 @@
                         <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
                         <div class="scan-line"></div>
                     </div>
-                    <h2>ELITE PORTAL</h2>
-                    <p>Cloud Authentication Required</p>
+                    <h2 id="loginTitle">ELITE PORTAL</h2>
+                    <p id="loginSubTitle">Cloud Authentication Required</p>
                 </div>
-                <div class="input-box glass-input">
-                    <i class="fa-solid fa-user-astronaut"></i>
-                    <input type="text" id="username" placeholder="Identity (Username)" autocomplete="off">
+
+                <div id="loginMode">
+                    <div class="input-box glass-input">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                        <input type="text" id="username" placeholder="Identity (Username)" autocomplete="off">
+                    </div>
+                    <div class="input-box glass-input">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" id="password" placeholder="Cipher (Passcode)">
+                    </div>
+                    <button id="loginBtn" class="neon-btn-pro">INITIALIZE <i class="fa-solid fa-bolt"></i></button>
+                    <p id="loginError" class="error">Auth Failed: Intruder Detected!</p>
+                    <p id="toggleRegister" class="toggle-link">नए मेहमान हैं? यहाँ रजिस्टर करें</p>
                 </div>
-                <div class="input-box glass-input">
-                    <i class="fa-solid fa-key"></i>
-                    <input type="password" id="password" placeholder="Cipher (Passcode)">
+
+                <div id="registerMode" class="hidden">
+                    <div class="input-box glass-input">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <input type="text" id="regUsername" placeholder="New Username" autocomplete="off">
+                    </div>
+                    <div class="input-box glass-input">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="regPassword" placeholder="Create Passcode">
+                    </div>
+                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                    <p id="toggleLogin" class="toggle-link">पहले से आईडी है? लॉग-इन करें</p>
                 </div>
-                <button id="loginBtn" class="neon-btn-pro">INITIALIZE <i class="fa-solid fa-bolt"></i></button>
-                <p id="loginError" class="error">Auth Failed: Intruder Detected!</p>
             </div>
         </div>
 
@@ -68,8 +85,7 @@
 
             <div class="live-stories-wrapper hidden" id="liveActivityArea">
                 <p class="section-micro-title">Live VIPs Activity</p>
-                <div class="stories-scroll" id="liveStoriesContainer">
-                    </div>
+                <div class="stories-scroll" id="liveStoriesContainer"></div>
             </div>
 
             <div class="search-bar-v2" id="searchSection">
@@ -149,7 +165,6 @@
                 <button id="installAppBtn" class="neon-btn-pro install-btn" style="display: none;">
                     <i class="fa-solid fa-mobile-screen-button"></i> Install App
                 </button>
-
                 <button id="logoutBtn" class="logout-btn"><i class="fa-solid fa-power-off"></i> LOGOUT</button>
             </div>
         </div>
@@ -158,7 +173,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    
     <script type="module" src="script.js"></script>
 </body>
 </html>
