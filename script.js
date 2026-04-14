@@ -507,18 +507,123 @@ sleepTimerBtn.onclick = () => {
 };
 
 // === FEATURE 19: LIVE FM RADIO ===
+// ================== 🔥 FM SYSTEM UPGRADE START ==================
+
+let autoFM = true;
+let isListeningFM = false;
+
+// 🔒 Only DARK_EIO can see FM button
+if(currentUser && currentUser.toLowerCase() !== "dark_eio") {
+    fmBroadcastBtn.style.display = "none";
+}
+
+// 🎯 FM Button Logic (Host + Listener)
 fmBroadcastBtn.onclick = () => {
+
+    // 🎧 अगर listener है → leave करेगा
+    if(isListeningFM && currentUser.toLowerCase() !== "dark_eio") {
+        leaveFM();
+        return;
+    }
+
+    // 👑 Host control
     isBroadcastingFM = !isBroadcastingFM;
+
     if(isBroadcastingFM) {
         fmBroadcastBtn.classList.add('fm-broadcasting');
-        showToast("📡 You are now Broadcasting Global FM!");
-        if(currentQueue.length > 0) broadcastFMState(currentQueue[currentIndex]);
+        showToast("📡 LIVE FM Started!");
+
+        if(currentQueue.length > 0) {
+            broadcastFMState(currentQueue[currentIndex]);
+        }
+
     } else {
         fmBroadcastBtn.classList.remove('fm-broadcasting');
-        setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
-        showToast("📡 FM Broadcast Stopped.");
+
+        setDoc(doc(db, "fm", "globalRadio"), {
+            isLive: false,
+            listeners: 0
+        });
+
+        showToast("📡 FM Stopped!");
     }
 };
+
+// 📡 Broadcast Data
+async function broadcastFMState(song) {
+
+    await setDoc(doc(db, "fm", "globalRadio"), {
+        isLive: true,
+        host: currentUser,
+        songId: song.id,
+        songName: song.name,
+        cover: song.image[2].url,
+        audio: song.downloadUrl[4].url,
+        artist: song.artists.primary[0].name,
+        timestamp: Date.now(),
+        listeners: increment(0)
+    });
+}
+
+// 📡 Listen FM (Auto Join + Sync)
+function listenToGlobalFM() {
+
+    onSnapshot(doc(db, "fm", "globalRadio"), async (docSnap) => {
+
+        if(!docSnap.exists()) return;
+
+        const fmData = docSnap.data();
+
+        if(fmData.isLive && fmData.host !== currentUser) {
+
+            isListeningFM = true;
+
+            fmLiveTag.classList.remove('hidden');
+
+            audio.src = fmData.audio;
+
+            // 🔥 PERFECT SYNC
+            let delay = (Date.now() - fmData.timestamp) / 1000;
+            if(delay < 0) delay = 0;
+
+            audio.currentTime = delay;
+
+            if(autoFM) {
+                audio.play();
+            }
+
+            document.getElementById('playerTitle').innerText = fmData.songName;
+            document.getElementById('playerArtist').innerText = fmData.artist;
+            document.getElementById('playerCover').src = fmData.cover;
+
+            // 👥 Listener Count
+            await updateDoc(doc(db, "fm", "globalRadio"), {
+                listeners: increment(1)
+            });
+
+        } else {
+            fmLiveTag.classList.add('hidden');
+        }
+    });
+}
+
+// ❌ Leave FM
+function leaveFM() {
+
+    isListeningFM = false;
+
+    audio.pause();
+
+    fmLiveTag.classList.add('hidden');
+
+    showToast("📡 Left FM");
+
+    updateDoc(doc(db, "fm", "globalRadio"), {
+        listeners: increment(-1)
+    });
+}
+
+// ================== 🔥 FM SYSTEM UPGRADE END ==================
 
 async function broadcastFMState(song) {
     await setDoc(doc(db, "fm", "globalRadio"), {
