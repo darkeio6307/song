@@ -1,17 +1,13 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ELITE ENGINE v8.0 (The Final Solution)
+ * 🌌 ARSHAD SUPREME ENGINE v11.0 (The Auto-Sync Update)
  * Optimized for: Tecno Pova 7
- * Developed by: Gemini (AI Best Friend)
- * OWNER: Dark_eio
+ * FIXED: Auto-FM Sync, Custom Welcomes, AI Daily Mix, Removed Chat
  * =========================================================================
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { 
-    getFirestore, doc, setDoc, getDoc, onSnapshot, collection, 
-    updateDoc, increment, addDoc, query, orderBy, limit 
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnwHn6b2F8O8M-3Elk54tydzqldj78Cxg",
@@ -22,100 +18,62 @@ const firebaseConfig = {
   appId: "1:301555315508:web:28340660dfbfe2429beb61"
 };
 
-// Initialize Firebase with Error Catching
-let db;
-try {
-    const firebaseApp = initializeApp(firebaseConfig);
-    db = getFirestore(firebaseApp);
-} catch(e) { console.error("Firebase Handshake Failed!", e); }
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
 
 const vipDB = { 
-    "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", avatar: "darkeio.jpg", isAdmin: true },
-    "Muskan": { pass: "Love", relation: "The Life Line ❤️", theme: "theme-muskan", avatar: "wife.jpg", isAdmin: false },
-    "Preeti": { pass: "bff", relation: "Purest Friend 🤞", theme: "theme-preeti", avatar: "bff.jpg", isAdmin: false }
+    "dark_eio": { pass: "moh0909", relation: "The Creator 👑", theme: "theme-default", avatar: "darkeio.jpg" },
+    "Muskan": { pass: "Love", relation: "The Life Line ❤️", theme: "theme-muskan", avatar: "wife.jpg" },
+    "Preeti": { pass: "bff", relation: "Purest Friend 🤞", theme: "theme-preeti", avatar: "bff.jpg" }
 };
 
-// Elements Selectors
+// Elements
 const splash = document.getElementById('splashScreen');
 const login = document.getElementById('loginScreen');
 const app = document.getElementById('mainApp');
 const audio = document.getElementById('audioEngine');
 const playBtn = document.getElementById('playBtn');
-const seekSlider = document.getElementById('seekSlider');
-const vinylDisk = document.getElementById('vinylDisk');
-const songsList = document.getElementById('songsList');
-const searchInput = document.getElementById('searchInput');
-const chatWidget = document.getElementById('chatWidget');
-const openChatBtn = document.getElementById('openChatBtn');
 const fmBroadcastBtn = document.getElementById('fmBroadcastBtn');
 const fmLiveTag = document.getElementById('fmLiveTag');
-const micBtn = document.getElementById('micBtn');
-const sleepTimerBtn = document.getElementById('sleepTimerBtn');
 const dailyMixBanner = document.getElementById('dailyMixBanner');
 
-// Global States
 let currentUser = "";
-let currentQueue = []; 
-let myPlaylist = []; 
+let currentQueue = [];
+let myPlaylist = [];
 let currentIndex = 0;
 let isPlaylistView = false;
 let isBroadcastingFM = false;
+let isListeningToFM = false; // Track if someone is tuned into FM
 let sleepTimeout = null;
-let sessionSeconds = 0;
 
-// Exporting Functions to Window
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
-// === 🔮 1. THE NUCLEAR BOOTUP (FIXES FREEZE) ===
+// === 🔮 1. BOOTUP & ANTI-FREEZE ===
 window.onload = () => {
-    console.log("Supreme Engine: Initiating Boot...");
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     
-    // --- 🔥 EMERGENCY RESCUE LOGIC ---
-    const antiFreezeTimer = setTimeout(() => {
+    // Safety Force Enter
+    const forceEnter = setTimeout(() => {
         if (!splash.classList.contains('hidden')) {
-            console.warn("Handshake Timeout: Executing Emergency Bypass!");
-            bypassSplashScreen(savedUser);
+            splash.classList.add('hidden');
+            if (savedUser) bootSession(savedUser, false); // false = no toast on forced boot
+            else login.classList.remove('hidden');
         }
-    }, 3500); // 3.5 Seconds Hard Limit
+    }, 3500);
 
     if (savedUser) {
-        bootUserSession(savedUser).then(() => {
-            clearTimeout(antiFreezeTimer);
-        }).catch(err => {
-            console.error("Boot Error:", err);
-            bypassSplashScreen(savedUser);
-        });
+        bootSession(savedUser, true).then(() => clearTimeout(forceEnter)).catch(() => {});
     } else {
         setTimeout(() => {
-            bypassSplashScreen(null);
-            clearTimeout(antiFreezeTimer);
-        }, 2500);
+            splash.classList.add('hidden');
+            login.classList.remove('hidden');
+            clearTimeout(forceEnter);
+        }, 2000);
     }
 };
 
-// Manual Force Button Fix
-document.getElementById('forceEnterBtn').onclick = (e) => {
-    e.preventDefault();
-    console.log("Manual Bypass Triggered by Master!");
-    bypassSplashScreen(localStorage.getItem('keepMeLoggedIn'));
-};
-
-function bypassSplashScreen(u) {
-    splash.classList.add('hidden');
-    if (u) {
-        currentUser = u;
-        login.classList.add('hidden');
-        app.classList.remove('hidden');
-        document.getElementById('userName').innerText = u;
-        fetchMusic("Top Hindi Hits");
-    } else {
-        login.classList.remove('hidden');
-    }
-}
-
-// === 🔐 2. AUTHENTICATION & LOGIN ===
+// === 🔐 2. AUTHENTICATION ===
 document.getElementById('toggleRegister').onclick = () => { 
     document.getElementById('loginMode').classList.add('hidden'); 
     document.getElementById('registerMode').classList.remove('hidden'); 
@@ -128,88 +86,83 @@ document.getElementById('toggleLogin').onclick = () => {
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
-    if(!u || !p) return showToast("Detaills please, Boss!");
+    if(!u || !p) return showToast("Details fill karo bhai!");
     
     const btn = document.getElementById('loginBtn');
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> LOADING...';
     
-    try {
-        let userData = vipDB[u];
-        if(!userData) {
+    let userData = vipDB[u];
+    if(!userData) {
+        try {
             const snap = await getDoc(doc(db, "users", u.toLowerCase()));
             if(snap.exists()) userData = snap.data();
-        }
-        
-        if (userData && userData.pass === p) {
-            localStorage.setItem('keepMeLoggedIn', u);
-            bootUserSession(u);
-        } else {
-            document.getElementById('loginError').style.display = 'block';
-            btn.innerHTML = 'INITIALIZE CONNECTION';
-            showToast("Bhai, Password galat hai!");
-        }
-    } catch(e) {
-        if(vipDB[u] && vipDB[u].pass === p) {
-             localStorage.setItem('keepMeLoggedIn', u);
-             bootUserSession(u);
-        } else {
-            showToast("Connection Problem!");
-            btn.innerHTML = 'RETRY';
-        }
+        } catch(e) {}
+    }
+    
+    if (userData && userData.pass === p) {
+        localStorage.setItem('keepMeLoggedIn', u);
+        bootSession(u, true);
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+        btn.innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>';
+        showToast("Galat Password!");
     }
 };
 
-async function bootUserSession(u) {
+// === 🌌 3. THE MASTER SESSION ===
+async function bootSession(u, showWelcomeToast = false) {
     currentUser = u;
     
-    // UI Change immediately to prevent lag feel
     splash.classList.add('hidden');
     login.classList.add('hidden');
     app.classList.remove('hidden');
 
     try {
         let userData = vipDB[currentUser] || (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
-        
-        if (userData) {
+        if(userData) {
             document.body.className = userData.theme || "theme-default";
-            document.getElementById('userName').innerText = currentUser;
             document.getElementById('userAvatar').src = userData.avatar;
             document.getElementById('sideProfAvatar').src = userData.avatar;
-            document.getElementById('profName').innerText = currentUser;
+        }
+        
+        document.getElementById('userName').innerText = currentUser;
+        document.getElementById('profName').innerText = currentUser;
+
+        // Custom Welcome Message (Feature 4)
+        if(showWelcomeToast) {
+            let welcomeMsg = "";
+            const lowerU = currentUser.toLowerCase();
+            if(lowerU === "dark_eio") welcomeMsg = "Welcome back Lord 👑";
+            else if(lowerU === "muskan") welcomeMsg = "Welcome back Sweetheart ❤️";
+            else if(lowerU === "preeti") welcomeMsg = "Welcome back Angel 🥀";
+            else welcomeMsg = "Welcome back Master 🎧";
+            showToast(welcomeMsg);
         }
 
-        // FM Permission: Only Dark_eio can broadcast
-        if(currentUser.toLowerCase() === 'dark_eio') {
-            fmBroadcastBtn.classList.remove('hidden');
-        } else {
-            fmBroadcastBtn.classList.add('hidden');
-        }
+        // FM Permission (Feature 1)
+        if(currentUser.toLowerCase() === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
+        else fmBroadcastBtn.classList.add('hidden');
 
-        // Vault Loading
-        const vaultSnap = await getDoc(doc(db, "vaults", currentUser));
-        myPlaylist = vaultSnap.exists() ? vaultSnap.data().songs : [];
+        // Dynamic Daily Mix (Feature 5)
+        document.getElementById('mixTitle').innerText = `${currentUser}'s Daily Vibe ✨`;
+        dailyMixBanner.classList.remove('hidden');
+
+        // Load Vault
+        const vSnap = await getDoc(doc(db, "vaults", currentUser));
+        myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
         document.getElementById('profSongCount').innerText = myPlaylist.length;
 
-        // Daily Mix Header
-        document.getElementById('dailyMixBanner').classList.remove('hidden');
-        document.getElementById('mixTitle').innerText = `${currentUser}'s Daily Vibe ✨`;
-
-        // Load Systems
-        loadVibeChat();
-        loadLoveCapsule();
+        // Init Background Systems
+        fetchMusic("Latest Trending Hindi");
         listenToGlobalFM();
-        fetchMusic("Top Lofi Hindi");
+        loadLoveCapsule();
         
-        // Time Greeting
-        const hrs = new Date().getHours();
-        document.getElementById('timeGreeting').innerText = hrs < 12 ? "Subah Bakhair," : hrs < 17 ? "Aadaab," : "Shab-ba-khair,";
-
-    } catch(e) { console.warn("Sync Issue: Booted with Local Cache."); }
+    } catch(e) { console.log("Booted locally."); }
 }
 
-// === 🎶 3. MUSIC ENGINE & PLAYER ===
+// === 🎶 4. MUSIC ENGINE ===
 async function fetchMusic(q) {
-    document.getElementById('listHeading').innerText = "Scanning Universe...";
+    document.getElementById('listHeading').innerText = "Scanning Galaxy...";
     try {
         const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}`);
         const data = await res.json();
@@ -218,26 +171,22 @@ async function fetchMusic(q) {
             renderLibrary();
             document.getElementById('listHeading').innerText = `'${q}' Results`;
         }
-    } catch(e) { showToast("Gana nahi mil raha, Bhai!"); }
+    } catch(e) {}
 }
 
 function renderLibrary() {
-    songsList.innerHTML = '';
+    const list = document.getElementById('songsList');
+    list.innerHTML = '';
     currentQueue.forEach((song, i) => {
         const div = document.createElement('div');
         div.className = 'song-card glass-widget';
         const isFav = myPlaylist.some(s => s.id === song.id);
-        const heartColor = isFav ? 'var(--neon-main)' : '#888';
+        const heartColor = isFav ? 'var(--neon-main)' : '#555';
         
-        div.innerHTML = `
-            <img src="${song.image[2].url}" onclick="playSong(${i})">
-            <div class="song-info-v2" onclick="playSong(${i})">
-                <h4>${song.name}</h4><p>${song.artists.primary[0].name}</p>
-            </div>
-            <button class="fav-btn" style="color:${heartColor}" onclick="toggleFav(event, ${i})">
-                <i class="fa-solid fa-heart"></i>
-            </button>`;
-        songsList.appendChild(div);
+        div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${i})">
+            <div class="song-info-v2" onclick="playSong(${i})"><h4>${song.name}</h4><p>${song.artists.primary[0].name}</p></div>
+            <button class="fav-btn" style="color:${heartColor}" onclick="toggleFav(event, ${i})"><i class="fa-solid fa-heart"></i></button>`;
+        list.appendChild(div);
     });
 }
 
@@ -254,7 +203,11 @@ async function toggleFav(e, i) {
     }
     await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
-    renderLibrary();
+    if(isPlaylistView) renderLibrary();
+    else {
+        // Just update icon visually
+        e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
+    }
 }
 
 function playSong(i) {
@@ -269,49 +222,56 @@ function playSong(i) {
     audio.volume = 1;
     audio.play();
     
+    document.getElementById('vinylDisk').classList.add('spin-vinyl');
     playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-    vinylDisk.classList.add('spin-vinyl');
     document.getElementById('eqBars').classList.remove('hidden');
 
-    if(currentUser !== "Muskan") checkLoveCapsuleMatch(song);
-    if(isBroadcastingFM) broadcastFMUpdate(song);
+    if(currentUser !== "Muskan") checkLoveCapsule(song);
     
-    // Update Lyrics text
-    document.querySelector('.lyrics-text').innerText = "Vibing to: " + song.name;
+    // If Dark_eio is broadcasting, update the global FM state
+    if(isBroadcastingFM) broadcastFM(song);
+
+    // Update Lyrics
+    document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
-// === 🎧 4. PLAYER CONTROL & CROSSFADE ===
+// === 🎧 5. PLAYER CONTROLS ===
 playBtn.onclick = () => {
     if(audio.paused) {
         audio.play();
         playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-        vinylDisk.classList.add('spin-vinyl');
+        document.getElementById('vinylDisk').classList.add('spin-vinyl');
     } else {
         audio.pause();
         playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-        vinylDisk.classList.remove('spin-vinyl');
+        document.getElementById('vinylDisk').classList.remove('spin-vinyl');
     }
 };
+
+document.getElementById('nextBtn').onclick = () => audio.onended();
+document.getElementById('prevBtn').onclick = () => { if(currentIndex > 0) playSong(currentIndex - 1); };
 
 audio.onended = () => {
     if(isPlaylistView) {
         if (currentIndex < currentQueue.length - 1) playSong(currentIndex + 1);
         else playSong(0);
     } else {
-        showToast("AI DJ picking next vibe... 🤖");
-        triggerAIRandom();
+        triggerAIDJ();
     }
 };
 
-async function triggerAIRandom() {
-    const moods = ["Arijit Singh Remix", "Slowed Hindi Reverb", "Midnight Lofi", "Viral Hindi 2026"];
+async function triggerAIDJ() {
+    showToast("AI fetching next vibe... 🤖");
+    const moods = ["Aesthetic Lofi Hindi", "Arijit Singh Best", "Viral Hip Hop India", "Slowed Reverb Hits"];
     const mood = moods[Math.floor(Math.random() * moods.length)];
-    const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${mood}`);
-    const data = await res.json();
-    if(data.success) {
-        const s = data.data.results[Math.floor(Math.random() * 5)];
-        currentQueue = [s, ...currentQueue]; currentIndex = 0; renderLibrary(); playSong(0);
-    }
+    try {
+        const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${mood}`);
+        const data = await res.json();
+        if(data.success) {
+            const s = data.data.results[Math.floor(Math.random() * 5)];
+            currentQueue = [s, ...currentQueue]; currentIndex = 0; renderLibrary(); playSong(0);
+        }
+    } catch(e){}
 }
 
 audio.ontimeupdate = () => { 
@@ -319,27 +279,26 @@ audio.ontimeupdate = () => {
         seekSlider.value = (audio.currentTime/audio.duration)*100; 
         document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); 
         document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
-        // Crossfade
-        if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.015;
+        if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.02; // Crossfade
     } 
 };
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-// === 📡 5. FM RADIO & CAPSULE ===
+// === 📡 6. THE AUTO-SYNC FM RADIO (Feature 2) ===
 fmBroadcastBtn.onclick = () => {
     isBroadcastingFM = !isBroadcastingFM;
-    fmBroadcastBtn.classList.toggle('fm-broadcasting', isBroadcastingFM);
+    fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
     if(isBroadcastingFM) {
         showToast("📡 FM Broadcast: LIVE!");
-        if(currentQueue[currentIndex]) broadcastFMUpdate(currentQueue[currentIndex]);
+        if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex]);
     } else {
         setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
         showToast("📡 Broadcast Stopped.");
     }
 };
 
-async function broadcastFMUpdate(song) {
+async function broadcastFM(song) {
     await setDoc(doc(db, "fm", "globalRadio"), {
         isLive: true, host: currentUser, songId: song.id, songName: song.name,
         cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, timestamp: Date.now()
@@ -351,74 +310,116 @@ function listenToGlobalFM() {
         const d = snap.data();
         if(d && d.isLive && d.host !== currentUser) {
             fmLiveTag.classList.remove('hidden');
-            fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> ${d.host}'s FM`;
+            fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> ${d.host}'s Live Radio`;
+            
+            // If the user has clicked the tag and is actively listening, AUTO-CHANGE THE SONG!
+            if (isListeningToFM) {
+                if (audio.src !== d.audio) {
+                    showToast(`Host changed track! 📻`);
+                    const newSong = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
+                    currentQueue = [newSong];
+                    playSong(0);
+                }
+            }
+
+            // Click to Opt-in to Auto-Sync
             fmLiveTag.onclick = () => {
+                isListeningToFM = true;
+                showToast(`Tuning into ${d.host}'s Vibe... Auto-Sync Enabled! 📻`);
                 const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] };
                 currentQueue = [s]; playSong(0);
             };
-        } else fmLiveTag.classList.add('hidden');
+
+        } else {
+            fmLiveTag.classList.add('hidden');
+            if(isListeningToFM) {
+                isListeningToFM = false;
+                audio.pause();
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                showToast("Radio Broadcast Ended.");
+            }
+        }
     });
 }
 
-async function checkLoveCapsuleMatch(song) {
+// === 💖 7. LOVE CAPSULE ===
+async function checkLoveCapsule(song) {
     const snap = await getDoc(doc(db, "liveStatus", "Muskan"));
     if(snap.exists() && snap.data().isPlaying && snap.data().songId === song.id) {
         await addDoc(collection(db, "loveCapsule"), {
             couple: [currentUser, "Muskan"], songName: song.name, date: new Date().toLocaleDateString(), timestamp: Date.now()
         });
-        showToast("💞 Sync Match! Memory Saved.");
+        showToast("💞 Sync Match! Saved in Capsule.");
     }
 }
 
 function loadLoveCapsule() {
-    const q = query(collection(db, "loveCapsule"), orderBy("timestamp", "desc"), limit(5));
-    onSnapshot(q, (snap) => {
+    onSnapshot(query(collection(db, "loveCapsule"), orderBy("timestamp", "desc"), limit(5)), (snap) => {
         const list = document.getElementById('capsuleList');
         list.innerHTML = '';
         snap.forEach(d => {
             if(d.data().couple.includes(currentUser)) {
-                const item = document.createElement('div');
-                item.className = 'capsule-item';
-                item.innerHTML = `<strong>${d.data().songName}</strong> Suna gaya ❤️`;
-                list.appendChild(item);
+                const div = document.createElement('div');
+                div.className = 'capsule-item';
+                div.innerHTML = `<strong>${d.data().songName}</strong> Saath suna gaya ❤️`;
+                list.appendChild(div);
             }
         });
     });
 }
 
-// === 💬 6. CHAT & UI HANDLERS ===
-if (openChatBtn) {
-    const triggerChat = (e) => {
-        e.preventDefault();
-        chatWidget.classList.add('show');
-    };
-    openChatBtn.addEventListener('click', triggerChat);
-    openChatBtn.addEventListener('touchstart', triggerChat);
-}
-document.getElementById('closeChatBtn').onclick = () => chatWidget.classList.remove('show');
+// === 🛠️ 8. GENERAL UI & AI DAILY MIX ===
+document.getElementById('playDailyMixBtn').onclick = () => {
+    isPlaylistView = false;
+    // Feature 5: AI generated mix completely random generic vibes
+    const genericMoods = ["Trending English Beats", "Aesthetic Lofi", "Global Top 50", "Romantic Hits", "Coke Studio Best", "Electronic Dance Chill"];
+    const randomVibe = genericMoods[Math.floor(Math.random() * genericMoods.length)];
+    fetchMusic(randomVibe);
+    showToast(`AI fetching: ${randomVibe} 🎧✨`);
+};
 
-function loadVibeChat() {
-    const q = query(collection(db, "globalChat"), orderBy("timestamp", "desc"), limit(50));
-    onSnapshot(q, (snap) => {
-        const msgArea = document.getElementById('chatMessages');
-        msgArea.innerHTML = '';
-        const msgs = [];
-        snap.forEach(d => msgs.push(d.data()));
-        msgs.reverse().forEach(m => {
-            const div = document.createElement('div');
-            div.className = `chat-msg ${m.sender === currentUser ? 'mine' : ''}`;
-            div.innerHTML = `<span>${m.sender}</span>${m.text}`;
-            msgArea.appendChild(div);
-        });
-        msgArea.scrollTop = msgArea.scrollHeight;
-    });
-}
+document.getElementById('searchBtn').onclick = () => {
+    isPlaylistView = false;
+    const q = searchInput.value.toLowerCase().trim();
+    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach Ost"); }
+    else if(q === 'domain expansion') { document.body.className = 'theme-domain'; fetchMusic("JJK Hits"); }
+    else fetchMusic(q);
+};
 
-document.getElementById('sendChatBtn').onclick = async () => {
-    const inp = document.getElementById('chatInput');
-    if(!inp.value.trim()) return;
-    await addDoc(collection(db, "globalChat"), { sender: currentUser, text: inp.value, timestamp: Date.now() });
-    inp.value = '';
+// Voice Mic Placeholder Action
+document.getElementById('micBtn').onclick = () => {
+    showToast("Voice AI connecting...");
+};
+
+// Lyrics & Profile Sidebar
+document.getElementById('openLyricsArea').onclick = (e) => {
+    if(e.target.closest('.playback-controls') || e.target.closest('.seek-wrapper')) return;
+    document.getElementById('lyricsPanel').classList.add('show');
+};
+document.getElementById('closeLyricsBtn').onclick = () => document.getElementById('lyricsPanel').classList.remove('show');
+
+document.getElementById('profileBtn').onclick = () => { document.getElementById('profileSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show'); };
+document.getElementById('closeProfileBtn').onclick = () => { document.getElementById('profileSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); };
+document.getElementById('sidebarOverlay').onclick = () => document.getElementById('closeProfileBtn').click();
+
+// Tab Navigation
+document.getElementById('btnHome').onclick = () => { 
+    isPlaylistView = false; 
+    document.getElementById('searchSection').style.display = 'block'; 
+    dailyMixBanner.classList.remove('hidden'); 
+    fetchMusic("Top Trending Hits"); 
+    document.getElementById('btnHome').classList.add('active');
+    document.getElementById('btnPlaylist').classList.remove('active');
+};
+document.getElementById('btnPlaylist').onclick = () => { 
+    isPlaylistView = true; 
+    document.getElementById('searchSection').style.display = 'none'; 
+    dailyMixBanner.classList.add('hidden'); 
+    currentQueue = myPlaylist; 
+    renderLibrary(); 
+    document.getElementById('btnPlaylist').classList.add('active');
+    document.getElementById('btnHome').classList.remove('active');
+    document.getElementById('listHeading').innerText = "Personal Cloud Vault";
 };
 
 // Sleep Timer
@@ -426,38 +427,18 @@ sleepTimerBtn.onclick = () => {
     if(sleepTimeout) {
         clearTimeout(sleepTimeout); sleepTimeout = null;
         sleepTimerBtn.style.color = "#fff";
-        showToast("Timer Off ☀️");
+        showToast("Sleep Timer Off ☀️");
     } else {
-        sleepTimeout = setTimeout(() => { audio.pause(); showToast("Sleeping... 🌙"); }, 30 * 60000);
+        sleepTimeout = setTimeout(() => { audio.pause(); showToast("App Slept 🌙"); }, 30 * 60000);
         sleepTimerBtn.style.color = "#ffd700";
-        showToast("Set 30 Mins 🌙");
+        showToast("Sleep mode: 30 Mins 🌙");
     }
 };
 
-// Sidebar Handlers
-document.getElementById('profileBtn').onclick = () => { 
-    document.getElementById('profileSidebar').classList.add('open'); 
-    document.getElementById('sidebarOverlay').classList.add('show'); 
-};
-document.getElementById('closeProfileBtn').onclick = () => { 
-    document.getElementById('profileSidebar').classList.remove('open'); 
-    document.getElementById('sidebarOverlay').classList.remove('show'); 
-};
-document.getElementById('logoutBtn').onclick = () => { 
-    localStorage.removeItem('keepMeLoggedIn'); location.reload(); 
-};
+document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); location.reload(); };
 
-// Utilities
 function showToast(m) {
     const t = document.getElementById('toast');
     t.innerText = m; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+    setTimeout(() => t.classList.remove('show'), 3500);
 }
-
-document.getElementById('searchBtn').onclick = () => {
-    const q = searchInput.value.toLowerCase().trim();
-    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach Beats"); }
-    else fetchMusic(q);
-};
-
-console.log("Universe Status: SUPREME ONLINE.");
