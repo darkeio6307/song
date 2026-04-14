@@ -52,15 +52,16 @@ let statsInterval;
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
-// === 🛑 AUTO-LOGIN & SAFETY VALVE ===
+// === 🛑 AUTO-LOGIN & SAFETY VALVE (Fixed) ===
 window.onload = async () => {
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     
-    // Safety Valve: Agar 5 sec tak kuch na ho, toh screen hatao
+    // Safety Valve: Agar 5 sec tak screen na hate, toh zabardasti hatao
     const safetyValve = setTimeout(() => {
         if (splash && !splash.classList.contains('hidden')) {
             splash.classList.add('hidden');
-            if (!savedUser) login.classList.remove('hidden');
+            if (savedUser) app.classList.remove('hidden');
+            else login.classList.remove('hidden');
         }
     }, 5000);
 
@@ -151,7 +152,7 @@ async function initializeUserSession(u) {
         document.getElementById('profThemeName').innerText = userData.themeName;
         document.getElementById('profSongCount').innerText = myPlaylist.length;
 
-        // Smart Greeting Call
+        // Smart Greeting (Fix Integrated)
         updateTimeGreeting();
 
         splash.classList.add('hidden');
@@ -174,7 +175,7 @@ function updateTimeGreeting() {
     if(greetElement) greetElement.innerText = greeting;
 }
 
-// === 4. CLOUD STATS & LIVE ACTIVITY (Story Mode) ===
+// === 4. CLOUD STATS & LIVE ACTIVITY ===
 function startCloudTimer() {
     updateStatsUI();
     statsInterval = setInterval(async () => {
@@ -188,4 +189,148 @@ function startCloudTimer() {
 }
 
 async function updateStatsUI() {
-    const statsSnap = await getDoc(doc(db, "stats",
+    const statsSnap = await getDoc(doc(db, "stats", currentUser));
+    if (statsSnap.exists()) {
+        const d = statsSnap.data();
+        document.getElementById('statToday').innerText = `${d.today}m`;
+        document.getElementById('statWeek').innerText = `${Math.floor(d.week/60)}h ${d.week%60}m`;
+        document.getElementById('statMonth').innerText = `${Math.floor(d.month/60)}h ${d.month%60}m`;
+    }
+}
+
+function listenToLiveActivity() {
+    onSnapshot(collection(db, "liveStatus"), (snap) => {
+        liveStoriesContainer.innerHTML = '';
+        let hasLive = false;
+        snap.forEach((docSnap) => {
+            const user = docSnap.id;
+            const data = docSnap.data();
+            if (user !== currentUser && data.isPlaying) {
+                hasLive = true;
+                const story = document.createElement('div');
+                story.className = 'story-item';
+                story.innerHTML = `<div class="story-ring"><img src="${data.avatar}"></div><p>${user}</p><span>${data.songName}</span>`;
+                story.onclick = () => {
+                    const fakeSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: data.artist }] }, image: [{},{},{url: data.cover}], downloadUrl: [{},{},{},{},{url: data.audio}] };
+                    currentQueue = [fakeSong]; playSong(0);
+                };
+                liveStoriesContainer.appendChild(story);
+            }
+        });
+        liveActivityArea.classList.toggle('hidden', !hasLive);
+    });
+}
+
+async function updateLiveStatus(isPlaying, song = null) {
+    const ref = doc(db, "liveStatus", currentUser);
+    if(isPlaying && song) {
+        await setDoc(ref, { isPlaying: true, songName: song.name, artist: song.artists.primary[0].name, cover: song.image[2].url, audio: song.downloadUrl[4].url, songId: song.id, avatar: vipDB[currentUser]?.avatar || "guest.jpg", timestamp: new Date() });
+    } else { await updateDoc(ref, { isPlaying: false }); }
+}
+
+// === 5. MUSIC ENGINE ===
+async function fetchMusic(q) {
+    const heading = document.getElementById('listHeading');
+    if(heading) heading.innerText = "Scanning...";
+    try {
+        const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}`);
+        const data = await res.json();
+        if(data.success) { 
+            currentQueue = data.data.results; 
+            renderLibrary(); 
+            if(heading) heading.innerText = `'${q}' Results`; 
+        }
+    } catch (e) { showToast("Network Error"); }
+}
+
+function renderLibrary() {
+    songsList.innerHTML = '';
+    currentQueue.forEach((song, i) => {
+        const div = document.createElement('div');
+        div.className = 'song-card glass-widget';
+        const isFav = myPlaylist.some(s => s.id === song.id);
+        div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${i})"><div class="song-info-v2" onclick="playSong(${i})"><h4>${song.name}</h4><p>${song.artists.primary[0].name}</p></div><button class="fav-btn" style="color:${isFav?'var(--neon-main)':'#888'}" onclick="toggleFav(event, ${i})"><i class="fa-${isFav?'solid':'regular'} fa-heart"></i></button>`;
+        songsList.appendChild(div);
+    });
+}
+
+async function toggleFav(e, i) {
+    e.stopPropagation();
+    const song = currentQueue[i];
+    const idx = myPlaylist.findIndex(s => s.id === song.id);
+    if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Cloud ☁️"); }
+    else { myPlaylist.push(song); showToast("Saved to Cloud ☁️❤️"); }
+    await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
+    document.getElementById('profSongCount').innerText = myPlaylist.length;
+    renderLibrary();
+}
+
+function playSong(i) {
+    currentIndex = i; const song = currentQueue[i];
+    document.getElementById('playerTitle').innerText = song.name;
+    document.getElementById('playerArtist').innerText = song.artists.primary[0].name;
+    document.getElementById('playerCover').src = song.image[1].url;
+    audio.src = song.downloadUrl[4].url; audio.play();
+    updatePlayState(true); updateLiveStatus(true, song);
+}
+
+function updatePlayState(playing) {
+    playBtn.innerHTML = playing ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+    vinylDisk.classList.toggle('spin-vinyl', playing);
+    visualizer.classList.toggle('hidden', !playing);
+    bgAura.classList.toggle('beat-sync', playing);
+    if(playing && !noteInterval) noteInterval = setInterval(() => {
+        const n = document.createElement('i'); n.className = 'fa-solid fa-music music-note'; n.style.left = `${Math.random()*40}px`;
+        notesContainer.appendChild(n); setTimeout(() => n.remove(), 2000);
+    }, 800);
+    else if(!playing) { clearInterval(noteInterval); noteInterval = null; }
+}
+
+playBtn.onclick = () => { if(audio.paused && currentQueue.length) { audio.play(); updatePlayState(true); updateLiveStatus(true, currentQueue[currentIndex]); } else { audio.pause(); updatePlayState(false); updateLiveStatus(false); } };
+audio.onended = () => playSong((currentIndex + 1) % currentQueue.length);
+document.getElementById('nextBtn').onclick = () => playSong((currentIndex + 1) % currentQueue.length);
+document.getElementById('prevBtn').onclick = () => playSong((currentIndex - 1 + currentQueue.length) % currentQueue.length);
+
+audio.ontimeupdate = () => { if(!isNaN(audio.duration)) { seekSlider.value = (audio.currentTime/audio.duration)*100; document.getElementById('timeCurrent').innerText = formatTime(audio.currentTime); document.getElementById('timeTotal').innerText = formatTime(audio.duration); } };
+seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
+function formatTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
+
+// UI Helpers
+document.getElementById('profileBtn').onclick = () => { profileSidebar.classList.add('open'); sidebarOverlay.classList.add('show'); };
+document.getElementById('closeProfileBtn').onclick = () => { profileSidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); };
+document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('keepMeLoggedIn'); updateLiveStatus(false); location.reload(); };
+document.getElementById('btnHome').onclick = () => { isPlaylistView = false; document.getElementById('searchSection').style.display = 'block'; fetchMusic("Trending Hindi"); };
+document.getElementById('btnPlaylist').onclick = () => { isPlaylistView = true; document.getElementById('searchSection').style.display = 'none'; currentQueue = myPlaylist; renderLibrary(); };
+document.getElementById('searchBtn').onclick = () => { if(searchInput.value) fetchMusic(searchInput.value); };
+
+// Ripples
+document.addEventListener('click', (e) => {
+    const r = document.createElement('div'); r.className = 'touch-ripple'; r.style.left = `${e.clientX-20}px`; r.style.top = `${e.clientY-20}px`;
+    document.body.appendChild(r); setTimeout(() => r.remove(), 600);
+});
+
+// === 📲 APP INSTALL LOGIC ===
+let deferredPrompt;
+const installBtn = document.getElementById('installAppBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if(installBtn) installBtn.style.display = 'block';
+});
+if(installBtn) installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') installBtn.style.display = 'none';
+        deferredPrompt = null;
+    }
+});
+window.addEventListener('appinstalled', () => {
+    showToast("ARSHAD Music Installed Successfully! 🎉");
+    if(installBtn) installBtn.style.display = 'none';
+});
+
+function showToast(m) {
+    const t = document.getElementById('toast');
+    if(t) { t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+}
