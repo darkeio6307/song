@@ -52,16 +52,27 @@ let statsInterval;
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
-// === 🛑 AUTO-LOGIN (याददाश्त वाला फीचर) ===
+// === 🛑 AUTO-LOGIN (Safety Valve Fix Added) ===
 window.onload = async () => {
     const savedUser = localStorage.getItem('keepMeLoggedIn');
+    
+    // Safety Valve: Agar Firebase slow ho toh 5 sec baad screen khul jaye
+    const safetyValve = setTimeout(() => {
+        if (splash && !splash.classList.contains('hidden')) {
+            splash.classList.add('hidden');
+            if (!savedUser) login.classList.remove('hidden');
+        }
+    }, 5000);
+
     if (savedUser) {
         showToast("Welcome Back, Master...");
         await initializeUserSession(savedUser);
+        clearTimeout(safetyValve); // Success! No need for valve
     } else {
         setTimeout(() => { 
             splash.classList.add('hidden'); 
             login.classList.remove('hidden'); 
+            clearTimeout(safetyValve);
         }, 3000);
     }
 };
@@ -107,7 +118,7 @@ document.getElementById('loginBtn').onclick = async () => {
     
     let userData = vipDB[u] || (await getDoc(doc(db, "users", u.toLowerCase()))).data();
     if (userData && userData.pass === p) {
-        localStorage.setItem('keepMeLoggedIn', u); // 'Remember Me'
+        localStorage.setItem('keepMeLoggedIn', u); 
         await initializeUserSession(u);
     } else {
         document.getElementById('loginError').style.display = 'block';
@@ -140,12 +151,27 @@ async function initializeUserSession(u) {
         document.getElementById('profThemeName').innerText = userData.themeName;
         document.getElementById('profSongCount').innerText = myPlaylist.length;
 
+        // Greeting Fix Called Here
+        updateTimeGreeting();
+
         splash.classList.add('hidden');
         login.classList.add('hidden');
         app.classList.remove('hidden');
         
         startCloudTimer(); listenToLiveActivity(); fetchMusic("Top Lofi Hindi");
     } catch (e) { console.error(e); }
+}
+
+// === 🕒 SMART GREETING FIX ===
+function updateTimeGreeting() {
+    const hours = new Date().getHours();
+    let greeting = "";
+    if (hours < 12) greeting = "Good Morning,";
+    else if (hours < 17) greeting = "Good Afternoon,";
+    else greeting = "Good Evening,";
+    
+    const greetElement = document.getElementById('timeGreeting');
+    if(greetElement) greetElement.innerText = greeting;
 }
 
 // === 4. CLOUD STATS & LIVE ACTIVITY (Story Mode) ===
@@ -276,15 +302,14 @@ document.addEventListener('click', (e) => {
     const r = document.createElement('div'); r.className = 'touch-ripple'; r.style.left = `${e.clientX-20}px`; r.style.top = `${e.clientY-20}px`;
     document.body.appendChild(r); setTimeout(() => r.remove(), 600);
 });
+
 // === 📲 APP INSTALL LOGIC (PWA) ===
 let deferredPrompt;
 const installBtn = document.getElementById('installAppBtn');
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    // ब्राउज़र को डिफ़ॉल्ट प्रॉम्प्ट दिखाने से रोकें
     e.preventDefault();
     deferredPrompt = e;
-    // हमारा कस्टम 'Install App' बटन दिखाएं (जो प्रोफाइल साइडबार में है)
     installBtn.style.display = 'block';
 });
 
@@ -293,7 +318,6 @@ installBtn.addEventListener('click', async () => {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-            console.log('User accepted the install prompt');
             installBtn.style.display = 'none';
         }
         deferredPrompt = null;
