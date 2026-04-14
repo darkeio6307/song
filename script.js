@@ -1,4 +1,4 @@
-// === 🧠 ARSHAD MUSIC: THE ULTIMATE NEURAL SCRIPT ===
+// === 🧠 ARSHAD MUSIC: THE ULTIMATE NEURAL ENGINE (MOBILE EDITION) ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
@@ -11,83 +11,83 @@ const firebaseConfig = {
   appId: "1:301555315508:web:28340660dfbfe2429beb61"
 };
 
-const fApp = initializeApp(firebaseConfig);
-const db = getFirestore(fApp);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// === 👑 ELITE VIP MASTER DATABASE (Hardcoded for Zero Login Errors) ===
-const VIP_DATABASE = {
+// === 👑 ELITE VIP HARD-CODED DATABASE (ZERO LOGIN ERROR) ===
+const ELITE_DB = {
     "dark_eio": { pass: "moh0909", role: "Supreme Creator 👑", theme: "theme-default", avatar: "darkeio.jpg" },
     "Muskan": { pass: "Love", role: "Elite Empress ❤️", theme: "theme-muskan", avatar: "wife.jpg" },
     "Preeti": { pass: "bff", role: "Core Bestie 🤞", theme: "theme-preeti", avatar: "bff.jpg" }
 };
 
-// --- GLOBAL APP STATE ---
+// --- GLOBAL MOBILE STATE ---
 let ACTIVE_USER = "";
 let IS_ELITE = false;
-let QUEUE = [];
+let MUSIC_QUEUE = [];
 let TRACK_INDEX = 0;
-let SESSION_TIMER = 0;
+let SECONDS_PASSED = 0;
 const AUDIO = document.getElementById('audioEng');
 
-// === 🚀 BOOT PROTOCOL ===
+// === 🚀 NEURAL BOOT PROTOCOL ===
 window.onload = async () => {
-    simulateBoot();
-    const token = localStorage.getItem('arshad_elite_token');
+    executeBootLoader();
+    const token = localStorage.getItem('arshad_vault_token');
     if (token) {
-        await activateElitePortal(token);
+        await activateUniverse(token);
     } else {
         setTimeout(() => {
             document.getElementById('splashScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
-        }, 3500);
+        }, 4000);
     }
 };
 
-function simulateBoot() {
-    let w = 0;
-    const bar = document.getElementById('bootProgress');
-    const status = document.getElementById('bootStatus');
-    const tasks = ["Syncing Clouds...", "Authenticating Neural...", "Connecting to VIP Hub...", "App Ready!"];
+function executeBootLoader() {
+    let p = 0;
+    const bar = document.getElementById('bootFill');
+    const txt = document.getElementById('bootText');
+    const logs = ["Syncing Neural Links...", "Calibrating High Refresh...", "Linking VIP Cloud...", "Access Ready!"];
     
     const int = setInterval(() => {
-        w += 2;
-        bar.style.width = w + "%";
-        if (w % 25 === 0) status.innerText = tasks[Math.floor(w/26)];
-        if (w >= 100) clearInterval(int);
-    }, 40);
+        p += 2;
+        bar.style.width = p + "%";
+        if (p % 25 === 0) txt.innerText = `> ${logs[Math.floor(p/26)]}`;
+        if (p >= 100) clearInterval(int);
+    }, 50);
 }
 
-// === 🔐 AUTHENTICATION ENGINE ===
-async function activateElitePortal(u) {
+// === 🔐 ELITE AUTH PROTOCOL ===
+async function activateUniverse(u) {
     ACTIVE_USER = u;
-    IS_ELITE = !!VIP_DATABASE[u];
+    IS_ELITE = !!ELITE_DB[u];
     
-    let data = IS_ELITE ? VIP_DATABASE[u] : (await getDoc(doc(db, "users", u.toLowerCase()))).data();
+    let data = IS_ELITE ? ELITE_DB[u] : (await getDoc(doc(db, "users", u.toLowerCase()))).data();
 
     if (data) {
-        // UI Application
+        // Apply Elite UI
         document.body.className = data.theme || "theme-guest";
-        document.getElementById('displayUserName').innerText = u;
-        document.getElementById('headerAvatar').src = data.avatar || "guest.jpg";
-        document.getElementById('sideAvatar').src = data.avatar || "guest.jpg";
-        document.getElementById('sideName').innerText = u;
-        document.getElementById('sideRole').innerText = data.role || "Member";
+        document.getElementById('userNameLabel').innerText = u;
+        document.getElementById('headerPfp').src = data.avatar || "guest.jpg";
+        document.getElementById('sidePfp').src = data.avatar || "guest.jpg";
+        document.getElementById('sideNameLabel').innerText = u;
+        document.getElementById('sideRoleLabel').innerText = data.role || "Elite Member";
 
         // Transitions
         document.getElementById('splashScreen').classList.add('hidden');
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
 
-        localStorage.setItem('arshad_elite_token', u);
+        localStorage.setItem('arshad_vault_token', u);
         
-        // Load Real-time Systems
-        if (IS_ELITE) startLivePulse();
-        startSoulChat();
-        startStatsTracker();
-        fetchMusic("Top Hindi Trending");
-        showToast(`Elite Access Granted: ${u}`);
+        // Link Systems
+        if (IS_ELITE) initLivePulse();
+        initSoulChat();
+        initAnalytics();
+        fetchDiscoveryFeed("Trending Hindi Lofi");
+        showToast(`Elite Link Established: ${u} ⚡`);
     } else {
-        localStorage.removeItem('arshad_elite_token');
+        localStorage.removeItem('arshad_vault_token');
         location.reload();
     }
 }
@@ -95,38 +95,61 @@ async function activateElitePortal(u) {
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
-    
     if(!u || !p) return showToast("Enter Identity!");
 
-    // Check Local Master DB First
-    if (VIP_DATABASE[u] && VIP_DATABASE[u].pass === p) {
-        await activateElitePortal(u);
+    if (ELITE_DB[u] && ELITE_DB[u].pass === p) {
+        await activateUniverse(u);
     } else {
-        // Check Firestore for Guests
         const snap = await getDoc(doc(db, "users", u.toLowerCase()));
         if (snap.exists() && snap.data().pass === p) {
-            await activateElitePortal(u);
+            await activateUniverse(u);
         } else {
             document.getElementById('authError').style.display = 'block';
         }
     }
 };
 
-// === 💬 MOBILE SOUL CHAT ===
-function startSoulChat() {
+// === 🕵️‍♂️ LIVE ELITE PULSE (VIP ONLY) ===
+function initLivePulse() {
+    onSnapshot(collection(db, "liveStatus"), (snap) => {
+        const row = document.getElementById('storyLine');
+        row.innerHTML = '';
+        let found = 0;
+        snap.forEach(d => {
+            const user = d.id; const data = d.data();
+            if (user !== ACTIVE_USER && ELITE_DB[user] && data.isPlaying) {
+                found++;
+                const div = document.createElement('div');
+                div.className = 'story-item-v6';
+                div.innerHTML = `<div class="ring-v6"><img src="${ELITE_DB[user].avatar}"></div><span style="font-size:10px; color:var(--neon)">${user}</span>`;
+                div.onclick = () => syncWithVIP(data);
+                row.appendChild(div);
+            }
+        });
+        document.getElementById('vipPulse').classList.toggle('hidden', found === 0);
+    });
+}
+
+function syncWithVIP(data) {
+    showToast(`Joining ${data.user}'s frequency... 🔗`);
+    AUDIO.src = data.audio;
+    AUDIO.play();
+}
+
+// === 💬 SOUL CHAT MOBILE ===
+function initSoulChat() {
     const q = query(collection(db, "soulChat"), orderBy("timestamp", "asc"), limit(50));
     onSnapshot(q, (snap) => {
-        const feed = document.getElementById('chatFeed');
+        const feed = document.getElementById('msgFeed');
         feed.innerHTML = '';
         snap.forEach(d => {
             const m = d.data();
+            const isV = !!ELITE_DB[m.user];
             const div = document.createElement('div');
-            const isV = !!VIP_DATABASE[m.user];
-            div.style.padding = "10px";
-            div.style.borderRadius = "12px";
-            div.style.background = isV ? "rgba(0, 242, 255, 0.05)" : "rgba(255,255,255,0.03)";
-            div.style.fontSize = "12px";
-            div.innerHTML = `<b style="color:${isV?'#00f2ff':'#888'}">${m.user}:</b> ${m.text}`;
+            div.style.padding = "12px 18px"; div.style.borderRadius = "18px";
+            div.style.background = isV ? "rgba(0, 242, 255, 0.08)" : "rgba(255,255,255,0.04)";
+            div.style.fontSize = "13px";
+            div.innerHTML = `<b style="color:${isV?'var(--neon)':'#aaa'}">${m.user}:</b> ${m.text}`;
             feed.appendChild(div);
         });
         feed.scrollTop = feed.scrollHeight;
@@ -134,112 +157,70 @@ function startSoulChat() {
 }
 
 document.getElementById('sendMsg').onclick = async () => {
-    const input = document.getElementById('msgInput');
-    if(!input.value) return;
-    await addDoc(collection(db, "soulChat"), { user: ACTIVE_USER, text: input.value, timestamp: serverTimestamp() });
-    input.value = '';
+    const inp = document.getElementById('chatInput');
+    if(!inp.value.trim()) return;
+    await addDoc(collection(db, "soulChat"), { user: ACTIVE_USER, text: inp.value, timestamp: serverTimestamp() });
+    inp.value = '';
 };
 
-// === 🕵️‍♂️ ELITE LIVE PULSE ===
-function startLivePulse() {
-    onSnapshot(collection(db, "liveStatus"), (snap) => {
-        const list = document.getElementById('storiesList');
-        list.innerHTML = '';
-        let count = 0;
-        snap.forEach(d => {
-            const user = d.id; const data = d.data();
-            if (user !== ACTIVE_USER && VIP_DATABASE[user] && data.isPlaying) {
-                count++;
-                const story = document.createElement('div');
-                story.className = 'story-card-v4';
-                story.innerHTML = `<div class="story-ring"><img src="${VIP_DATABASE[user].avatar}"></div><span style="font-size:10px;">${user}</span>`;
-                story.onclick = () => syncWithVIP(data);
-                list.appendChild(story);
-            }
-        });
-        document.getElementById('livePulse').classList.toggle('hidden', count === 0);
-    });
-}
-
-function syncWithVIP(data) {
-    showToast(`Syncing Frequency: ${data.user} 🔗`);
-    AUDIO.src = data.audio;
-    AUDIO.play();
-}
-
-// === 🎵 MOBILE MUSIC ENGINE ===
-async function fetchMusic(q) {
+// === 🎵 MUSIC CORE ENGINE ===
+async function fetchDiscoveryFeed(q) {
     const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}`);
-    const data = await res.json();
-    if(data.success) {
-        QUEUE = data.data.results;
-        renderLibrary();
+    const d = await res.json();
+    if(d.success) {
+        MUSIC_QUEUE = d.data.results;
+        renderLibraryGrid();
     }
 }
 
-function renderLibrary() {
-    const grid = document.getElementById('songsGrid');
+function renderLibraryGrid() {
+    const grid = document.getElementById('songGrid');
     grid.innerHTML = '';
-    QUEUE.forEach((s, i) => {
+    MUSIC_QUEUE.forEach((s, i) => {
         const card = document.createElement('div');
-        card.style.display = "flex";
-        card.style.alignItems = "center";
-        card.style.gap = "15px";
-        card.style.padding = "12px";
-        card.style.background = "rgba(255,255,255,0.03)";
-        card.style.borderRadius = "15px";
-        card.style.marginBottom = "10px";
-        card.innerHTML = `<img src="${s.image[1].url}" style="width:50px; border-radius:10px;" onclick="playTrack(${i})"><div onclick="playTrack(${i})"><h5>${s.name}</h5><p style="font-size:10px; color:#777;">${s.artists.primary[0].name}</p></div>`;
+        card.style.display="flex"; card.style.alignItems="center"; card.style.padding="15px"; card.style.background="rgba(255,255,255,0.03)"; card.style.borderRadius="22px"; card.style.marginBottom="12px"; card.style.gap="15px"; card.style.border="1px solid var(--border)";
+        card.innerHTML = `<img src="${s.image[1].url}" style="width:55px; height:55px; border-radius:15px;" onclick="engageTrack(${i})"><div style="flex:1" onclick="engageTrack(${i})"><h4 style="font-size:14px; margin-bottom:4px;">${s.name}</h4><p style="font-size:11px; color:#777;">${s.artists.primary[0].name}</p></div>`;
         grid.appendChild(card);
     });
 }
 
-function playTrack(i) {
-    TRACK_INDEX = i;
-    const s = QUEUE[i];
-    AUDIO.src = s.downloadUrl[4].url;
-    AUDIO.play();
+function engageTrack(i) {
+    TRACK_INDEX = i; const s = MUSIC_QUEUE[i];
+    AUDIO.src = s.downloadUrl[4].url; AUDIO.play();
     document.getElementById('trackTitle').innerText = s.name;
     document.getElementById('trackArtist').innerText = s.artists.primary[0].name;
-    document.getElementById('coverArt').src = s.image[1].url;
-    document.getElementById('vinylPlay').style.animationPlayState = "running";
-    updateLiveBroadcast(true, s);
+    document.getElementById('trackCover').src = s.image[1].url;
+    document.getElementById('vinylBase').style.animationPlayState = "running";
+    broadcastLiveStatus(true, s);
 }
 
-async function updateLiveBroadcast(active, s = null) {
+async function broadcastLiveStatus(on, s = null) {
     if (!IS_ELITE) return;
     const ref = doc(db, "liveStatus", ACTIVE_USER);
-    if(active) {
-        await setDoc(ref, { isPlaying:true, songName:s.name, artist:s.artists.primary[0].name, audio:s.downloadUrl[4].url, cover:s.image[2].url, user:ACTIVE_USER, timestamp: serverTimestamp() });
-    } else {
-        await updateDoc(ref, { isPlaying: false });
-    }
+    if(on) await setDoc(ref, { isPlaying:true, songName:s.name, artist:s.artists.primary[0].name, audio:s.downloadUrl[4].url, cover:s.image[2].url, user:ACTIVE_USER, timestamp: serverTimestamp() });
+    else await updateDoc(ref, { isPlaying: false });
 }
 
-// --- UI HANDLERS ---
-document.getElementById('showChat').onclick = () => document.getElementById('chatDrawer').classList.add('open');
-document.getElementById('hideChat').onclick = () => document.getElementById('chatDrawer').classList.remove('open');
-document.getElementById('pfpTrigger').onclick = () => document.getElementById('sideMenu').classList.add('open');
-document.getElementById('hideMenu').onclick = () => document.getElementById('sideMenu').classList.remove('open');
-document.getElementById('searchBtn').onclick = () => fetchMusic(document.getElementById('searchBar').value);
-document.getElementById('playBtn').onclick = () => AUDIO.paused ? (AUDIO.play(), updateLiveBroadcast(true, QUEUE[TRACK_INDEX])) : (AUDIO.pause(), updateLiveBroadcast(false));
-document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('arshad_elite_token'); location.reload(); };
-
-function startStatsTracker() {
+// === 🛠️ UTILS & UI ===
+function initAnalytics() {
     setInterval(async () => {
-        SESSION_TIMER++;
-        if(SESSION_TIMER % 60 === 0) {
-            document.getElementById('valSession').innerText = `${Math.floor(SESSION_TIMER/60)}m`;
+        SECONDS_PASSED++;
+        if(SECONDS_PASSED % 60 === 0) {
+            document.getElementById('statToday').innerText = `${Math.floor(SECONDS_PASSED/60)}m`;
             await updateDoc(doc(db, "stats", ACTIVE_USER), { today: increment(1) });
         }
     }, 1000);
 }
 
-function showToast(m) {
-    const t = document.getElementById('toast');
-    t.innerText = m; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-}
+document.getElementById('showChat').onclick = () => document.getElementById('chatBox').classList.add('open');
+document.getElementById('closeChat').onclick = () => document.getElementById('chatBox').classList.remove('open');
+document.getElementById('openSide').onclick = () => document.getElementById('sideMenu').classList.add('open');
+document.getElementById('closeSide').onclick = () => document.getElementById('sideMenu').classList.remove('open');
+document.getElementById('scanBtn').onclick = () => fetchDiscoveryFeed(document.getElementById('masterSearch').value);
+document.getElementById('logoutTrigger').onclick = () => { localStorage.removeItem('arshad_vault_token'); location.reload(); };
+document.getElementById('playBtn').onclick = () => AUDIO.paused ? (AUDIO.play(), broadcastLiveStatus(true, MUSIC_QUEUE[TRACK_INDEX])) : (AUDIO.pause(), broadcastLiveStatus(false));
 
-AUDIO.onplay = () => document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
-AUDIO.onpause = () => document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+AUDIO.onplay = () => { document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylBase').style.animationPlayState = "running"; };
+AUDIO.onpause = () => { document.getElementById('playBtn').innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylBase').style.animationPlayState = "paused"; };
+AUDIO.ontimeupdate = () => { if(!isNaN(AUDIO.duration)) document.getElementById('seekFill').style.width = (AUDIO.currentTime/AUDIO.duration)*100 + "%"; };
