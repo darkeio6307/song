@@ -71,7 +71,7 @@ window.onload = async () => {
     }, 5000);
 
     if (savedUser) {
-        showToast("Welcome Back, Master Dark_eio...");
+        showToast("Welcome Back, Master...");
         await initializeUserSession(savedUser);
         clearTimeout(safetyValve);
     } else {
