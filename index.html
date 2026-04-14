@@ -86,7 +86,7 @@
             <div class="live-stories-wrapper hidden" id="liveActivityArea">
                 <p class="section-micro-title">Live VIPs Activity</p>
                 <div class="stories-scroll" id="liveStoriesContainer">
-                    </div>
+                </div>
             </div>
 
             <div class="search-bar-v2" id="searchSection">
@@ -142,6 +142,31 @@
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>
                 <div class="dock-item" id="btnVIP"><i class="fa-solid fa-shield-halved"></i><span>Pro</span></div>
             </nav>
+
+            <button id="openChatBtn" class="floating-chat-btn"><i class="fa-solid fa-comments"></i></button>
+
+            <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
+                <div class="chat-header">
+                    <h3>Vibe Chat 💬</h3>
+                    <button id="closeChatBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
+                    <button id="sendChatBtn" class="neon-btn-pro"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
+                <div class="lyrics-header">
+                    <h3>Live Lyrics 🎤</h3>
+                    <button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="lyrics-content">
+                    <p class="lyrics-text placeholder-glow">Vibing to the beat...<br>Lyrics sync in progress...</p>
+                </div>
+            </div>
+
         </div>
 
         <div id="profileSidebar" class="profile-sidebar glass-widget-heavy">
@@ -175,6 +200,19 @@
         <div id="sidebarOverlay" class="sidebar-overlay"></div>
         <div id="toast" class="toast-popup">Confirmed!</div>
     </div>
+
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.init({
+          appId: "YOUR_ONESIGNAL_APP_ID", // यहाँ अपनी OneSignal की असली App ID डाल देना
+          notifyButton: {
+            enable: false, // मैंने इसे फॉल्स कर दिया है ताकि बेकार का बटन UI खराब न करे, तुम चाहो तो true कर सकते हो
+          },
+        });
+      });
+    </script>
 
     <audio id="audioEngine"></audio>
     
