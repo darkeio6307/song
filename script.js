@@ -255,8 +255,20 @@ document.getElementById('downloadBtn').onclick = () => {
 document.getElementById('shareBtn').onclick = () => {
     if(currentQueue.length === 0) return;
     const song = currentQueue[currentIndex];
-    if (navigator.share) { navigator.share({ title: song.name, text: `Listen to ${song.name} on ARSHAD Music!`, url: song.url }); } 
-    else { showToast("Share copied!"); }
+    
+    // तेरी अपनी वेबसाइट का लिंक (ताकि कोई Jio Saavn पर न जाए)
+    const mySiteLink = window.location.origin + window.location.pathname;
+
+    if (navigator.share) { 
+        navigator.share({ 
+            title: song.name, 
+            text: `सुनो '${song.name}' सिर्फ़ ARSHAD Music पर! 🎵`, 
+            url: mySiteLink 
+        }); 
+    } 
+    else { 
+        showToast("Share copied!"); 
+    }
 };
 
 // Navigation
