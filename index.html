@@ -2,13 +2,13 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Elite</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-default">
-    <div class="live-aura"></div>
+    <div class="live-aura" id="bgAura"></div>
 
     <div class="app-container">
         
@@ -53,7 +53,7 @@
                 </div>
                 <div class="status-widgets">
                     <div class="profile-trigger" id="profileBtn">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad" alt="avatar" id="userAvatar">
+                        <img src="darkeio.jpg" alt="avatar" id="userAvatar" onerror="this.src='https://via.placeholder.com/50'">
                     </div>
                     <div class="visualizer hidden" id="eqBars">
                         <span></span><span></span><span></span><span></span>
@@ -89,6 +89,7 @@
                         <div class="vinyl-record" id="vinylDisk">
                             <img id="playerCover" src="https://via.placeholder.com/80" alt="disk">
                             <div class="record-hole"></div>
+                            <div id="notesContainer"></div>
                         </div>
                         <div class="song-meta">
                             <h4 id="playerTitle">Arshad Music</h4>
@@ -119,7 +120,7 @@
             </div>
             <div class="profile-card">
                 <div class="prof-img-box">
-                    <img id="sideProfAvatar" src="" alt="Profile">
+                    <img id="sideProfAvatar" src="darkeio.jpg" alt="Profile" onerror="this.src='https://via.placeholder.com/100'">
                     <div class="online-dot"></div>
                 </div>
                 <h2 id="profName" class="hologram-text">Name</h2>
