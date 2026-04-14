@@ -50,7 +50,7 @@ let currentUser = "";
 let currentQueue = []; 
 let myPlaylist = []; 
 let currentIndex = 0;
-let isPlaylistView = false; 
+let isPlaylistView = false; // 🔥 ये बताएगा कि तू Vault में है या नहीं
 let noteInterval;
 let sessionSeconds = 0;
 
@@ -77,21 +77,18 @@ window.onload = async () => {
     }
 };
 
-// === 3. CORE LOGIN & REGISTER (FIXED) ===
+// === 3. CORE LOGIN & REGISTER (Error Logging Fixed) ===
 document.getElementById('toggleRegister').onclick = () => { 
     document.getElementById('loginMode').classList.add('hidden'); 
     document.getElementById('registerMode').classList.remove('hidden'); 
     document.getElementById('loginTitle').innerText = 'NEW REGISTRATION'; 
-    document.getElementById('loginSubTitle').innerText = 'Join the Elite Cloud'; 
 };
 document.getElementById('toggleLogin').onclick = () => { 
     document.getElementById('registerMode').classList.add('hidden'); 
     document.getElementById('loginMode').classList.remove('hidden'); 
     document.getElementById('loginTitle').innerText = 'ELITE PORTAL'; 
-    document.getElementById('loginSubTitle').innerText = 'Cloud Authentication Required'; 
 };
 
-// 🔥 REGISTRATION LOGIC RESTORED
 document.getElementById('registerBtn').onclick = async () => {
     const u = document.getElementById('regUsername').value.trim();
     const p = document.getElementById('regPassword').value.trim();
@@ -110,12 +107,14 @@ document.getElementById('registerBtn').onclick = async () => {
             showToast("अकाउंट बन गया! अब लॉग-इन करें।");
             document.getElementById('toggleLogin').click();
         }
-    } catch(e) { showToast("Network Error!"); }
+    } catch(e) { 
+        console.error(e); 
+        showToast("Database Locked! Firebase Rules चेक कर।"); 
+    }
     
     btn.innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
 };
 
-// LOGIN LOGIC
 document.getElementById('loginBtn').onclick = async () => {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -123,14 +122,8 @@ document.getElementById('loginBtn').onclick = async () => {
     document.getElementById('loginBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     
     let userData = vipDB[u] || (await getDoc(doc(db, "users", u.toLowerCase()))).data();
-    if (userData && userData.pass === p) { 
-        localStorage.setItem('keepMeLoggedIn', u); 
-        await initializeUserSession(u); 
-    } 
-    else { 
-        document.getElementById('loginError').style.display = 'block'; 
-        document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>'; 
-    }
+    if (userData && userData.pass === p) { localStorage.setItem('keepMeLoggedIn', u); await initializeUserSession(u); } 
+    else { document.getElementById('loginError').style.display = 'block'; document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>'; }
 };
 
 async function initializeUserSession(u) {
@@ -148,8 +141,6 @@ async function initializeUserSession(u) {
         document.getElementById('userAvatar').src = userData.avatar;
         document.getElementById('sideProfAvatar').src = userData.avatar;
         document.getElementById('profName').innerText = currentUser;
-        document.getElementById('profRelation').innerText = userData.relation;
-        document.getElementById('profThemeName').innerText = userData.themeName;
         
         updateProfileBadge(statsSnap.exists() ? statsSnap.data().month : 0);
         document.getElementById('profSongCount').innerText = myPlaylist.length;
@@ -159,9 +150,7 @@ async function initializeUserSession(u) {
         login.classList.add('hidden');
         app.classList.remove('hidden');
         
-        startCloudTimer(); 
-        listenToLiveActivity(); 
-        loadVibeChat(); 
+        startCloudTimer(); listenToLiveActivity(); loadVibeChat(); 
         fetchMusic("Top Lofi Hindi");
     } catch (e) { console.error(e); }
 }
@@ -244,7 +233,7 @@ async function updateLiveStatus(isPlaying, song = null) {
     } else { await updateDoc(ref, { isPlaying: false, lastSeen: 0 }); }
 }
 
-// === 💬 VIBE CHAT SYSTEM (FIXED CLICKS) ===
+// === 💬 VIBE CHAT SYSTEM ===
 function loadVibeChat() {
     if(!chatWidget) return;
     const chatMessages = document.getElementById('chatMessages');
@@ -289,7 +278,7 @@ if(proPlayerArea) {
 }
 if(document.getElementById('closeLyricsBtn')) document.getElementById('closeLyricsBtn').onclick = () => lyricsPanel.classList.remove('show');
 
-// === 5. MUSIC ENGINE & AI SHUFFLE ===
+// === 5. MUSIC ENGINE & PURE AI MODE 🔥 ===
 async function fetchMusic(q) {
     const heading = document.getElementById('listHeading');
     if(heading) heading.innerText = "Scanning...";
@@ -324,7 +313,7 @@ async function toggleFav(e, i) {
     else { myPlaylist.push(song); showToast("Saved to Cloud ☁️❤️"); }
     await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
-    renderLibrary();
+    if(isPlaylistView) renderLibrary();
 }
 
 function playSong(i) {
@@ -353,14 +342,27 @@ function updatePlayState(playing) {
 
 playBtn.onclick = () => { if(audio.paused && currentQueue.length) { audio.play(); updatePlayState(true); updateLiveStatus(true, currentQueue[currentIndex]); } else { audio.pause(); updatePlayState(false); updateLiveStatus(false); } };
 
+// 🔥 HAR BAAR AI (EXCEPT PLAYLIST) 🔥
 audio.onended = () => {
-    if (currentIndex < currentQueue.length - 1) playSong(currentIndex + 1);
-    else { showToast("AI Selecting next vibe... 🤖✨"); playRandomAISong(); }
+    if (isPlaylistView) {
+        if (currentIndex < currentQueue.length - 1) playSong(currentIndex + 1);
+        else playSong(0); // Playlist khatam hone par wapas shuru
+    } else {
+        showToast("AI is cooking next vibe... 🤖✨"); 
+        playRandomAISong();
+    }
 };
+
 document.getElementById('nextBtn').onclick = () => {
-    if (currentIndex < currentQueue.length - 1) playSong(currentIndex + 1);
-    else playRandomAISong();
+    if (isPlaylistView) {
+        if (currentIndex < currentQueue.length - 1) playSong(currentIndex + 1);
+        else playSong(0);
+    } else {
+        showToast("AI is cooking next vibe... 🤖✨"); 
+        playRandomAISong();
+    }
 };
+
 document.getElementById('prevBtn').onclick = () => { if (currentIndex > 0) playSong(currentIndex - 1); };
 
 async function playRandomAISong() {
@@ -371,6 +373,7 @@ async function playRandomAISong() {
         const data = await res.json();
         if(data.success) {
             const newSong = data.data.results[Math.floor(Math.random() * data.data.results.length)];
+            // AI naya gana uthayega aur wahi bajayega!
             currentQueue = [newSong, ...currentQueue]; currentIndex = 0; renderLibrary(); playSong(0); showToast(`AI Choice: ${newSong.name} 🎧`);
         }
     } catch (e) { playSong(0); }
@@ -380,16 +383,28 @@ audio.ontimeupdate = () => { if(!isNaN(audio.duration)) { seekSlider.value = (au
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function formatTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-// UI Helpers
+// UI Helpers (yahan se isPlaylistView control ho raha hai)
 document.getElementById('profileBtn').onclick = () => { profileSidebar.classList.add('open'); sidebarOverlay.classList.add('show'); };
 document.getElementById('closeProfileBtn').onclick = () => { profileSidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); };
 document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('keepMeLoggedIn'); updateLiveStatus(false); location.reload(); };
-document.getElementById('btnHome').onclick = () => { isPlaylistView = false; document.getElementById('searchSection').style.display = 'block'; fetchMusic("Trending Hindi"); };
-document.getElementById('btnPlaylist').onclick = () => { isPlaylistView = true; document.getElementById('searchSection').style.display = 'none'; currentQueue = myPlaylist; renderLibrary(); };
-document.getElementById('searchBtn').onclick = () => { if(searchInput.value) fetchMusic(searchInput.value); };
+
+document.getElementById('btnHome').onclick = () => { 
+    isPlaylistView = false; // 🔥 Home pe aate hi AI mode ON
+    document.getElementById('searchSection').style.display = 'block'; 
+    fetchMusic("Trending Hindi"); 
+};
+document.getElementById('btnPlaylist').onclick = () => { 
+    isPlaylistView = true;  // 🔥 Playlist me jate hi normal mode ON
+    document.getElementById('searchSection').style.display = 'none'; 
+    currentQueue = myPlaylist; 
+    renderLibrary(); 
+};
+document.getElementById('searchBtn').onclick = () => { 
+    isPlaylistView = false; // 🔥 Search karte hi AI mode ON
+    if(searchInput.value) fetchMusic(searchInput.value); 
+};
 
 document.addEventListener('click', (e) => {
-    // Prevent ripple from breaking inputs
     if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
     const r = document.createElement('div'); r.className = 'touch-ripple'; r.style.left = `${e.clientX-20}px`; r.style.top = `${e.clientY-20}px`;
     document.body.appendChild(r); setTimeout(() => r.remove(), 600);
