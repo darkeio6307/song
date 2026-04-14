@@ -1,17 +1,10 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v18.0 (The Glassmorphism Zenith)
+ * 🌌 ARSHAD SUPREME ENGINE v19.0 (The Unbreakable Engine)
  * Optimized for: Tecno Pova 7
- * FIXED: Infinite Scroll Pagination, Glass Login UI, Anti-Freeze 
+ * FIXED: Universal Loading Hang, Firebase Blocking, Infinite Scroll Pagination
  * =========================================================================
  */
-
-// === 🔥 STEP 0: KILL OLD CACHE ===
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-        for (let registration of registrations) { registration.unregister(); }
-    });
-}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -25,7 +18,7 @@ const firebaseConfig = {
   appId: "1:301555315508:web:28340660dfbfe2429beb61"
 };
 
-let db;
+let db = null;
 try {
     const firebaseApp = initializeApp(firebaseConfig);
     db = getFirestore(firebaseApp);
@@ -65,36 +58,12 @@ let currentQuery = "Top Hindi Hits";
 let isLoadingMore = false;
 let hasMoreSongs = true;
 
-// Helper: Haptics
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
 
 window.playSong = playSong;
 window.toggleFav = toggleFav;
 
-// === 🔮 1. BOOTUP & ANTI-FREEZE ===
-window.onload = () => {
-    const savedUser = localStorage.getItem('keepMeLoggedIn');
-    
-    const emergencyForce = setTimeout(() => {
-        if (!splash.classList.contains('hidden')) bypassBoot(savedUser);
-    }, 3500);
-
-    if (savedUser) {
-        bootSession(savedUser, true).then(() => clearTimeout(emergencyForce)).catch(() => bypassBoot(savedUser));
-    } else {
-        setTimeout(() => { splash.classList.add('hidden'); login.classList.remove('hidden'); clearTimeout(emergencyForce); }, 2500);
-    }
-};
-
-document.getElementById('forceEnterBtn').onclick = () => bypassBoot(localStorage.getItem('keepMeLoggedIn'));
-
-function bypassBoot(u) {
-    splash.classList.add('hidden');
-    if(u) { currentUser = u; login.classList.add('hidden'); app.classList.remove('hidden'); fetchMusic("Trending Hits"); }
-    else login.classList.remove('hidden');
-}
-
-// === 🔐 2. PURE GLASS AUTHENTICATION ===
+// === 🔐 1. PURE GLASS AUTHENTICATION ===
 document.getElementById('toggleRegister').onclick = () => { document.getElementById('loginMode').classList.add('hidden'); document.getElementById('registerMode').classList.remove('hidden'); };
 document.getElementById('toggleLogin').onclick = () => { document.getElementById('registerMode').classList.add('hidden'); document.getElementById('loginMode').classList.remove('hidden'); };
 
@@ -107,7 +76,7 @@ document.getElementById('loginBtn').onclick = async () => {
     document.getElementById('loginBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> LOADING...';
     
     let userData = vipDB[u];
-    if(!userData) {
+    if(!userData && db) {
         try { const snap = await getDoc(doc(db, "users", u.toLowerCase())); if(snap.exists()) userData = snap.data(); } catch(e) {}
     }
     
@@ -115,17 +84,20 @@ document.getElementById('loginBtn').onclick = async () => {
         localStorage.setItem('keepMeLoggedIn', u); bootSession(u, true);
     } else {
         document.getElementById('loginError').style.display = 'block';
-        document.getElementById('loginBtn').innerHTML = 'INITIALIZE'; showToast("Galat Password!");
+        document.getElementById('loginBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-bolt"></i>'; showToast("Galat Password!");
     }
 };
 
-// === 🌌 3. MASTER SESSION ===
+// === 🌌 2. MASTER SESSION ===
 async function bootSession(u, showWelcome = false) {
     currentUser = u;
-    splash.classList.add('hidden'); login.classList.add('hidden'); app.classList.remove('hidden');
+    splash.style.display = 'none'; login.classList.add('hidden'); app.classList.remove('hidden');
 
     try {
-        let userData = vipDB[currentUser] || (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
+        let userData = vipDB[currentUser];
+        if (!userData && db) {
+            userData = (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
+        }
         if(userData) {
             document.body.className = userData.theme || "theme-default";
             document.getElementById('userAvatar').src = userData.avatar;
@@ -151,16 +123,18 @@ async function bootSession(u, showWelcome = false) {
 
         if(currentUser.toLowerCase() === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
         
-        const vSnap = await getDoc(doc(db, "vaults", currentUser));
-        myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
-        document.getElementById('profSongCount').innerText = myPlaylist.length;
-
-        trackAndLoadStats();
-        fetchMusic(currentQuery); 
-        listenToGlobalFM();
-        loadLoveCapsule();
+        if (db) {
+            const vSnap = await getDoc(doc(db, "vaults", currentUser));
+            myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
+            document.getElementById('profSongCount').innerText = myPlaylist.length;
+            trackAndLoadStats();
+            listenToGlobalFM();
+            loadLoveCapsule();
+        }
         
-    } catch(e) { console.log("Booted offline."); }
+        fetchMusic(currentQuery); 
+        
+    } catch(e) { console.log("Booted offline."); fetchMusic("Top Hindi Hits"); }
 }
 
 function trackAndLoadStats() {
@@ -171,7 +145,7 @@ function trackAndLoadStats() {
     });
 }
 
-// === 🎶 4. INFINITE SCROLL MUSIC ENGINE (Fixed) ===
+// === 🎶 3. INFINITE SCROLL MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
     const heading = document.getElementById('listHeading');
     const loader = document.getElementById('infiniteLoader');
@@ -235,8 +209,6 @@ function appendLibrary(songs, startIndex) {
 // 🔥 Infinite Scroll Trigger
 document.getElementById('musicLibraryContainer').addEventListener('scroll', function() {
     if(isPlaylistView || !hasMoreSongs || isLoadingMore) return; 
-    
-    // Check if scrolled to the bottom
     if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
         currentPage++;
         fetchMusic(currentQuery, true);
@@ -249,14 +221,14 @@ async function toggleFav(e, globalIndex) {
     const idx = myPlaylist.findIndex(s => s.id === song.id);
     if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Vault ☁️"); } 
     else { myPlaylist.push(song); showToast("Saved to Vault ❤️"); }
-    await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
+    if(db) await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
     if(isPlaylistView) renderLibrary(); else e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
 }
 
 function extractDominantColor(imgUrl) {
-    bgAura.style.background = `url(${imgUrl})`;
-    bgAura.style.backgroundSize = "cover";
+    document.getElementById('bgAura').style.background = `url(${imgUrl})`;
+    document.getElementById('bgAura').style.backgroundSize = "cover";
 }
 
 function playSong(i) {
@@ -274,25 +246,25 @@ function playSong(i) {
     playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
     document.getElementById('eqBars').classList.remove('hidden');
 
-    if(currentUser !== "Muskan") checkLoveCapsule(song);
-    if(isBroadcastingFM && currentUser.toLowerCase() === 'dark_eio') broadcastFM(song, true);
+    if(currentUser !== "Muskan" && db) checkLoveCapsule(song);
+    if(isBroadcastingFM && currentUser.toLowerCase() === 'dark_eio' && db) broadcastFM(song, true);
 
-    updateLiveStatus(true, song);
+    if (db) updateLiveStatus(true, song);
 }
 
-// === 🎧 5. PLAYER CONTROLS ===
+// === 🎧 4. PLAYER CONTROLS ===
 playBtn.onclick = () => {
     vibeClick();
     if(audio.paused) {
         audio.play(); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
         document.getElementById('vinylDisk').classList.add('spin-vinyl');
-        if(isBroadcastingFM) broadcastFM(currentQueue[currentIndex], true);
-        updateLiveStatus(true, currentQueue[currentIndex]);
+        if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], true);
+        if (db) updateLiveStatus(true, currentQueue[currentIndex]);
     } else {
         audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
         document.getElementById('vinylDisk').classList.remove('spin-vinyl');
-        if(isBroadcastingFM) broadcastFM(currentQueue[currentIndex], false);
-        updateLiveStatus(false);
+        if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], false);
+        if (db) updateLiveStatus(false);
     }
 };
 
@@ -327,7 +299,7 @@ audio.ontimeupdate = () => {
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-// === 🚘 6. DRIVE / FOCUS MODE ===
+// === 🚘 5. DRIVE / FOCUS MODE ===
 document.getElementById('driveModeBtn').onclick = () => {
     vibeClick();
     const player = document.getElementById('proPlayerArea');
@@ -341,7 +313,7 @@ document.getElementById('driveModeBtn').onclick = () => {
     }
 };
 
-// === 🎙️ 7. MIC VOICE DJ ===
+// === 🎙️ 6. MIC VOICE DJ ===
 if ('webkitSpeechRecognition' in window) {
     const rec = new webkitSpeechRecognition();
     rec.lang = 'hi-IN';
@@ -354,16 +326,16 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => micBtn.classList.remove('mic-listening');
 }
 
-// === 📡 8. FM KILL SWITCH & SYNC ===
+// === 📡 7. FM KILL SWITCH & SYNC ===
 fmBroadcastBtn.onclick = () => {
     vibeClick();
     isBroadcastingFM = !isBroadcastingFM;
     fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
     if(isBroadcastingFM) {
         showToast("📡 FM Broadcast: LIVE!");
-        if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused);
+        if(currentQueue[currentIndex] && db) broadcastFM(currentQueue[currentIndex], !audio.paused);
     } else {
-        setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
+        if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
         showToast("📡 Broadcast Ended.");
     }
 };
@@ -415,39 +387,40 @@ function listenToGlobalFM() {
 }
 
 window.addEventListener('beforeunload', () => {
-    if(isBroadcastingFM && currentUser.toLowerCase() === 'dark_eio') setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
-    updateLiveStatus(false);
+    if(isBroadcastingFM && currentUser.toLowerCase() === 'dark_eio' && db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false });
+    if(db) updateLiveStatus(false);
 });
 
-// === 💬 9. WHATSAPP CHAT & LISTENERS ===
+// === 💬 8. WHATSAPP CHAT & LISTENERS ===
 document.getElementById('btnChatToggle').onclick = () => {
     vibeClick();
     document.getElementById('chatWidget').classList.add('show');
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active'));
     document.getElementById('btnChatToggle').classList.add('active');
     
-    onSnapshot(collection(db, "liveStatus"), (snap) => {
-        if(currentChatPartner) return; 
-        const list = document.getElementById('onlineUsersList'); list.innerHTML = '';
-        let count = 0;
-        
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
-            if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
-                count++;
-                const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
-                const badge = isListener ? `<span class="fm-listener-badge">🎧 Listening</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
-                
-                const item = document.createElement('div');
-                item.className = 'contact-item';
-                item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}">
-                                  <div style="flex:1;"><h4>${docSnap.id}</h4><p>${badge}</p></div>`;
-                item.onclick = () => openPrivateChat(docSnap.id, data.avatar);
-                list.appendChild(item);
-            }
+    if (db) {
+        onSnapshot(collection(db, "liveStatus"), (snap) => {
+            if(currentChatPartner) return; 
+            const list = document.getElementById('onlineUsersList'); list.innerHTML = '';
+            let count = 0;
+            
+            snap.forEach(docSnap => {
+                const data = docSnap.data();
+                if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
+                    count++;
+                    const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
+                    const badge = isListener ? `<span class="fm-listener-badge">🎧 Listening</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'contact-item';
+                    item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}"><div style="flex:1;"><h4>${docSnap.id}</h4><p>${badge}</p></div>`;
+                    item.onclick = () => openPrivateChat(docSnap.id, data.avatar);
+                    list.appendChild(item);
+                }
+            });
+            if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center;">No one online 🏜️</p>';
         });
-        if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center;">No one online 🏜️</p>';
-    });
+    }
 };
 
 document.getElementById('closeChatBtn').onclick = () => {
@@ -474,27 +447,29 @@ function openPrivateChat(partner, avatar) {
     const roomID = [currentUser, partner].sort().join("_");
     if(chatUnsub) chatUnsub();
     
-    chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
-        const area = document.getElementById('directMessages'); area.innerHTML = '';
-        snap.forEach(d => {
-            const m = d.data();
-            const div = document.createElement('div');
-            div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`;
-            div.innerHTML = m.text; area.appendChild(div);
+    if (db) {
+        chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
+            const area = document.getElementById('directMessages'); area.innerHTML = '';
+            snap.forEach(d => {
+                const m = d.data();
+                const div = document.createElement('div');
+                div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`;
+                div.innerHTML = m.text; area.appendChild(div);
+            });
+            area.scrollTop = area.scrollHeight;
         });
-        area.scrollTop = area.scrollHeight;
-    });
+    }
 }
 
 document.getElementById('sendDirectChatBtn').onclick = async () => {
     const inp = document.getElementById('directChatInput');
-    if(!inp.value.trim() || !currentChatPartner) return;
+    if(!inp.value.trim() || !currentChatPartner || !db) return;
     const roomID = [currentUser, currentChatPartner].sort().join("_");
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: inp.value.trim(), timestamp: Date.now() });
     inp.value = '';
 };
 
-// === 🧠 10. AI MOOD ENGINE ===
+// === 🧠 9. AI MOOD ENGINE ===
 document.querySelectorAll('.mood-chip').forEach(btn => {
     btn.onclick = () => {
         vibeClick(); isPlaylistView = false;
@@ -506,7 +481,7 @@ document.querySelectorAll('.mood-chip').forEach(btn => {
 document.getElementById('searchBtn').onclick = () => {
     vibeClick(); isPlaylistView = false;
     const q = searchInput.value.toLowerCase().trim();
-    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach 50 Songs"); }
+    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach Ost"); }
     else fetchMusic(q);
 };
 
@@ -525,7 +500,7 @@ document.getElementById('btnPlaylist').onclick = () => {
 };
 
 async function updateLiveStatus(isPlaying, song = null) {
-    if(isBroadcastingFM) return; 
+    if(isBroadcastingFM || !db) return; 
     const ref = doc(db, "liveStatus", currentUser);
     if(isPlaying && song) { await setDoc(ref, { isPlaying: true, songName: song.name, songId: song.id, avatar: vipDB[currentUser]?.avatar || "guest.jpg", lastSeen: Date.now() }); } 
     else { await updateDoc(ref, { isPlaying: false, lastSeen: Date.now() }); }
@@ -534,6 +509,7 @@ async function updateLiveStatus(isPlaying, song = null) {
 setInterval(() => { if(currentUser) updateLiveStatus(false); }, 15000);
 
 function loadLoveCapsule() {
+    if (!db) return;
     onSnapshot(query(collection(db, "loveCapsule"), orderBy("timestamp", "desc"), limit(5)), (snap) => {
         const list = document.getElementById('capsuleList'); list.innerHTML = '';
         snap.forEach(d => {
@@ -545,13 +521,22 @@ function loadLoveCapsule() {
     });
 }
 async function checkLoveCapsule(song) {
+    if (!db) return;
     const snap = await getDoc(doc(db, "liveStatus", "Muskan"));
     if(snap.exists() && snap.data().isPlaying && snap.data().songId === song.id) {
         await addDoc(collection(db, "loveCapsule"), { couple: [currentUser, "Muskan"], songName: song.name, date: new Date().toLocaleDateString(), timestamp: Date.now() });
     }
 }
 
+document.getElementById('openLyricsArea').onclick = (e) => {
+    if(e.target.closest('.playback-controls') || e.target.closest('.seek-wrapper')) return;
+    document.getElementById('lyricsPanel').classList.add('show');
+};
+document.getElementById('closeLyricsBtn').onclick = () => document.getElementById('lyricsPanel').classList.remove('show');
+
+document.getElementById('profileBtn').onclick = () => { document.getElementById('profileSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show'); };
+document.getElementById('closeProfileBtn').onclick = () => { document.getElementById('profileSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); };
+document.getElementById('sidebarOverlay').onclick = () => document.getElementById('closeProfileBtn').click();
+
 document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); updateLiveStatus(false); location.reload(); };
 function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); }
-
-console.log("Zenith Engine: All Bugs Fixed & Infinite Scroll is LIVE!");
