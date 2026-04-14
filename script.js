@@ -71,9 +71,32 @@ window.onload = async () => {
     }, 5000);
 
     if (savedUser) {
-    showToast(`Welcome Back, ${savedUser} 👑`);
+
+    let msg = "";
+
+    switch(savedUser.toLowerCase()) {
+
+        case "dark_eio":
+            msg = "Welcome back Lord 👑";
+            break;
+
+        case "muskan":
+            msg = "Welcome back Sweetheart ❤️";
+            break;
+
+        case "preeti":
+            msg = "Welcome back Angel 🥀";
+            break;
+
+        default:
+            msg = "Welcome back Listener 🎧";
+    }
+
+    showToast(msg);
+
 } else {
-    showToast("Welcome Listener✨");
+    // 🔥 completely new user (no login yet)
+    showToast("Welcome Listener 🎧");
     }
 };
 
