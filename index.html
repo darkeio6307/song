@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=17.0">
+    <link rel="stylesheet" href="style.css?v=18.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
 </head>
@@ -33,20 +33,24 @@
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="cyber-login-card">
+            <div class="glass-orb orb-1"></div>
+            <div class="glass-orb orb-2"></div>
+            <div class="glass-orb orb-3"></div>
+
+            <div class="cyber-login-card glass-panel">
                 <div class="login-header">
-                    <div class="supreme-music-logo" style="transform: scale(0.6); margin-bottom: 0;">
+                    <div class="supreme-music-logo" style="transform: scale(0.6); margin-bottom: 0; margin-top: -20px;">
                         <i class="fa-solid fa-fingerprint"></i>
                     </div>
-                    <h2 id="loginTitle">ELITE PORTAL</h2>
+                    <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
                 </div>
 
                 <div id="loginMode">
-                    <div class="input-box glass-input">
+                    <div class="input-box ultra-glass-input">
                         <i class="fa-solid fa-user-astronaut"></i>
                         <input type="text" id="username" placeholder="Codename (Username)" autocomplete="off">
                     </div>
-                    <div class="input-box glass-input">
+                    <div class="input-box ultra-glass-input">
                         <i class="fa-solid fa-key"></i>
                         <input type="password" id="password" placeholder="Cipher Key (Passcode)">
                     </div>
@@ -56,11 +60,11 @@
                 </div>
 
                 <div id="registerMode" class="hidden">
-                    <div class="input-box glass-input">
+                    <div class="input-box ultra-glass-input">
                         <i class="fa-solid fa-user-plus"></i>
                         <input type="text" id="regUsername" placeholder="New Codename" autocomplete="off">
                     </div>
-                    <div class="input-box glass-input">
+                    <div class="input-box ultra-glass-input">
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="regPassword" placeholder="Create Cipher Key">
                     </div>
@@ -113,8 +117,8 @@
                 </div>
                 <div id="songsList" class="songs-grid-vertical"></div>
                 
-                <div id="infiniteLoader" class="hidden" style="text-align: center; padding: 20px; color: var(--neon-main); font-size: 12px; font-weight: bold; letter-spacing: 1px;">
-                    <i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes...
+                <div id="infiniteLoader" class="hidden loader-text">
+                    <i class="fa-solid fa-compact-disc fa-spin"></i> Fetching more vibes from the Cosmos...
                 </div>
                 <div class="bottom-padding"></div>
             </section>
@@ -216,6 +220,6 @@
     </div>
 
     <audio id="audioEngine"></audio>
-    <script type="module" src="script.js?v=17.0"></script>
+    <script type="module" src="script.js?v=18.0"></script>
 </body>
 </html>
