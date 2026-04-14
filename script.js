@@ -153,6 +153,12 @@ document.getElementById('loginBtn').onclick = async () => {
 
 async function initializeUserSession(u) {
     currentUser = u;
+
+    // 🔒 FM सिर्फ Dark_eio के लिए
+    if(currentUser && currentUser.toLowerCase() !== "dark_eio") {
+        if(fmBroadcastBtn) fmBroadcastBtn.style.display = "none";
+    }
+
     try {
         let userData = vipDB[currentUser] || (await getDoc(doc(db, "users", currentUser.toLowerCase()))).data();
         document.body.className = userData.theme;
@@ -176,16 +182,22 @@ async function initializeUserSession(u) {
         login.classList.add('hidden');
         app.classList.remove('hidden');
         
+        // 🔥 Core systems
         startCloudTimer(); 
         loadVibeChat(); 
         loadLoveCapsule();
-        listenToGlobalFM(); // Feature 19 Init
-        
-        fetchMusic("Top Lofi Hindi");
-        checkDailyMix(); // Feature 10 Init
-    } catch (e) { console.error(e); }
-}
 
+        // 🔥 FM Listener START (IMPORTANT)
+        listenToGlobalFM();
+
+        // 🎵 Music
+        fetchMusic("Top Lofi Hindi");
+        checkDailyMix(); 
+
+    } catch (e) { 
+        console.error(e); 
+    }
+}
 function updateProfileBadge(minutes) {
     let badgeEl = document.getElementById('userBadge');
     if (!badgeEl) {
