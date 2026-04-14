@@ -1,8 +1,8 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v16.0 (The Ultimate Zenith Edition)
+ * 🌌 ARSHAD SUPREME ENGINE v17.0 (The Infinite Zenith Edition)
  * Optimized for: Tecno Pova 7
- * NEW: Drive Mode, Haptic Engine, AI Moods, 50-Song Scroll, Live Listener Chat
+ * NEW: Infinite Scroll (Limitless songs), Haptics, Drive Mode, AI Moods
  * =========================================================================
  */
 
@@ -37,7 +37,7 @@ const fmBroadcastBtn = document.getElementById('fmBroadcastBtn');
 const fmLiveTag = document.getElementById('fmLiveTag');
 const micBtn = document.getElementById('micBtn');
 
-// State
+// Global States
 let currentUser = "";
 let currentQueue = [];
 let myPlaylist = [];
@@ -45,9 +45,15 @@ let currentIndex = 0;
 let isPlaylistView = false;
 let isBroadcastingFM = false;
 let isListeningToFM = false;
-let currentFMSongId = null; // Track FM song for chat badge
+let currentFMSongId = null; 
 let currentChatPartner = null;
 let chatUnsub = null;
+
+// Infinite Scroll States
+let currentPage = 1;
+let currentQuery = "Trending Hindi Hits";
+let isLoadingMore = false;
+let hasMoreSongs = true;
 
 // Helper: Haptic Feedback (NEW FEATURE 2)
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
@@ -58,12 +64,8 @@ window.toggleFav = toggleFav;
 // === 🔮 1. BOOTUP & ANTI-FREEZE ===
 window.onload = () => {
     const savedUser = localStorage.getItem('keepMeLoggedIn');
-    
-    // Safety Force Enter
     const forceEnter = setTimeout(() => {
-        if (!splash.classList.contains('hidden')) {
-            bypassBoot(savedUser);
-        }
+        if (!splash.classList.contains('hidden')) bypassBoot(savedUser);
     }, 3500);
 
     if (savedUser) {
@@ -138,20 +140,18 @@ async function bootSession(u, showWelcome = false) {
 
         if(currentUser.toLowerCase() === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
         
-        // Load Vault & Systems
         const vSnap = await getDoc(doc(db, "vaults", currentUser));
         myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
         document.getElementById('profSongCount').innerText = myPlaylist.length;
 
         trackAndLoadStats();
-        fetchMusic("Top Trending Hindi 2026"); // Fetches 50
+        fetchMusic(currentQuery); // Fetches initial batch
         listenToGlobalFM();
         loadLoveCapsule();
         
     } catch(e) { console.log("Booted offline."); }
 }
 
-// === 📈 4. STATS ===
 function trackAndLoadStats() {
     setInterval(() => { updateDoc(doc(db, "stats", currentUser), { today: increment(1) }).catch(()=>{}); }, 60000);
     onSnapshot(doc(db, "stats", currentUser), (snap) => {
@@ -160,38 +160,84 @@ function trackAndLoadStats() {
     });
 }
 
-// === 🎶 5. 50-SONG MUSIC ENGINE (Bug 1 Fixed) ===
-async function fetchMusic(q) {
-    document.getElementById('listHeading').innerText = "Scanning 50 Tracks...";
+// === 🎶 4. INFINITE MUSIC ENGINE (Bugs 1 & 8 Fixed) ===
+async function fetchMusic(q, isLoadMore = false) {
+    const heading = document.getElementById('listHeading');
+    const loader = document.getElementById('infiniteLoader');
+    
+    if(!isLoadMore) {
+        currentPage = 1;
+        currentQuery = q;
+        heading.innerText = "Scanning Galaxy...";
+        hasMoreSongs = true;
+    } else {
+        loader.classList.remove('hidden');
+    }
+    
+    isLoadingMore = true;
+    
     try {
-        // limit=50 added to API call to fetch massive list
-        const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}&limit=50`);
+        // Fetching 30 songs per page. Using sumit's generic API.
+        const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}&page=${currentPage}&limit=30`);
         const data = await res.json();
-        if(data.success) {
-            currentQueue = data.data.results;
-            renderLibrary();
-            document.getElementById('listHeading').innerText = `'${q}' - 50 Songs`;
+        
+        if(data.success && data.data.results.length > 0) {
+            if(isLoadMore) {
+                const startIndex = currentQueue.length;
+                currentQueue = [...currentQueue, ...data.data.results];
+                appendLibrary(data.data.results, startIndex);
+            } else {
+                currentQueue = data.data.results;
+                renderLibrary();
+                heading.innerText = `'${q}' Results`;
+            }
+        } else {
+            hasMoreSongs = false; // Stop fetching
+            if(!isLoadMore) showToast("No more songs found.");
         }
-    } catch(e) { showToast("Network Error!"); }
+    } catch(e) { if(!isLoadMore) showToast("Network Error!"); }
+    
+    isLoadingMore = false;
+    loader.classList.add('hidden');
 }
 
 function renderLibrary() {
     const list = document.getElementById('songsList');
     list.innerHTML = '';
-    currentQueue.forEach((song, i) => {
+    appendLibrary(currentQueue, 0);
+}
+
+function appendLibrary(songs, startIndex) {
+    const list = document.getElementById('songsList');
+    songs.forEach((song, i) => {
+        const globalIndex = startIndex + i;
         const div = document.createElement('div');
         div.className = 'song-card glass-widget';
         const isFav = myPlaylist.some(s => s.id === song.id);
-        div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${i})">
-            <div class="song-info-v2" onclick="playSong(${i})"><h4>${song.name}</h4><p>${song.artists.primary[0].name}</p></div>
-            <button class="fav-btn" style="color:${isFav?'var(--neon-main)':'#555'}" onclick="toggleFav(event, ${i})"><i class="fa-solid fa-heart"></i></button>`;
+        
+        div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${globalIndex})" loading="lazy">
+            <div class="song-info-v2" onclick="playSong(${globalIndex})"><h4>${song.name}</h4><p>${song.artists.primary[0].name}</p></div>
+            <button class="fav-btn" style="color:${isFav?'var(--neon-main)':'#555'}" onclick="toggleFav(event, ${globalIndex})"><i class="fa-solid fa-heart"></i></button>`;
         list.appendChild(div);
     });
 }
 
-async function toggleFav(e, i) {
+// 📜 THE INFINITE SCROLL LISTENER
+document.getElementById('musicLibraryContainer').addEventListener('scroll', function() {
+    if(isPlaylistView || !hasMoreSongs) return; 
+    
+    // If scrolled near bottom
+    if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150) {
+        if(!isLoadingMore) {
+            currentPage++;
+            fetchMusic(currentQuery, true);
+        }
+    }
+});
+
+async function toggleFav(e, globalIndex) {
     vibeClick(); e.stopPropagation();
-    const song = currentQueue[i];
+    const song = currentQueue[globalIndex];
     const idx = myPlaylist.findIndex(s => s.id === song.id);
     if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Vault ☁️"); } 
     else { myPlaylist.push(song); showToast("Saved to Vault ❤️"); }
@@ -201,7 +247,6 @@ async function toggleFav(e, i) {
 }
 
 function extractDominantColor(imgUrl) {
-    // Simulated dynamic background feature (NEW FEATURE 3)
     bgAura.style.background = `url(${imgUrl})`;
     bgAura.style.backgroundSize = "cover";
     bgAura.style.filter = "blur(80px)";
@@ -214,7 +259,7 @@ function playSong(i) {
     document.getElementById('playerTitle').innerText = song.name;
     document.getElementById('playerArtist').innerText = song.artists.primary[0].name;
     document.getElementById('playerCover').src = song.image[1].url;
-    extractDominantColor(song.image[1].url); // Change aura
+    extractDominantColor(song.image[1].url); 
     
     audio.src = song.downloadUrl[4].url; audio.volume = 1; audio.play();
     
@@ -228,7 +273,7 @@ function playSong(i) {
     updateLiveStatus(true, song);
 }
 
-// === 🎧 6. PLAYER CONTROLS ===
+// === 🎧 5. PLAYER CONTROLS ===
 playBtn.onclick = () => {
     vibeClick();
     if(audio.paused) {
@@ -275,7 +320,7 @@ audio.ontimeupdate = () => {
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-// === 🚘 7. DRIVE / FOCUS MODE (NEW FEATURE 1) ===
+// === 🚘 6. DRIVE / FOCUS MODE ===
 document.getElementById('driveModeBtn').onclick = () => {
     vibeClick();
     const player = document.getElementById('proPlayerArea');
@@ -283,15 +328,13 @@ document.getElementById('driveModeBtn').onclick = () => {
     player.classList.toggle('drive-mode-active');
     
     if(player.classList.contains('drive-mode-active')) {
-        dock.classList.add('hidden');
-        showToast("🚘 Focus Mode Enabled");
+        dock.classList.add('hidden'); showToast("🚘 Focus Mode Enabled");
     } else {
-        dock.classList.remove('hidden');
-        showToast("Focus Mode Disabled");
+        dock.classList.remove('hidden'); showToast("Focus Mode Disabled");
     }
 };
 
-// === 🎙️ 8. MIC VOICE DJ (Bug 2 Fixed) ===
+// === 🎙️ 7. MIC VOICE DJ (Bug 2 Fixed) ===
 if ('webkitSpeechRecognition' in window) {
     const rec = new webkitSpeechRecognition();
     rec.lang = 'hi-IN';
@@ -304,7 +347,7 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => micBtn.classList.remove('mic-listening');
 }
 
-// === 📡 9. FM KILL SWITCH & SYNC (Bug 5 Fixed) ===
+// === 📡 8. FM KILL SWITCH & SYNC (Bug 5 Fixed) ===
 fmBroadcastBtn.onclick = () => {
     vibeClick();
     isBroadcastingFM = !isBroadcastingFM;
@@ -374,7 +417,7 @@ window.addEventListener('beforeunload', () => {
     updateLiveStatus(false);
 });
 
-// === 💬 10. WHATSAPP CHAT & LISTENERS (Bug 3 & 6 Fixed) ===
+// === 💬 9. WHATSAPP CHAT & LISTENERS (Bug 3 & 6 Fixed) ===
 document.getElementById('btnChatToggle').onclick = () => {
     vibeClick();
     document.getElementById('chatWidget').classList.add('show');
@@ -391,7 +434,6 @@ document.getElementById('btnChatToggle').onclick = () => {
             const data = docSnap.data();
             if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
                 count++;
-                // Check if they are listening to the FM song
                 const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
                 const badge = isListener ? `<span class="fm-listener-badge">🎧 Listening</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
                 
@@ -451,7 +493,7 @@ document.getElementById('sendDirectChatBtn').onclick = async () => {
     inp.value = '';
 };
 
-// === 🧠 11. AI MOOD ENGINE (Bug 7 Fixed) ===
+// === 🧠 10. AI MOOD ENGINE (Bug 7 Fixed) ===
 document.querySelectorAll('.mood-chip').forEach(btn => {
     btn.onclick = () => {
         vibeClick();
@@ -465,7 +507,7 @@ document.querySelectorAll('.mood-chip').forEach(btn => {
 document.getElementById('searchBtn').onclick = () => {
     vibeClick(); isPlaylistView = false;
     const q = searchInput.value.toLowerCase().trim();
-    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach 50 Songs"); }
+    if(q === 'bankai') { document.body.className = 'theme-bankai'; fetchMusic("Bleach Beats"); }
     else fetchMusic(q);
 };
 
@@ -474,12 +516,12 @@ document.getElementById('btnHome').onclick = () => {
     vibeClick(); isPlaylistView = false; document.getElementById('searchSection').style.display = 'block'; 
     document.getElementById('moodMatrix').style.display = 'flex';
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active');
-    fetchMusic("Trending Hit Songs"); 
+    fetchMusic("Trending Hindi"); 
 };
 document.getElementById('btnPlaylist').onclick = () => { 
     vibeClick(); isPlaylistView = true; document.getElementById('searchSection').style.display = 'none'; 
     document.getElementById('moodMatrix').style.display = 'none';
-    currentQueue = myPlaylist; renderLibrary(); document.getElementById('listHeading').innerText = "Personal Cloud Vault";
+    currentQueue = myPlaylist; renderLibrary(); document.getElementById('listHeading').innerText = "Personal Vault";
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnPlaylist').classList.add('active');
 };
 
@@ -513,4 +555,4 @@ async function checkLoveCapsule(song) {
 document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); updateLiveStatus(false); location.reload(); };
 function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); }
 
-console.log("Zenith Engine: All 8 Bugs Fixed & 3 New Features Active!");
+console.log("Zenith Engine: All 8 Bugs Fixed & Infinite Scroll Active!");
