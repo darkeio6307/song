@@ -3,47 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ARSHAD Vibes | Elite</title>
+    <title>ARSHAD Vibes | Cloud Elite</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#050508">
+    <meta name="theme-color" content="#0f0c29">
 </head>
 <body class="theme-default">
     <div class="live-aura" id="bgAura"></div>
+    <div class="live-aura-secondary"></div>
 
     <div class="app-container">
         
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
-                <div class="logo-glow"></div>
-                <i class="fa-solid fa-compact-disc spin-slow"></i>
-                <h1>ARSHAD<span>PRO</span></h1>
+                <div class="hologram-circle">
+                    <i class="fa-solid fa-compact-disc spin-fast"></i>
+                </div>
+                <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">CLOUD</span></h1>
+                <p class="sync-text">Syncing with Universe...</p>
                 <div class="loading-track"><div class="loading-progress"></div></div>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="cyber-login-card">
+            <div class="cyber-login-card glass-widget-heavy">
                 <div class="login-header">
-                    <div class="fingerprint-box">
+                    <div class="hex-badge">
                         <i class="fa-solid fa-fingerprint fingerprint-scan"></i>
                         <div class="scan-line"></div>
                     </div>
-                    <h2>SYSTEM LOGIN</h2>
-                    <p>Enter VIP Credentials</p>
+                    <h2>ELITE PORTAL</h2>
+                    <p>Cloud Authentication Required</p>
                 </div>
-                <div class="input-box">
+                <div class="input-box glass-input">
                     <i class="fa-solid fa-user-astronaut"></i>
-                    <input type="text" id="username" placeholder="Username" autocomplete="off">
+                    <input type="text" id="username" placeholder="Identity (Username)" autocomplete="off">
                 </div>
-                <div class="input-box">
+                <div class="input-box glass-input">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" id="password" placeholder="Passcode">
+                    <input type="password" id="password" placeholder="Cipher (Passcode)">
                 </div>
-                <button id="loginBtn">ACCESS TERMINAL <i class="fa-solid fa-bolt"></i></button>
-                <p id="loginError" class="error">Access Denied: Invalid Identity</p>
+                <button id="loginBtn" class="neon-btn-pro">INITIALIZE <i class="fa-solid fa-bolt"></i></button>
+                <p id="loginError" class="error">Auth Failed: Intruder Detected!</p>
             </div>
         </div>
 
@@ -55,17 +57,23 @@
                     <h2 id="userName" class="hologram-text">Dark_eio</h2>
                 </div>
                 <div class="status-widgets">
-                    <div class="profile-trigger" id="profileBtn">
-                        <img src="darkeio.jpg" alt="avatar" id="userAvatar" onerror="this.src='https://via.placeholder.com/50'">
+                    <div class="session-timer glass-widget" title="Listening Time">
+                        <i class="fa-solid fa-cloud"></i> <span id="cloudStatus">Synced</span>
                     </div>
-                    <div class="visualizer hidden" id="eqBars">
-                        <span></span><span></span><span></span><span></span>
+                    <div class="profile-trigger glass-widget" id="profileBtn">
+                        <img src="darkeio.jpg" alt="avatar" id="userAvatar" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad'">
                     </div>
                 </div>
             </header>
 
+            <div class="live-stories-wrapper hidden" id="liveActivityArea">
+                <p class="section-micro-title">Live VIPs Activity</p>
+                <div class="stories-scroll" id="liveStoriesContainer">
+                    </div>
+            </div>
+
             <div class="search-bar-v2" id="searchSection">
-                <div class="search-inner">
+                <div class="search-inner glass-widget">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="searchInput" placeholder="Search the universe...">
                     <button id="searchBtn">GO</button>
@@ -75,12 +83,14 @@
             <section class="music-library">
                 <div class="lib-header">
                     <h3 id="listHeading">Discovery</h3>
-                    <div id="floatingQuote" class="quote-text">Vibe higher...</div>
+                    <div class="visualizer hidden" id="eqBars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
                 </div>
                 <div id="songsList" class="songs-grid-vertical"></div>
             </section>
 
-            <div class="pro-player">
+            <div class="pro-player glass-widget-heavy">
                 <div class="seek-wrapper">
                     <span class="time-label" id="timeCurrent">0:00</span>
                     <input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider">
@@ -103,47 +113,52 @@
                     <div class="playback-controls">
                         <button id="shareBtn" class="action-btn"><i class="fa-solid fa-share-nodes"></i></button>
                         <button id="prevBtn"><i class="fa-solid fa-backward-fast"></i></button>
-                        <button id="playBtn" class="play-trigger"><i class="fa-solid fa-play"></i></button>
+                        <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn"><i class="fa-solid fa-forward-fast"></i></button>
                         <button id="downloadBtn" class="action-btn"><i class="fa-solid fa-download"></i></button>
                     </div>
                 </div>
             </div>
 
-            <nav class="dock-nav">
+            <nav class="dock-nav glass-widget-heavy">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Explore</span></div>
-                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-heart-pulse"></i><span>Library</span></div>
+                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-cloud-arrow-down"></i><span>Vault</span></div>
                 <div class="dock-item" id="btnVIP"><i class="fa-solid fa-shield-halved"></i><span>Pro</span></div>
             </nav>
         </div>
 
-        <div id="profileSidebar" class="profile-sidebar">
+        <div id="profileSidebar" class="profile-sidebar glass-widget-heavy">
             <div class="sidebar-header">
                 <button id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="profile-card">
                 <div class="prof-img-box">
-                    <img id="sideProfAvatar" src="darkeio.jpg" alt="Profile" onerror="this.src='https://via.placeholder.com/100'">
+                    <img id="sideProfAvatar" src="darkeio.jpg" alt="Profile" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Arshad'">
                     <div class="online-dot"></div>
                 </div>
                 <h2 id="profName" class="hologram-text">Name</h2>
                 <div class="relation-badge" id="profRelation">Relation</div>
                 
-                <ul class="prof-stats">
-                    <li><i class="fa-solid fa-music"></i> <strong>Vault Status:</strong> <span id="profSongCount">0</span> Songs</li>
-                    <li><i class="fa-solid fa-palette"></i> <strong>Theme:</strong> <span id="profThemeName">Dark Neon</span></li>
-                    <li><i class="fa-solid fa-clock"></i> <strong>Access:</strong> Unlimited VIP</li>
+                <ul class="prof-stats glass-widget">
+                    <li><i class="fa-solid fa-cloud"></i> <strong>Cloud Vault:</strong> <span id="profSongCount">0</span> Songs</li>
+                    <li><i class="fa-solid fa-clock"></i> <strong>Today:</strong> <span id="statToday">0m</span></li>
+                    <li><i class="fa-solid fa-calendar-week"></i> <strong>This Week:</strong> <span id="statWeek">0m</span></li>
+                    <li><i class="fa-solid fa-calendar-days"></i> <strong>This Month:</strong> <span id="statMonth">0m</span></li>
                 </ul>
+
+                <button id="installAppBtn" class="neon-btn-pro install-btn" style="display: none;">
+                    <i class="fa-solid fa-mobile-screen-button"></i> Install App
+                </button>
 
                 <button id="logoutBtn" class="logout-btn"><i class="fa-solid fa-power-off"></i> LOGOUT</button>
             </div>
         </div>
         <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
         <div id="toast" class="toast-popup">Confirmed!</div>
     </div>
 
     <audio id="audioEngine"></audio>
-    <script src="script.js"></script>
+    
+    <script type="module" src="script.js"></script>
 </body>
 </html>
