@@ -1,13 +1,14 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v28.0 (The Quantum 3D Edition)
+ * 🌌 ARSHAD SUPREME ENGINE v32.0 (The Spotify & Telegram Update)
  * Optimized for: Tecno Pova 7
- * FIXED: Re-added Register System & Added Quantum 3D Logo
+ * FEATURES: Telegram Chat Smoothness, Spotify Fade-in, AI Smart Queue
+ * CRITICAL FIX: Script running natively, No DOM clearing lag!
  * =========================================================================
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnwHn6b2F8O8M-3Elk54tydzqldj78Cxg",
@@ -22,9 +23,9 @@ let db = null;
 try { const firebaseApp = initializeApp(firebaseConfig); db = getFirestore(firebaseApp); } catch(e) { console.error("Firebase Offline"); }
 
 const vipDB = { 
-    "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "The Creator", badge: "Universe Lord 👑", theme: "theme-default", avatar: "darkeio.jpg" },
-    "muskan": { displayName: "Muskan", pass: "Love", relation: "The Life Line", badge: "Queen ❤️", theme: "theme-muskan", avatar: "wife.jpg" },
-    "preeti": { displayName: "Preeti", pass: "bff", relation: "Purest Friend", badge: "Angel 🤞", theme: "theme-preeti", avatar: "bff.jpg" }
+    "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "The Creator 👑", badge: "Universe Lord", theme: "theme-default", avatar: "darkeio.jpg" },
+    "muskan": { displayName: "Muskan", pass: "Love", relation: "The Life Line ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg" },
+    "preeti": { displayName: "Preeti", pass: "bff", relation: "Purest Friend 🤞", badge: "Angel", theme: "theme-preeti", avatar: "bff.jpg" }
 };
 
 const app = document.getElementById('mainApp');
@@ -43,86 +44,76 @@ let globalChatListeners = {};
 let currentPage = 1; let currentQuery = "Top Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null;
+let isMapView = false;
+
+// The AI Vibe Generator (For Random Home Load)
+const aiVibes = ["Trending Viral Hits", "Arijit Singh Romantic", "Deep Focus Lofi", "Phonk Gym Motivation", "Bollywood 2026 Hits"];
 
 function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
+function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); }
 
-// === 🔐 1. AUTHENTICATION & REGISTRATION ===
-document.getElementById('toggleRegister').onclick = () => { vibeClick(); document.getElementById('loginMode').classList.add('hidden'); document.getElementById('registerMode').classList.remove('hidden'); };
-document.getElementById('toggleLogin').onclick = () => { vibeClick(); document.getElementById('registerMode').classList.add('hidden'); document.getElementById('loginMode').classList.remove('hidden'); };
+// === 🌌 1. STAR-MAP CANVAS ENGINE ===
+const canvas = document.getElementById('starMapCanvas');
+const ctx = canvas.getContext('2d');
+let stars = [];
+let camX = 0, camY = 0;
 
-// Login
-document.getElementById('loginBtn').onclick = async () => {
-    vibeClick();
-    const rawUser = document.getElementById('username').value.trim();
-    const p = document.getElementById('password').value.trim();
-    if(!rawUser || !p) return showToast("Details toh bharo!");
-    
-    const u = rawUser.toLowerCase(); 
-    document.getElementById('loginBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> LOADING...';
-    
-    let userData = vipDB[u];
-    if(!userData && db) {
-        try { const snap = await getDoc(doc(db, "users", u)); if(snap.exists()) { userData = snap.data(); userData.displayName = rawUser; } } catch(e) {}
-    }
-    
-    if (userData && userData.pass === p) {
-        localStorage.setItem('keepMeLoggedIn', rawUser); bootSession(rawUser, true, userData);
-    } else {
-        document.getElementById('loginError').style.display = 'block';
-        document.getElementById('loginBtn').innerHTML = 'ENTER <i class="fa-solid fa-bolt"></i>'; showToast("Galat Password!");
-    }
-};
+function initStarMap() {
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    stars = currentQueue.map(song => ({
+        song: song, x: Math.random() * 2000 - 1000, y: Math.random() * 2000 - 1000,
+        size: Math.random() * 3 + 1, color: `hsl(${Math.random() * 360}, 70%, 70%)`
+    }));
+    renderCanvas();
+}
 
-// Register
-document.getElementById('registerBtn').onclick = async () => {
-    vibeClick();
-    const rawUser = document.getElementById('regUsername').value.trim();
-    const p = document.getElementById('regPassword').value.trim();
-    if(!rawUser || !p) return showToast("Details fill karo!");
-    
-    document.getElementById('registerBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> REGISTERING...';
-    const lowerU = rawUser.toLowerCase();
-    
-    if(db) {
-        try {
-            const snap = await getDoc(doc(db, "users", lowerU));
-            if(snap.exists() || vipDB[lowerU]) {
-                showToast("Name already taken!");
-                document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
-                return;
+function renderCanvas() {
+    if(!isMapView) return;
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0, canvas.width, canvas.height);
+    stars.forEach(star => {
+        const screenX = star.x - camX + canvas.width/2;
+        const screenY = star.y - camY + canvas.height/2;
+        if(screenX > -50 && screenX < canvas.width+50 && screenY > -50 && screenY < canvas.height+50) {
+            ctx.shadowBlur = 10; ctx.shadowColor = star.color; ctx.fillStyle = star.color;
+            ctx.beginPath(); ctx.arc(screenX, screenY, star.size, 0, Math.PI*2); ctx.fill();
+            if(Math.abs(screenX - canvas.width/2) < 100 && Math.abs(screenY - canvas.height/2) < 100) {
+                ctx.font = "10px Outfit"; ctx.fillStyle = "#fff"; ctx.shadowBlur = 0;
+                ctx.fillText(star.song.name.substring(0, 15), screenX + 10, screenY + 5);
             }
-            await setDoc(doc(db, "users", lowerU), {
-                pass: p, relation: "New Soul", badge: "Explorer", theme: "theme-default", avatar: "guest.jpg"
-            });
-            showToast("Registered! Welcome to Universe.");
-            localStorage.setItem('keepMeLoggedIn', rawUser); 
-            setTimeout(() => { location.reload(); }, 1500);
-        } catch(e) {
-            showToast("Error registering.");
-            document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
         }
-    } else {
-        showToast("Firebase Offline!");
-        document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
-    }
-};
+    });
+    requestAnimationFrame(renderCanvas);
+}
 
-window.onload = () => {
-    const savedUser = localStorage.getItem('keepMeLoggedIn');
-    if (savedUser) {
-        const u = savedUser.toLowerCase(); let userData = vipDB[u];
-        if(userData) { bootSession(savedUser, false, userData); }
-        else { if(db) getDoc(doc(db, "users", u)).then(snap => { if(snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } else bypassBoot(); }).catch(() => bypassBoot()); }
-    }
-};
+let isDragging = false, lastX, lastY;
+canvas.addEventListener('touchstart', e => { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }, {passive: true});
+canvas.addEventListener('touchmove', e => {
+    if(!isDragging) return;
+    camX -= (e.touches[0].clientX - lastX); camY -= (e.touches[0].clientY - lastY);
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+}, {passive: true});
+canvas.addEventListener('touchend', () => {
+    isDragging = false; let closestDist = Infinity; let closestIdx = -1;
+    stars.forEach((star, idx) => {
+        const screenX = star.x - camX + canvas.width/2; const screenY = star.y - camY + canvas.height/2;
+        const dist = Math.sqrt(Math.pow(screenX - canvas.width/2, 2) + Math.pow(screenY - canvas.height/2, 2));
+        if(dist < 30 && dist < closestDist) { closestDist = dist; closestIdx = idx; }
+    });
+    if(closestIdx !== -1) playSong(closestIdx);
+});
 
-function bypassBoot() { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+document.getElementById('viewSwitchBtn').addEventListener('click', () => {
+    vibeClick(); isMapView = !isMapView;
+    const canvasCont = document.getElementById('universeCanvasContainer'); const scrollCont = document.getElementById('musicLibraryContainer'); const btn = document.getElementById('viewSwitchBtn');
+    if(isMapView) { canvasCont.classList.remove('hidden'); scrollCont.classList.add('hidden'); btn.innerHTML = '<i class="fa-solid fa-list"></i> Switch to List'; initStarMap(); } 
+    else { canvasCont.classList.add('hidden'); scrollCont.classList.remove('hidden'); btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map'; }
+});
 
-// === 🌌 2. MASTER SESSION ===
+
+// === 🌌 2. MASTER SESSION & STATS ===
 async function bootSession(rawName, showWelcome = false, userData) {
     currentDisplay = rawName; currentUser = rawName.toLowerCase();
-    
     document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.add('hidden'); app.classList.remove('hidden');
 
     if(userData) {
@@ -131,30 +122,24 @@ async function bootSession(rawName, showWelcome = false, userData) {
         document.getElementById('userBadge').innerText = userData.badge || "Explorer";
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
     }
-    
     document.getElementById('userName').innerText = currentDisplay; document.getElementById('profName').innerText = currentDisplay;
-
-    const hrs = new Date().getHours();
-    let greet = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
-    document.getElementById('timeGreeting').innerText = greet;
+    const hrs = new Date().getHours(); document.getElementById('timeGreeting').innerText = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
 
     if(showWelcome) {
-        if(currentUser === "dark_eio") showToast("Welcome back Lord 👑");
-        else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️");
-        else if(currentUser === "preeti") showToast("Welcome back Angel 🥀");
-        else showToast("Welcome to Universe 🎧");
+        if(currentUser === "dark_eio") showToast("Welcome back Lord 👑"); else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️"); else showToast("Welcome to Universe 🎧");
     }
 
-    if(currentUser === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
+    if(currentUser === 'dark_eio') { fmBroadcastBtn.classList.remove('hidden'); document.getElementById('lordPowerPanel').classList.remove('hidden'); }
     
     if (db) {
-        const vSnap = await getDoc(doc(db, "vaults", currentUser));
-        myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
+        const vSnap = await getDoc(doc(db, "vaults", currentUser)); myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
         document.getElementById('profSongCount').innerText = myPlaylist.length;
-        trackAndLoadStats(); listenToGlobalFM(); loadLoveCapsule(); listenToLiveActivity(); 
-        startGlobalNotifications(); 
+        trackAndLoadStats(); listenToGlobalFM(); loadLoveCapsule(); listenToLiveActivity(); startGlobalNotifications(); 
     }
-    fetchMusic("Trending Hit Songs"); 
+    
+    // 🔥 HOME PAGE RANDOM AI VIBE (BUG 1 FIXED)
+    const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)];
+    fetchMusic(startingVibe); 
 }
 
 function trackAndLoadStats() {
@@ -163,22 +148,20 @@ function trackAndLoadStats() {
         const todayStr = new Date().toLocaleDateString(); 
         if(snap.exists()) { 
             const d = snap.data();
-            if(d.lastDate !== todayStr) {
-                setDoc(doc(db, "stats", currentUser), { today: 0, lastDate: todayStr }, {merge: true});
-                document.getElementById('statToday').innerText = "0";
-            } else { document.getElementById('statToday').innerText = d.today || 0; }
-            document.getElementById('statWeek').innerText = d.week || 0; 
-            document.getElementById('statMonth').innerText = d.month || 0; 
+            if(d.lastDate !== todayStr) { setDoc(doc(db, "stats", currentUser), { today: 0, lastDate: todayStr }, {merge: true}); document.getElementById('statToday').innerText = "0"; } 
+            else { document.getElementById('statToday').innerText = d.today || 0; }
+            document.getElementById('statWeek').innerText = d.week || 0; document.getElementById('statMonth').innerText = d.month || 0; 
         } else { setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0, lastDate: todayStr }); }
     });
 }
 
-document.getElementById('profileBtn').onclick = () => {
-    vibeClick(); const drop = document.getElementById('topProfileStats');
-    if(drop.classList.contains('hidden')) { drop.classList.remove('hidden'); } else { drop.classList.add('hidden'); }
-};
-document.getElementById('closeStatsBtn').onclick = () => { vibeClick(); document.getElementById('topProfileStats').classList.add('hidden'); };
+document.getElementById('profileBtn').addEventListener('click', () => { vibeClick(); const drop = document.getElementById('topProfileStats'); if(drop.classList.contains('hidden')) { drop.classList.remove('hidden'); } else { drop.classList.add('hidden'); } });
+document.getElementById('closeStatsBtn').addEventListener('click', () => { vibeClick(); document.getElementById('topProfileStats').classList.add('hidden'); });
 window.logoutApp = () => { vibeClick(); localStorage.clear(); updateLiveStatus(false); setTimeout(() => { location.reload(); }, 300); };
+
+// 👑 LORD POWERS
+document.getElementById('powerKillFM').addEventListener('click', async () => { vibeClick(); if(currentUser !== 'dark_eio' || !db) return; await setDoc(doc(db, "fm", "globalRadio"), { isLive: false }, {merge: true}); showToast("Global FM Terminated 💀"); });
+document.getElementById('powerForceTheme').addEventListener('click', () => { vibeClick(); document.body.className = "theme-preeti"; showToast("UI Theme Forced! 🎨"); });
 
 // === 🎶 3. SCROLLING MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
@@ -193,6 +176,7 @@ async function fetchMusic(q, isLoadMore = false) {
             const startIndex = currentQueue.length; currentQueue = [...currentQueue, ...data.data.results];
             if(isLoadMore) appendLibrary(data.data.results, startIndex);
             else { renderLibrary(); heading.innerText = `'${q}' - Infinite Vibes`; }
+            if(isMapView) initStarMap();
         } else { hasMoreSongs = false; if(!isLoadMore) showToast("No matches found."); }
     } catch(e) { if(!isLoadMore) showToast("Network Drop!"); }
     isLoadingMore = false; loader.classList.add('hidden');
@@ -201,38 +185,52 @@ async function fetchMusic(q, isLoadMore = false) {
 function renderLibrary() { document.getElementById('songsList').innerHTML = ''; appendLibrary(currentQueue, 0); }
 function appendLibrary(songs, startIndex) {
     const list = document.getElementById('songsList');
+    const frag = document.createDocumentFragment();
     songs.forEach((song, i) => {
         const globalIndex = startIndex + i; const div = document.createElement('div'); div.className = 'song-card glass-widget';
         const isFav = myPlaylist.some(s => s.id === song.id);
         div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${globalIndex})" loading="lazy">
             <div class="song-info-v2" onclick="playSong(${globalIndex})"><h4>${song.name}</h4><p>${song.artists.primary[0].name}</p></div>
             <button class="fav-btn" style="color:${isFav?'var(--neon-main)':'#555'}" onclick="toggleFav(event, ${globalIndex})"><i class="fa-solid fa-heart"></i></button>`;
-        list.appendChild(div);
+        frag.appendChild(div);
     });
+    list.appendChild(frag);
 }
 
 document.getElementById('musicLibraryContainer').addEventListener('scroll', function() {
     if(isPlaylistView || !hasMoreSongs || isLoadingMore) return; 
     if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150) { currentPage++; fetchMusic(currentQuery, true); }
-});
+}, {passive: true});
 
 async function toggleFav(e, globalIndex) {
     vibeClick(); e.stopPropagation();
     const song = currentQueue[globalIndex]; const idx = myPlaylist.findIndex(s => s.id === song.id);
-    if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Vault"); } 
-    else { myPlaylist.push(song); showToast("Saved to Vault ❤️"); }
+    if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Vault"); } else { myPlaylist.push(song); showToast("Saved to Vault ❤️"); }
     if(db) await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
     document.getElementById('profSongCount').innerText = myPlaylist.length;
     if(isPlaylistView) renderLibrary(); else e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
 }
 window.toggleFav = toggleFav; window.playSong = playSong;
 
+// 🔥 SPOTIFY STYLE FADE-IN (SMOOTHNESS FIX)
 function playSong(i) {
     currentIndex = i; const song = currentQueue[i];
     document.getElementById('playerTitle').innerText = song.name; document.getElementById('playerArtist').innerText = song.artists.primary[0].name; document.getElementById('playerCover').src = song.image[1].url;
     document.getElementById('bgAura').style.background = `url(${song.image[1].url})`; document.getElementById('bgAura').style.backgroundSize = "cover";
-    audio.src = song.downloadUrl[4].url; audio.volume = 1; audio.play().catch(e=>{});
+    
+    audio.src = song.downloadUrl[4].url; 
+    audio.volume = 0; // Start silent
+    audio.play().then(() => {
+        // Fade in logic
+        let vol = 0;
+        let fadeInterval = setInterval(() => {
+            if(vol < 1) { vol += 0.05; audio.volume = Math.min(1, vol); }
+            else clearInterval(fadeInterval);
+        }, 50);
+    }).catch(e=>{});
+    
     document.getElementById('vinylDisk').classList.add('spin-vinyl'); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    document.getElementById('profileBtn').classList.add('playing'); 
     if(currentUser !== "muskan" && db) checkLoveCapsule(song);
     if(isBroadcastingFM && currentUser === 'dark_eio' && db) broadcastFM(song, true);
     if(db) updateLiveStatus(true, song);
@@ -240,90 +238,100 @@ function playSong(i) {
 }
 
 // === 🎧 4. PLAYER CONTROLS ===
-playBtn.onclick = () => {
+playBtn.addEventListener('click', () => {
     vibeClick();
     if(audio.paused) {
-        audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl');
+        audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing');
         if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], true);
         if(db) updateLiveStatus(true, currentQueue[currentIndex]);
     } else {
-        audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl');
+        audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
         if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], false);
         if(db) updateLiveStatus(false, null);
     }
+});
+
+document.getElementById('nextBtn').addEventListener('click', () => { vibeClick(); audio.onended(); });
+document.getElementById('prevBtn').addEventListener('click', () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); });
+
+// 🔥 AI RANDOM SHUFFLE NEXT SONG (BUG 2 FIXED)
+audio.onended = () => { 
+    if(isPlaylistView) { 
+        if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); 
+    } else { 
+        // Not in playlist? Pick a random song from current 50 queue to keep vibe fresh!
+        let nextIndex = Math.floor(Math.random() * currentQueue.length);
+        playSong(nextIndex);
+    } 
 };
 
-document.getElementById('nextBtn').onclick = () => { vibeClick(); audio.onended(); };
-document.getElementById('prevBtn').onclick = () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); };
-audio.onended = () => { if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } else fetchMusic("Trending Viral Hits", false); };
 audio.ontimeupdate = () => { 
-    if(!isNaN(audio.duration)) { seekSlider.value = (audio.currentTime/audio.duration)*100; document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); document.getElementById('timeTotal').innerText = fmtTime(audio.duration); if (audio.duration - audio.currentTime < 4 && audio.volume > 0.05) audio.volume -= 0.02; } 
+    if(!isNaN(audio.duration)) { 
+        seekSlider.value = (audio.currentTime/audio.duration)*100; 
+        document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); 
+        document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
+        // Fade out at end
+        if (audio.duration - audio.currentTime < 3 && audio.volume > 0.05) audio.volume -= 0.01; 
+    } 
 };
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-document.getElementById('sleepTimerBtn').onclick = () => {
+document.getElementById('sleepTimerBtn').addEventListener('click', () => {
     vibeClick(); const btn = document.getElementById('sleepTimerBtn');
     if(sleepTimeout) { clearTimeout(sleepTimeout); sleepTimeout = null; btn.classList.remove('timer-active'); showToast("Sleep Timer Off ☀️"); } 
-    else { sleepTimeout = setTimeout(() => { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); showToast("App Slept 🌙"); }, 30 * 60000); btn.classList.add('timer-active'); showToast("Sleep mode: 30 Mins 🌙"); }
-};
+    else { sleepTimeout = setTimeout(() => { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); showToast("App Slept 🌙"); }, 30 * 60000); btn.classList.add('timer-active'); showToast("Sleep mode: 30 Mins 🌙"); }
+});
 
 if ('webkitSpeechRecognition' in window) {
-    const rec = new webkitSpeechRecognition(); rec.lang = 'hi-IN';
-    micBtn.onclick = () => { vibeClick(); rec.start(); micBtn.style.color = '#ff0055'; };
-    rec.onresult = (e) => { document.getElementById('searchInput').value = e.results[0][0].transcript; document.getElementById('searchBtn').click(); micBtn.style.color = 'var(--neon-main)'; };
-    rec.onerror = () => micBtn.style.color = 'var(--neon-main)';
+    const rec = new webkitSpeechRecognition(); rec.lang = 'hi-IN'; const mic = document.getElementById('micBtn');
+    mic.onclick = () => { vibeClick(); rec.start(); mic.style.color = '#ff0055'; };
+    rec.onresult = (e) => { document.getElementById('searchInput').value = e.results[0][0].transcript; document.getElementById('searchBtn').click(); mic.style.color = 'var(--neon-main)'; };
+    rec.onerror = () => mic.style.color = 'var(--neon-main)';
 }
 
-// === 📡 5. FM SYNC ===
-fmBroadcastBtn.onclick = () => {
+// === 📡 5. FM SYNC & COUNT ===
+fmBroadcastBtn.addEventListener('click', () => {
     vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
     if(isBroadcastingFM) { showToast("📡 FM Broadcast: LIVE!"); if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused); } 
     else { if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); showToast("📡 Broadcast Ended."); }
-};
-async function broadcastFM(song, isPlayingStatus) {
-    await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() });
-}
+});
+
+async function broadcastFM(song, isPlayingStatus) { await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() }); }
+
 function listenToGlobalFM() {
     onSnapshot(doc(db, "fm", "globalRadio"), (snap) => {
         const d = snap.data();
         if(d && d.isLive && d.hostId !== currentUser) {
-            fmLiveTag.classList.remove('hidden'); fmLiveTag.innerHTML = `<i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>${d.host}'s FM</span>`; currentFMSongId = d.songId; 
+            fmLiveTag.classList.remove('hidden'); currentFMSongId = d.songId; 
+            onSnapshot(query(collection(db, "liveStatus"), where("songId", "==", d.songId)), (users) => { document.getElementById('fmCount').innerText = `${users.size} souls`; });
             if (isListeningToFM) {
                 if (audio.src !== d.audio) { showToast(`Host changed track! 📻`); const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); }
                 setTimeout(() => {
-                    if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); } 
-                    else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); }
+                    if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
+                    else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
                 }, 300);
             }
             fmLiveTag.onclick = () => {
-                if(!isListeningToFM) {
-                    isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; 
-                    const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); 
-                    if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }, 500);
-                } else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
+                if(!isListeningToFM) { isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }, 500); } 
+                else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }
             };
         } else {
             fmLiveTag.classList.add('hidden'); currentFMSongId = null;
-            if(isListeningToFM) { isListeningToFM = false; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); showToast("Host ended broadcast."); }
+            if(isListeningToFM) { isListeningToFM = false; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); showToast("Host ended broadcast."); }
         }
     });
 }
 
 function listenToLiveActivity() {
     onSnapshot(collection(db, "liveStatus"), (snap) => {
-        const container = document.getElementById('liveStoriesContainer'); container.innerHTML = '';
-        let activeCount = 0;
+        const container = document.getElementById('liveStoriesContainer'); container.innerHTML = ''; let activeCount = 0;
         snap.forEach(docSnap => {
             const data = docSnap.data();
             if(docSnap.id !== currentUser && data.isPlaying && data.lastSeen > (Date.now() - 60000)) {
-                activeCount++;
-                const item = document.createElement('div'); item.className = 'story-item';
+                activeCount++; const item = document.createElement('div'); item.className = 'story-item';
                 item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
-                item.onclick = () => {
-                    const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] };
-                    currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`);
-                };
+                item.onclick = () => { const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] }; currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`); };
                 container.appendChild(item);
             }
         });
@@ -331,7 +339,12 @@ function listenToLiveActivity() {
     });
 }
 
-// === 💬 6. WHATSAPP CHAT ===
+// === 🏠 6. ROOM FEATURE ===
+document.getElementById('btnRoomToggle').addEventListener('click', () => { vibeClick(); document.getElementById('chatWidget').classList.remove('show'); document.getElementById('roomWidget').classList.toggle('show'); document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnRoomToggle').classList.add('active'); });
+document.getElementById('closeRoomBtn').addEventListener('click', () => { vibeClick(); document.getElementById('roomWidget').classList.remove('show'); document.getElementById('btnRoomToggle').classList.remove('active'); document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); });
+document.getElementById('createRoomBtn').addEventListener('click', () => { vibeClick(); showToast("Room Server Activating (Coming Soon)..."); });
+
+// === 💬 7. TELEGRAM LEVEL CHAT ENGINE (PERFORMANCE FIX) ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -343,8 +356,7 @@ function startGlobalNotifications() {
                     msgSnap.forEach(mDoc => {
                         const msgData = mDoc.data();
                         if(msgData.timestamp > appLoadTime && msgData.sender !== currentUser && currentChatPartner !== partnerId) {
-                            document.getElementById('chatBadge').classList.remove('hidden');
-                            showToast(`💬 New message from ${partnerId}`);
+                            document.getElementById('chatBadge').classList.remove('hidden'); showToast(`💬 New message from ${partnerId}`);
                         }
                     });
                 });
@@ -353,38 +365,26 @@ function startGlobalNotifications() {
     });
 }
 
-function autoScrollChat() { const area = document.getElementById('directMessages'); setTimeout(() => { area.scrollTop = area.scrollHeight; }, 100); }
-
-function renderMessages(messagesArray) {
-    const area = document.getElementById('directMessages'); area.innerHTML = '';
-    messagesArray.forEach(m => {
-        const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
-    });
-    autoScrollChat();
+function autoScrollChat() { 
+    const area = document.getElementById('directMessages'); 
+    // Uses CSS scroll-behavior smooth for silky scroll
+    setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50); 
 }
 
 document.getElementById('btnChatToggle').addEventListener('click', () => {
-    vibeClick(); document.getElementById('chatBadge').classList.add('hidden'); document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
+    vibeClick(); document.getElementById('chatBadge').classList.add('hidden'); document.getElementById('roomWidget').classList.remove('show'); document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnChatToggle').classList.add('active');
     
     if(db) {
         onSnapshot(collection(db, "liveStatus"), (snap) => {
             if(currentChatPartner) return; 
-            const list = document.getElementById('onlineUsersList'); list.innerHTML = '';
-            let count = 0;
+            const list = document.getElementById('onlineUsersList'); list.innerHTML = ''; let count = 0;
             snap.forEach(docSnap => {
                 const data = docSnap.data();
                 if(docSnap.id !== currentUser) {
-                    count++;
-                    const isOnline = data.lastSeen > (Date.now() - 60000);
-                    const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
-                    
-                    let badge = '';
-                    if (isOnline) { badge = isListener ? `<span class="fm-listener-badge live">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`; } 
-                    else { const shortSongName = data.songName ? (data.songName.length > 15 ? data.songName.substring(0, 15) + '...' : data.songName) : "Unknown"; badge = `<span class="fm-listener-badge">Off-duty | Last heard: ${shortSongName}</span>`; }
-
-                    const item = document.createElement('div'); item.className = 'contact-item';
-                    const imgStyle = isOnline ? 'border: 2px solid #00ff88;' : 'border: 2px solid #555; filter: grayscale(50%);';
+                    count++; const isOnline = data.lastSeen > (Date.now() - 60000); const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
+                    let badge = ''; if (isOnline) { badge = isListener ? `<span class="fm-listener-badge live">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`; } else { const shortSongName = data.songName ? (data.songName.length > 15 ? data.songName.substring(0, 15) + '...' : data.songName) : "Unknown"; badge = `<span class="fm-listener-badge">Off-duty | Last heard: ${shortSongName}</span>`; }
+                    const item = document.createElement('div'); item.className = 'contact-item'; const imgStyle = isOnline ? 'border: 2px solid #00ff88;' : 'border: 2px solid #555; filter: grayscale(50%);';
                     item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}" style="${imgStyle}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
                     item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar);
                     list.appendChild(item);
@@ -395,26 +395,53 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
     }
 });
 
-document.getElementById('closeChatBtn').onclick = () => { vibeClick(); document.getElementById('chatWidget').classList.remove('show'); document.getElementById('btnChatToggle').classList.remove('active'); document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); };
-document.getElementById('backToContactsBtn').onclick = () => { vibeClick(); document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block'; currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub(); };
+document.getElementById('closeChatBtn').addEventListener('click', () => { vibeClick(); document.getElementById('chatWidget').classList.remove('show'); document.getElementById('btnChatToggle').classList.remove('active'); document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); });
+document.getElementById('backToContactsBtn').addEventListener('click', () => { vibeClick(); document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block'; currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub(); });
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
-    document.getElementById('chatContactsView').style.display = 'none'; document.getElementById('chatRoomView').style.display = 'flex';
-    document.getElementById('chatRoomView').classList.remove('hidden');
+    document.getElementById('chatContactsView').style.display = 'none'; document.getElementById('chatRoomView').style.display = 'flex'; document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
     const roomID = getRoomID(currentUser, partnerId);
+    const area = document.getElementById('directMessages');
+    area.innerHTML = ''; // Clear only once on open
+    
+    // Load from cache first for zero-lag feeling
     const cachedChat = localStorage.getItem('chat_' + roomID);
-    if(cachedChat) { renderMessages(JSON.parse(cachedChat)); }
+    if(cachedChat) { 
+        JSON.parse(cachedChat).forEach(m => {
+            const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
+        });
+        autoScrollChat();
+    }
 
     if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
     
     if (db) {
+        let isInitialLoad = true;
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
-            const msgs = []; snap.forEach(d => msgs.push(d.data()));
-            localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); 
-            renderMessages(msgs); autoScrollChat(); 
+            // 🔥 HYPER-OPTIMIZED: Only append new messages instead of wiping everything!
+            if(isInitialLoad) {
+                area.innerHTML = ''; const msgs = [];
+                snap.forEach(d => {
+                    const m = d.data(); msgs.push(m);
+                    const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
+                });
+                localStorage.setItem('chat_' + roomID, JSON.stringify(msgs));
+                autoScrollChat(); isInitialLoad = false;
+            } else {
+                snap.docChanges().forEach(change => {
+                    if(change.type === 'added') {
+                        const m = change.doc.data();
+                        const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text;
+                        area.appendChild(div);
+                        // Save to cache
+                        const cached = JSON.parse(localStorage.getItem('chat_' + roomID) || "[]"); cached.push(m); localStorage.setItem('chat_' + roomID, JSON.stringify(cached));
+                    }
+                });
+                autoScrollChat();
+            }
         });
 
         typingUnsub = onSnapshot(doc(db, `privateChats/${roomID}/typing`, partnerId), (snap) => {
@@ -425,35 +452,36 @@ function openPrivateChat(partnerId, partnerName, avatar) {
 }
 
 document.getElementById('directChatInput').addEventListener('input', () => {
-    if(!currentChatPartner || !db) return;
-    const roomID = getRoomID(currentUser, currentChatPartner);
-    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: true });
-    clearTimeout(typingTimer);
+    if(!currentChatPartner || !db) return; const roomID = getRoomID(currentUser, currentChatPartner);
+    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: true }); clearTimeout(typingTimer);
     typingTimer = setTimeout(() => { setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); }, 1500);
 });
 
-document.getElementById('sendDirectChatBtn').onclick = async () => {
+document.getElementById('sendDirectChatBtn').addEventListener('click', async () => {
     const inp = document.getElementById('directChatInput'); const txt = inp.value.trim();
-    if(!txt || !currentChatPartner || !db) return;
-    const roomID = getRoomID(currentUser, currentChatPartner);
+    if(!txt || !currentChatPartner || !db) return; const roomID = getRoomID(currentUser, currentChatPartner);
+    // Optimistically show message immediately for 0ms lag
+    const area = document.getElementById('directMessages');
+    const div = document.createElement('div'); div.className = `chat-msg mine`; div.innerHTML = txt; div.style.opacity = '0.7'; area.appendChild(div); autoScrollChat();
+    inp.value = ''; setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false });
+    
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: Date.now() });
-    inp.value = ''; setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); autoScrollChat();
-};
-document.getElementById('directChatInput').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); };
+});
+document.getElementById('directChatInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); });
 
-// === 🧠 7. AI MOOD ENGINE ===
+// === 🧠 8. AI MOOD ENGINE & MENUS ===
 document.querySelectorAll('.mood-chip').forEach(btn => { btn.onclick = () => { vibeClick(); isPlaylistView = false; fetchMusic(btn.getAttribute('data-mood')); showToast(`AI generating ${btn.innerText} vibes...`); }; });
-document.getElementById('searchBtn').onclick = () => { vibeClick(); isPlaylistView = false; const q = searchInput.value.trim(); if(q) fetchMusic(q); };
+document.getElementById('searchBtn').addEventListener('click', () => { vibeClick(); isPlaylistView = false; const q = document.getElementById('searchInput').value.trim(); if(q) fetchMusic(q); });
 
-document.getElementById('btnHome').onclick = () => { 
+document.getElementById('btnHome').addEventListener('click', () => { 
     vibeClick(); isPlaylistView = false; document.getElementById('searchSection').style.display = 'block'; document.getElementById('moodMatrix').style.display = 'flex';
-    document.getElementById('listHeading').innerText = "Infinite Discovery"; document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active'); fetchMusic("Trending Hindi Hits"); 
-};
-document.getElementById('btnPlaylist').onclick = () => { 
+    document.getElementById('listHeading').innerText = "Infinite Discovery"; document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active'); fetchMusic(aiVibes[Math.floor(Math.random() * aiVibes.length)]); 
+});
+document.getElementById('btnPlaylist').addEventListener('click', () => { 
     vibeClick(); isPlaylistView = true; document.getElementById('searchSection').style.display = 'none'; document.getElementById('moodMatrix').style.display = 'none';
     currentQueue = myPlaylist; renderLibrary(); document.getElementById('listHeading').innerText = "Your Vault";
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnPlaylist').classList.add('active');
-};
+});
 
 async function updateLiveStatus(isPlaying, song = null) {
     if(isBroadcastingFM || !db) return; 
@@ -482,10 +510,61 @@ async function checkLoveCapsule(song) {
     }
 }
 
-document.getElementById('openLyricsAreaBtn').onclick = (e) => {
+document.getElementById('openLyricsAreaBtn').addEventListener('click', (e) => {
     if(e.target.closest('.playback-controls') || e.target.closest('.seek-wrapper')) return;
     document.getElementById('lyricsPanel').classList.remove('hidden'); document.getElementById('lyricsPanel').classList.add('show');
-};
-document.getElementById('closeLyricsBtn').onclick = () => document.getElementById('lyricsPanel').classList.remove('show');
+});
+document.getElementById('closeLyricsBtn').addEventListener('click', () => document.getElementById('lyricsPanel').classList.remove('show'));
 window.addEventListener('beforeunload', () => { if(isBroadcastingFM && currentUser === 'dark_eio' && db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); if(db) updateLiveStatus(false); });
-function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); }
+
+// === 🚨 SAFE STARTUP LOGIC ===
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if user is logged in
+    const savedUser = localStorage.getItem('keepMeLoggedIn');
+    if (savedUser) {
+        const u = savedUser.toLowerCase(); let userData = vipDB[u];
+        if (userData) { bootSession(savedUser, false, userData); }
+        else {
+            if (db) {
+                getDoc(doc(db, "users", u)).then(snap => {
+                    if (snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } 
+                    else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+                }).catch(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); });
+            } else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+        }
+    } else {
+        setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }, 3500);
+    }
+});
+
+document.getElementById('emergencyRescueBtn').addEventListener('click', () => {
+    document.getElementById('splashScreen').style.display = 'none';
+    if(localStorage.getItem('keepMeLoggedIn')) document.getElementById('mainApp').classList.remove('hidden');
+    else document.getElementById('loginScreen').classList.remove('hidden');
+});
+
+// Auth Buttons
+document.getElementById('toggleRegister').addEventListener('click', () => { vibeClick(); document.getElementById('loginMode').classList.add('hidden'); document.getElementById('registerMode').classList.remove('hidden'); });
+document.getElementById('toggleLogin').addEventListener('click', () => { vibeClick(); document.getElementById('registerMode').classList.add('hidden'); document.getElementById('loginMode').classList.remove('hidden'); });
+document.getElementById('loginBtn').addEventListener('click', async () => {
+    vibeClick(); const rawUser = document.getElementById('username').value.trim(); const p = document.getElementById('password').value.trim();
+    if(!rawUser || !p) return showToast("Details toh bharo!"); const u = rawUser.toLowerCase(); 
+    document.getElementById('loginBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> LOADING...';
+    let userData = vipDB[u];
+    if(!userData && db) { try { const snap = await getDoc(doc(db, "users", u)); if(snap.exists()) { userData = snap.data(); userData.displayName = rawUser; } } catch(e) {} }
+    if (userData && userData.pass === p) { localStorage.setItem('keepMeLoggedIn', rawUser); bootSession(rawUser, true, userData); } 
+    else { document.getElementById('loginError').style.display = 'block'; document.getElementById('loginBtn').innerHTML = 'ENTER UNIVERSE <i class="fa-solid fa-bolt"></i>'; showToast("Galat Password!"); }
+});
+document.getElementById('registerBtn').addEventListener('click', async () => {
+    vibeClick(); const rawUser = document.getElementById('regUsername').value.trim(); const p = document.getElementById('regPassword').value.trim();
+    if(!rawUser || !p) return showToast("Details fill karo!"); document.getElementById('registerBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> INITIALIZING...';
+    const lowerU = rawUser.toLowerCase();
+    if(db) {
+        try {
+            const snap = await getDoc(doc(db, "users", lowerU));
+            if(snap.exists() || vipDB[lowerU]) { showToast("Name already taken!"); document.getElementById('registerBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-cloud-arrow-up"></i>'; return; }
+            await setDoc(doc(db, "users", lowerU), { pass: p, relation: "New Soul", badge: "Explorer", theme: "theme-default", avatar: "guest.jpg" });
+            showToast("Registered! Welcome to Universe."); localStorage.setItem('keepMeLoggedIn', rawUser); setTimeout(() => { location.reload(); }, 1500);
+        } catch(e) { showToast("Error registering."); document.getElementById('registerBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-cloud-arrow-up"></i>'; }
+    } else { showToast("Firebase Offline!"); document.getElementById('registerBtn').innerHTML = 'INITIALIZE <i class="fa-solid fa-cloud-arrow-up"></i>'; }
+});
