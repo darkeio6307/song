@@ -1,16 +1,24 @@
 {
-  "name": "ARSHAD Music Pro",
-  "short_name": "ARSHAD",
-  "start_url": "index.html",
+  "name": "Music",
+  "short_name": "Music",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#050508",
-  "theme_color": "#00f2ff",
+  "background_color": "#000000",
+  "theme_color": "#0f0c29",
+  "description": "Infinite Music Universe",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3844/3844724.png",
+      "src": "logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
