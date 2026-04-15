@@ -5,18 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=28.0">
+    <link rel="stylesheet" href="style.css?v=32.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
     <script>
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(r => { for(let i of r) i.unregister(); }); }
-        function forceRescue() {
-            document.getElementById('splashScreen').style.display = 'none';
-            if(localStorage.getItem('keepMeLoggedIn')) document.getElementById('mainApp').classList.remove('hidden');
-            else document.getElementById('loginScreen').classList.remove('hidden');
+        if ('serviceWorker' in navigator) { 
+            navigator.serviceWorker.getRegistrations().then(r => { for(let i of r) i.unregister(); }); 
         }
-        window.addEventListener('load', () => { setTimeout(() => { forceRescue(); }, 3500); });
     </script>
 </head>
 <body class="theme-default">
@@ -35,8 +31,8 @@
                     <i class="fa-solid fa-headphones-simple core-icon"></i>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Entering Quantum Core...</p>
-                <button onclick="forceRescue()" class="emergency-btn">FORCE ENTER ⚡</button>
+                <p class="sync-text">Optimizing Quantum Core...</p>
+                <button id="emergencyRescueBtn" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
 
@@ -46,8 +42,7 @@
                 
                 <div class="login-header">
                     <div class="god-core-logo" style="width: 80px; height: 80px; margin-bottom: 10px; margin-top: -20px;">
-                        <div class="core-ring ring-1"></div>
-                        <div class="core-ring ring-2"></div>
+                        <div class="core-ring ring-1"></div><div class="core-ring ring-2"></div>
                         <i class="fa-solid fa-fingerprint core-icon" style="font-size: 30px;"></i>
                     </div>
                     <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
@@ -62,7 +57,7 @@
                         <i class="fa-solid fa-key"></i>
                         <input type="password" id="password" placeholder="Passcode">
                     </div>
-                    <button id="loginBtn" class="neon-btn-pro">ENTER <i class="fa-solid fa-bolt"></i></button>
+                    <button id="loginBtn" class="neon-btn-pro">ENTER UNIVERSE <i class="fa-solid fa-bolt"></i></button>
                     <p id="loginError" class="error">Auth Failed!</p>
                     <p id="toggleRegister" class="toggle-link">New Soul? Register Here</p>
                 </div>
@@ -76,45 +71,31 @@
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" id="regPassword" placeholder="Create Passcode">
                     </div>
-                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #00f2ff);">INITIALIZE <i class="fa-solid fa-cloud-arrow-up"></i></button>
                     <p id="toggleLogin" class="toggle-link">Already a member? Login</p>
                 </div>
-
             </div>
         </div>
 
         <div id="mainApp" class="main-app hidden">
             
-            <div class="fixed-top-section">
+            <div class="fixed-top-section glass-header">
                 <header class="main-header">
                     <div class="greet-area">
                         <p id="timeGreeting">Aadaab,</p>
                         <h2 id="userName" class="hologram-text">User</h2>
-                        <p id="userBadge" class="gradient-text" style="font-size: 10px; margin-top: 2px;">Elite Member</p>
+                        <button id="viewSwitchBtn" class="view-toggle-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map</button>
                     </div>
                     <div class="status-widgets">
-                        <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #00ff88; cursor: pointer; border-color:#00ff88;"><i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>FM LIVE</span></div>
-                        <div class="profile-trigger glass-widget" id="profileBtn"><img src="darkeio.jpg" alt="avatar" id="userAvatar"></div>
+                        <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #00ff88; cursor: pointer; border-color:#00ff88;">
+                            <i class="fa-solid fa-tower-broadcast fade-blink"></i> <span id="fmCount">0 souls</span>
+                        </div>
+                        <div class="profile-trigger glass-widget" id="profileBtn">
+                            <div class="pfp-glow"></div>
+                            <img src="darkeio.jpg" alt="avatar" id="userAvatar">
+                        </div>
                     </div>
                 </header>
-
-                <div id="topProfileStats" class="legendary-dashboard hidden">
-                    <div class="legendary-header">
-                        <div class="user-info-elite"><h3 id="profName">Name</h3><p id="profRelation">Vibe Listener</p></div>
-                        <button id="closeStatsBtn" class="close-legendary"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div class="legendary-stats-grid">
-                        <div class="legendary-box"><i class="fa-solid fa-cloud"></i><div class="stat-value"><b id="profSongCount">0</b></div><div class="stat-label">In Vault</div></div>
-                        <div class="legendary-box highlight-box"><i class="fa-solid fa-fire"></i><div class="stat-value"><b id="statToday">0</b>m</div><div class="stat-label">Today's Vibe</div></div>
-                        <div class="legendary-box"><i class="fa-solid fa-calendar-week"></i><div class="stat-value"><b id="statWeek">0</b>m</div><div class="stat-label">This Week</div></div>
-                        <div class="legendary-box"><i class="fa-solid fa-calendar-days"></i><div class="stat-value"><b id="statMonth">0</b>m</div><div class="stat-label">This Month</div></div>
-                    </div>
-                    <div class="legendary-capsule">
-                        <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
-                        <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center;">No memories synced yet...</p></div>
-                    </div>
-                    <button onclick="window.logoutApp()" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT</button>
-                </div>
 
                 <div class="search-bar-v2" id="searchSection">
                     <div class="search-inner glass-widget">
@@ -132,6 +113,38 @@
                 </div>
             </div>
 
+            <div id="topProfileStats" class="legendary-dashboard hidden">
+                <div class="legendary-header">
+                    <div class="user-info-elite"><h3 id="profName">Name</h3><p id="profRelation">Vibe Listener</p></div>
+                    <button id="closeStatsBtn" class="close-legendary"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="legendary-stats-grid">
+                    <div class="legendary-box"><i class="fa-solid fa-cloud"></i><div class="stat-value"><b id="profSongCount">0</b></div><div class="stat-label">In Vault</div></div>
+                    <div class="legendary-box highlight-box"><i class="fa-solid fa-fire"></i><div class="stat-value"><b id="statToday">0</b>m</div><div class="stat-label">Today's Vibe</div></div>
+                    <div class="legendary-box"><i class="fa-solid fa-calendar-week"></i><div class="stat-value"><b id="statWeek">0</b>m</div><div class="stat-label">This Week</div></div>
+                    <div class="legendary-box"><i class="fa-solid fa-calendar-days"></i><div class="stat-value"><b id="statMonth">0</b>m</div><div class="stat-label">This Month</div></div>
+                </div>
+                
+                <div id="lordPowerPanel" class="lord-panel hidden">
+                    <p class="panel-label">CREATOR POWERS 👑</p>
+                    <div class="power-btns">
+                        <button id="powerKillFM" class="p-btn red"><i class="fa-solid fa-skull"></i> KILL GLOBAL FM</button>
+                        <button id="powerForceTheme" class="p-btn blue"><i class="fa-solid fa-palette"></i> FORCE UI THEME</button>
+                    </div>
+                </div>
+
+                <div class="legendary-capsule" style="margin-top:15px;">
+                    <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
+                    <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center; width:100%;">No memories synced yet...</p></div>
+                </div>
+                <button id="logoutBtn" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
+            </div>
+
+            <div id="universeCanvasContainer" class="canvas-view hidden">
+                <canvas id="starMapCanvas"></canvas>
+                <div class="canvas-hint">Drag to explore. Tap stars to play.</div>
+            </div>
+
             <div class="scrollable-content-area" id="musicLibraryContainer">
                 <div class="lib-header"><h3 id="listHeading">Infinite Discovery</h3></div>
                 <div id="songsList" class="songs-grid-vertical"></div>
@@ -146,7 +159,7 @@
                     <span class="time-label" id="timeTotal">0:00</span>
                 </div>
                 <div class="player-main-ui">
-                    <div class="now-playing" onclick="document.getElementById('lyricsPanel').classList.add('show')">
+                    <div class="now-playing" id="openLyricsAreaBtn">
                         <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="https://via.placeholder.com/80"><div class="record-hole"></div></div>
                         <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
                     </div>
@@ -163,11 +176,26 @@
             <nav class="dock-nav glass-widget-heavy" id="bottomDock">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>Vault</span></div>
+                <div class="dock-item" id="btnRoomToggle"><i class="fa-solid fa-house-chimney-user"></i><span>Room</span></div>
                 <div class="dock-item" id="btnChatToggle" style="position:relative;">
                     <div id="chatBadge" class="chat-badge hidden"></div>
                     <i class="fa-solid fa-comments"></i><span>Chat</span>
                 </div>
             </nav>
+
+            <div id="roomWidget" class="chat-panel hidden glass-widget-heavy">
+                <div class="chat-header">
+                    <h3 style="color:var(--neon-main); font-size:16px;">Supreme Rooms 🏠</h3>
+                    <button id="closeRoomBtn" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="room-setup-area" style="padding: 20px; text-align: center;">
+                    <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Create a room to listen with your VIPs in sync. (Beta)</p>
+                    <button id="createRoomBtn" class="neon-btn-pro" style="width: 100%; padding: 15px;">CREATE PRIVATE ROOM</button>
+                </div>
+                <div id="activeRoomsList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <p class="empty-msg" style="text-align:center; margin-top:20px;">No active rooms found.</p>
+                </div>
+            </div>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
                 <div id="chatContactsView" class="chat-view">
@@ -210,6 +238,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=28.0"></script>
+    <script type="module" src="script.js?v=32.0"></script>
 </body>
 </html>
