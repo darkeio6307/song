@@ -5,139 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=28.0">
+    <link rel="stylesheet" href="style.css?v=29.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
     <script>
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(r => { for(let i of r) i.unregister(); }); }
         function forceRescue() {
             document.getElementById('splashScreen').style.display = 'none';
             if(localStorage.getItem('keepMeLoggedIn')) document.getElementById('mainApp').classList.remove('hidden');
             else document.getElementById('loginScreen').classList.remove('hidden');
         }
-        window.addEventListener('load', () => { setTimeout(() => { forceRescue(); }, 3500); });
+        window.addEventListener('load', () => { setTimeout(forceRescue, 3500); });
     </script>
 </head>
 <body class="theme-default">
     <div class="live-aura" id="bgAura"></div>
-    <div class="live-aura-secondary"></div>
     <div id="vipParticles" class="vip-particles"></div>
 
     <div class="app-container">
         
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
-                <div class="god-core-logo">
-                    <div class="core-ring ring-1"></div>
-                    <div class="core-ring ring-2"></div>
-                    <div class="core-ring ring-3"></div>
-                    <i class="fa-solid fa-headphones-simple core-icon"></i>
-                </div>
+                <div class="god-core-logo"><div class="core-ring ring-1"></div><div class="core-ring ring-2"></div><i class="fa-solid fa-headphones-simple core-icon"></i></div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Entering Quantum Core...</p>
+                <p class="sync-text">Unlocking God Powers...</p>
                 <button onclick="forceRescue()" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
 
         <div id="loginScreen" class="login-screen hidden">
-            <div class="glass-orb orb-1"></div><div class="glass-orb orb-2"></div>
             <div class="cyber-login-card glass-panel">
-                
-                <div class="login-header">
-                    <div class="god-core-logo" style="width: 80px; height: 80px; margin-bottom: 10px; margin-top: -20px;">
-                        <div class="core-ring ring-1"></div>
-                        <div class="core-ring ring-2"></div>
-                        <i class="fa-solid fa-fingerprint core-icon" style="font-size: 30px;"></i>
-                    </div>
-                    <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
-                </div>
-
+                <h2 class="glass-title">ELITE PORTAL</h2>
                 <div id="loginMode">
-                    <div class="input-box ultra-glass-input">
-                        <i class="fa-solid fa-user-astronaut"></i>
-                        <input type="text" id="username" placeholder="Codename" autocomplete="off">
-                    </div>
-                    <div class="input-box ultra-glass-input">
-                        <i class="fa-solid fa-key"></i>
-                        <input type="password" id="password" placeholder="Passcode">
-                    </div>
-                    <button id="loginBtn" class="neon-btn-pro">ENTER <i class="fa-solid fa-bolt"></i></button>
-                    <p id="loginError" class="error">Auth Failed!</p>
-                    <p id="toggleRegister" class="toggle-link">New Soul? Register Here</p>
+                    <div class="input-box ultra-glass-input"><i class="fa-solid fa-user-astronaut"></i><input type="text" id="username" placeholder="Codename"></div>
+                    <div class="input-box ultra-glass-input"><i class="fa-solid fa-key"></i><input type="password" id="password" placeholder="Passcode"></div>
+                    <button id="loginBtn" class="neon-btn-pro">ENTER UNIVERSE</button>
+                    <p id="toggleRegister" class="toggle-link">New Soul? Register</p>
                 </div>
-
                 <div id="registerMode" class="hidden">
-                    <div class="input-box ultra-glass-input">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <input type="text" id="regUsername" placeholder="New Codename" autocomplete="off">
-                    </div>
-                    <div class="input-box ultra-glass-input">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="regPassword" placeholder="Create Passcode">
-                    </div>
-                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
-                    <p id="toggleLogin" class="toggle-link">Already a member? Login</p>
+                    <div class="input-box ultra-glass-input"><input type="text" id="regUsername" placeholder="New Codename"></div>
+                    <div class="input-box ultra-glass-input"><input type="password" id="regPassword" placeholder="New Passcode"></div>
+                    <button id="registerBtn" class="neon-btn-pro" style="background:linear-gradient(45deg, #00ff88, #00f2ff);">INITIALIZE</button>
+                    <p id="toggleLogin" class="toggle-link">Back to Login</p>
                 </div>
-
             </div>
         </div>
 
         <div id="mainApp" class="main-app hidden">
             
-            <div class="fixed-top-section">
+            <div class="fixed-top-section glass-header">
                 <header class="main-header">
                     <div class="greet-area">
                         <p id="timeGreeting">Aadaab,</p>
                         <h2 id="userName" class="hologram-text">User</h2>
-                        <p id="userBadge" class="gradient-text" style="font-size: 10px; margin-top: 2px;">Elite Member</p>
+                        <button id="viewSwitchBtn" class="view-toggle-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map</button>
                     </div>
                     <div class="status-widgets">
-                        <div id="fmLiveTag" class="session-timer glass-widget hidden" style="color: #00ff88; cursor: pointer; border-color:#00ff88;"><i class="fa-solid fa-tower-broadcast fade-blink"></i> <span>FM LIVE</span></div>
-                        <div class="profile-trigger glass-widget" id="profileBtn"><img src="darkeio.jpg" alt="avatar" id="userAvatar"></div>
+                        <div id="fmLiveTag" class="session-timer glass-widget hidden">
+                            <i class="fa-solid fa-tower-broadcast fade-blink"></i> <span id="fmCount">0 souls</span>
+                        </div>
+                        <div class="profile-trigger glass-widget" id="profileBtn">
+                            <div class="pfp-glow"></div>
+                            <img src="darkeio.jpg" alt="avatar" id="userAvatar">
+                        </div>
                     </div>
                 </header>
 
                 <div id="topProfileStats" class="legendary-dashboard hidden">
                     <div class="legendary-header">
-                        <div class="user-info-elite"><h3 id="profName">Name</h3><p id="profRelation">Vibe Listener</p></div>
+                        <div class="user-info-elite"><h3 id="profName">Name</h3><p id="profRelation">Lord of Universe</p></div>
                         <button id="closeStatsBtn" class="close-legendary"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <div class="legendary-stats-grid">
-                        <div class="legendary-box"><i class="fa-solid fa-cloud"></i><div class="stat-value"><b id="profSongCount">0</b></div><div class="stat-label">In Vault</div></div>
-                        <div class="legendary-box highlight-box"><i class="fa-solid fa-fire"></i><div class="stat-value"><b id="statToday">0</b>m</div><div class="stat-label">Today's Vibe</div></div>
-                        <div class="legendary-box"><i class="fa-solid fa-calendar-week"></i><div class="stat-value"><b id="statWeek">0</b>m</div><div class="stat-label">This Week</div></div>
-                        <div class="legendary-box"><i class="fa-solid fa-calendar-days"></i><div class="stat-value"><b id="statMonth">0</b>m</div><div class="stat-label">This Month</div></div>
+                        <div class="legendary-box"><i class="fa-solid fa-fire"></i><div class="stat-value"><b id="statToday">0</b>m</div><div class="stat-label">Today</div></div>
+                        <div class="legendary-box"><i class="fa-solid fa-bolt"></i><div class="stat-value"><b id="profSongCount">0</b></div><div class="stat-label">Vault</div></div>
                     </div>
-                    <div class="legendary-capsule">
-                        <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
-                        <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center;">No memories synced yet...</p></div>
+                    <div id="lordPowerPanel" class="lord-panel hidden">
+                        <p class="panel-label">CREATOR POWERS 👑</p>
+                        <div class="power-btns">
+                            <button id="powerKillFM" class="p-btn red">KILL GLOBAL FM</button>
+                            <button id="powerForceTheme" class="p-btn blue">FORCE SKY THEME</button>
+                        </div>
                     </div>
-                    <button onclick="window.logoutApp()" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT</button>
+                    <button onclick="window.logoutApp()" class="legendary-logout-btn">DISCONNECT</button>
                 </div>
 
                 <div class="search-bar-v2" id="searchSection">
                     <div class="search-inner glass-widget">
-                        <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;"><i class="fa-solid fa-microphone"></i></button>
+                        <i class="fa-solid fa-microphone" id="micBtn"></i>
                         <input type="text" id="searchInput" placeholder="Search universe...">
                         <button id="searchBtn">GO</button>
                     </div>
                 </div>
-
-                <div class="ai-mood-matrix" id="moodMatrix">
-                    <button class="mood-chip" data-mood="Viral Hindi">🔥 Viral</button>
-                    <button class="mood-chip" data-mood="Sad Lofi Hindi">💔 Sad</button>
-                    <button class="mood-chip" data-mood="Deep Focus Study">📚 Focus</button>
-                    <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
-                </div>
             </div>
 
-            <div class="scrollable-content-area" id="musicLibraryContainer">
+            <div id="universeCanvasContainer" class="canvas-view hidden">
+                <canvas id="starMapCanvas"></canvas>
+                <div class="canvas-hint">Drag to explore. Tap stars to play.</div>
+            </div>
+
+            <section class="music-library-scroll" id="musicLibraryContainer">
                 <div class="lib-header"><h3 id="listHeading">Infinite Discovery</h3></div>
                 <div id="songsList" class="songs-grid-vertical"></div>
-                <div id="infiniteLoader" class="hidden loader-text"><i class="fa-solid fa-compact-disc fa-spin"></i> Fetching vibes...</div>
+                <div id="infiniteLoader" class="hidden loader-text"><i class="fa-solid fa-compact-disc fa-spin"></i> Loading...</div>
                 <div class="scroll-bottom-pad"></div> 
-            </div>
+            </section>
 
             <div class="pro-player glass-widget-heavy" id="proPlayerArea">
                 <div class="seek-wrapper">
@@ -155,7 +127,6 @@
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
-                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
                     </div>
                 </div>
             </div>
@@ -163,36 +134,38 @@
             <nav class="dock-nav glass-widget-heavy" id="bottomDock">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>Vault</span></div>
-                <div class="dock-item" id="btnChatToggle" style="position:relative;">
-                    <div id="chatBadge" class="chat-badge hidden"></div>
-                    <i class="fa-solid fa-comments"></i><span>Chat</span>
-                </div>
+                <div class="dock-item" id="btnRoomToggle"><i class="fa-solid fa-house-chimney-user"></i><span>Room</span></div>
+                <div class="dock-item" id="btnChatToggle"><i class="fa-solid fa-comments"></i><div id="chatBadge" class="chat-badge hidden"></div><span>Chat</span></div>
             </nav>
+
+            <div id="roomWidget" class="chat-panel hidden glass-widget-heavy">
+                <div class="chat-header">
+                    <h3>Supreme Rooms 🏠</h3>
+                    <button onclick="document.getElementById('roomWidget').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="room-setup-area">
+                    <p class="room-desc">Create a room to listen with your VIPs in sync.</p>
+                    <button id="createRoomBtn" class="neon-btn-pro">CREATE PRIVATE ROOM</button>
+                </div>
+                <div id="activeRoomsList" class="contacts-list">
+                    </div>
+            </div>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
-                        <div class="chat-header" style="border-bottom:none; padding-bottom:5px;">
-                            <h3 style="color:var(--neon-main); font-size:14px;"><i class="fa-solid fa-satellite-dish"></i> Live Galaxy Souls</h3>
-                            <button id="closeChatBtn" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                        <div class="stories-scroll" id="liveStoriesContainer" style="padding: 0 20px 10px;"></div>
+                        <div class="chat-header" style="border-bottom:none;"><h3>Galaxy Souls</h3><button id="closeChatBtn"><i class="fa-solid fa-chevron-down"></i></button></div>
+                        <div class="stories-scroll" id="liveStoriesContainer"></div>
                     </div>
-                    <div id="onlineUsersList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                        <p class="empty-msg">Searching the cosmos...</p>
-                    </div>
+                    <div id="onlineUsersList" class="contacts-list"></div>
                 </div>
-
-                <div id="chatRoomView" class="chat-view hidden" style="display: none; flex-direction: column; height: 100%; width: 100%;">
+                <div id="chatRoomView" class="chat-view hidden">
                     <div class="chat-header whatsapp-header">
                         <button id="backToContactsBtn"><i class="fa-solid fa-arrow-left"></i></button>
                         <img id="chatPartnerAvatar" src="darkeio.jpg">
-                        <div style="display:flex; flex-direction:column;">
-                            <h3 id="chatPartnerName">User</h3>
-                            <span id="typingIndicator" class="typing-text hidden">typing...</span>
-                        </div>
+                        <div><h3 id="chatPartnerName">User</h3><span id="typingIndicator" class="typing-text hidden">typing...</span></div>
                     </div>
-                    <div id="directMessages" class="chat-messages whatsapp-bg" style="flex: 1; height: 100%;"></div>
+                    <div id="directMessages" class="chat-messages whatsapp-bg"></div>
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
@@ -201,7 +174,7 @@
             </div>
 
             <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
-                <div class="lyrics-header"><h3>Live Lyrics 🎤</h3><button id="closeLyricsBtn" style="background:none; border:none; color:#ff3366; font-size:24px;"><i class="fa-solid fa-chevron-down"></i></button></div>
+                <div class="lyrics-header"><h3>Live Lyrics 🎤</h3><button id="closeLyricsBtn"><i class="fa-solid fa-chevron-down"></i></button></div>
                 <div class="lyrics-content"><p class="lyrics-text placeholder-glow">Vibing to the soul...</p></div>
             </div>
         </div>
@@ -210,6 +183,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=28.0"></script>
+    <script type="module" src="script.js?v=29.0"></script>
 </body>
 </html>
