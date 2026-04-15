@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=25.0">
+    <link rel="stylesheet" href="style.css?v=27.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
@@ -66,22 +66,22 @@
                     </div>
                 </header>
 
-                <div id="topProfileStats" class="top-stats-dropdown hidden glass-widget-heavy">
-                    <div class="stats-header">
-                        <div><h3 id="profName" style="color: #fff;">Name</h3><p id="profRelation" style="font-size: 10px; color: var(--neon-main);">Vibe Listener</p></div>
-                        <button id="closeStatsBtn" style="background:none; border:none; color:#ff3366; font-size:20px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                <div id="topProfileStats" class="legendary-dashboard hidden">
+                    <div class="legendary-header">
+                        <div class="user-info-elite"><h3 id="profName">Name</h3><p id="profRelation">Vibe Listener</p></div>
+                        <button id="closeStatsBtn" class="close-legendary"><i class="fa-solid fa-xmark"></i></button>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-box"><i class="fa-solid fa-cloud"></i> <span><b id="profSongCount">0</b> Vault</span></div>
-                        <div class="stat-box"><i class="fa-solid fa-clock"></i> <span><b id="statToday">0</b>m Today</span></div>
-                        <div class="stat-box"><i class="fa-solid fa-calendar-week"></i> <span><b id="statWeek">0</b>m Week</span></div>
-                        <div class="stat-box"><i class="fa-solid fa-calendar-days"></i> <span><b id="statMonth">0</b>m Month</span></div>
+                    <div class="legendary-stats-grid">
+                        <div class="legendary-box"><i class="fa-solid fa-cloud"></i><div class="stat-value"><b id="profSongCount">0</b></div><div class="stat-label">In Vault</div></div>
+                        <div class="legendary-box highlight-box"><i class="fa-solid fa-fire"></i><div class="stat-value"><b id="statToday">0</b>m</div><div class="stat-label">Today's Vibe</div></div>
+                        <div class="legendary-box"><i class="fa-solid fa-calendar-week"></i><div class="stat-value"><b id="statWeek">0</b>m</div><div class="stat-label">This Week</div></div>
+                        <div class="legendary-box"><i class="fa-solid fa-calendar-days"></i><div class="stat-value"><b id="statMonth">0</b>m</div><div class="stat-label">This Month</div></div>
                     </div>
-                    <div class="capsule-section glass-widget" style="margin-top: 15px; padding: 10px;">
-                        <p style="margin-bottom: 5px; color: #ff007f; font-weight: bold; font-size: 12px;">💞 Memory Capsule</p>
-                        <div id="capsuleList" class="capsule-scroll" style="max-height: 80px;"><p style="font-size:10px; color:#aaa;">Abhi koi yaad kaid nahi hui...</p></div>
+                    <div class="legendary-capsule">
+                        <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
+                        <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center;">No memories synced yet...</p></div>
                     </div>
-                    <button id="logoutBtn" class="logout-btn-new" style="margin-top: 15px;"><i class="fa-solid fa-right-from-bracket"></i> Disconnect</button>
+                    <button onclick="window.logoutApp()" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
                 </div>
 
                 <div class="search-bar-v2" id="searchSection">
@@ -123,6 +123,7 @@
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
+                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
                     </div>
                 </div>
             </div>
@@ -130,11 +131,13 @@
             <nav class="dock-nav glass-widget-heavy" id="bottomDock">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>Vault</span></div>
-                <div class="dock-item" id="btnChatToggle"><i class="fa-solid fa-comments"></i><span>Chat</span></div>
+                <div class="dock-item" id="btnChatToggle" style="position:relative;">
+                    <div id="chatBadge" class="chat-badge hidden"></div>
+                    <i class="fa-solid fa-comments"></i><span>Chat</span>
+                </div>
             </nav>
 
             <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
-                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
                         <div class="chat-header" style="border-bottom:none; padding-bottom:5px;">
@@ -158,7 +161,6 @@
                         </div>
                     </div>
                     <div id="directMessages" class="chat-messages whatsapp-bg" style="flex: 1; height: 100%;"></div>
-                    
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
@@ -176,6 +178,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=25.0"></script>
+    <script type="module" src="script.js?v=27.0"></script>
 </body>
 </html>
