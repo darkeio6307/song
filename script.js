@@ -1,8 +1,8 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v25.0 (The God Level Engine)
+ * 🌌 ARSHAD SUPREME ENGINE v27.0 (The Final Polish)
  * Optimized for: Tecno Pova 7
- * NEW: Date Reset Fix, Offline Chat, Typing Indicator, Round Send Button
+ * FIXED: Chat Sync (Case Sensitivity), Auto-Scroll, Notifications, Splash Logo
  * =========================================================================
  */
 
@@ -36,11 +36,18 @@ const fmLiveTag = document.getElementById('fmLiveTag');
 let currentUser = ""; let currentDisplay = "";
 let currentQueue = []; let myPlaylist = []; let currentIndex = 0;
 let isPlaylistView = false; let isBroadcastingFM = false; let isListeningToFM = false;
-let currentFMSongId = null; let currentChatPartner = null; let chatUnsub = null; let typingUnsub = null;
+let currentFMSongId = null; let currentChatPartner = null; 
+let chatUnsub = null; let typingUnsub = null;
+let globalChatListeners = {}; // To listen for notifications
 
 let currentPage = 1; let currentQuery = "Top Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
-let typingTimer;
+let typingTimer; let sleepTimeout = null;
+
+// 🔥 CRITICAL FIX: Always generates identical Room ID regardless of who logged in
+function getRoomID(user1, user2) {
+    return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_");
+}
 
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
 
@@ -111,43 +118,35 @@ async function bootSession(rawName, showWelcome = false, userData) {
         myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
         document.getElementById('profSongCount').innerText = myPlaylist.length;
         trackAndLoadStats(); listenToGlobalFM(); loadLoveCapsule(); listenToLiveActivity(); 
+        startGlobalNotifications(); // Start listening for messages
     }
     fetchMusic("Trending Hit Songs"); 
 }
 
-// 🔥 BUG 1 FIXED: 'TODAY' STAT RESET LOGIC
 function trackAndLoadStats() {
     setInterval(() => { updateDoc(doc(db, "stats", currentUser), { today: increment(1), week: increment(1), month: increment(1) }).catch(()=>{}); }, 60000);
-    
     onSnapshot(doc(db, "stats", currentUser), (snap) => {
-        const todayDateStr = new Date().toDateString(); // e.g. "Wed Apr 15 2026"
-        
+        const todayStr = new Date().toLocaleDateString(); 
         if(snap.exists()) { 
             const d = snap.data();
-            // Check if day changed
-            if(d.lastDate !== todayDateStr) {
-                // It's a new day! Reset 'today' to 0
-                setDoc(doc(db, "stats", currentUser), { today: 0, lastDate: todayDateStr }, {merge: true});
+            if(d.lastDate !== todayStr) {
+                setDoc(doc(db, "stats", currentUser), { today: 0, lastDate: todayStr }, {merge: true});
                 document.getElementById('statToday').innerText = "0";
-            } else {
-                document.getElementById('statToday').innerText = d.today || 0; 
-            }
+            } else { document.getElementById('statToday').innerText = d.today || 0; }
             document.getElementById('statWeek').innerText = d.week || 0; 
             document.getElementById('statMonth').innerText = d.month || 0; 
-        } else { 
-            setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0, lastDate: todayDateStr }); 
-        }
+        } else { setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0, lastDate: todayStr }); }
     });
 }
 
-// === 👤 3. TOP PROFILE DROPDOWN ===
 document.getElementById('profileBtn').onclick = () => {
     vibeClick(); const drop = document.getElementById('topProfileStats');
     if(drop.classList.contains('hidden')) { drop.classList.remove('hidden'); } else { drop.classList.add('hidden'); }
 };
 document.getElementById('closeStatsBtn').onclick = () => { vibeClick(); document.getElementById('topProfileStats').classList.add('hidden'); };
+window.logoutApp = () => { vibeClick(); localStorage.clear(); updateLiveStatus(false); setTimeout(() => { location.reload(); }, 300); };
 
-// === 🎶 4. SCROLLING MUSIC ENGINE ===
+// === 🎶 3. SCROLLING MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
     const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
     if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; } 
@@ -219,7 +218,6 @@ playBtn.onclick = () => {
         if(db) updateLiveStatus(false, null);
     }
 };
-
 document.getElementById('nextBtn').onclick = () => { vibeClick(); audio.onended(); };
 document.getElementById('prevBtn').onclick = () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); };
 audio.onended = () => { if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } else fetchMusic("Trending Viral Hits", false); };
@@ -229,6 +227,12 @@ audio.ontimeupdate = () => {
 seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
+document.getElementById('sleepTimerBtn').onclick = () => {
+    vibeClick(); const btn = document.getElementById('sleepTimerBtn');
+    if(sleepTimeout) { clearTimeout(sleepTimeout); sleepTimeout = null; btn.classList.remove('timer-active'); showToast("Sleep Timer Off ☀️"); } 
+    else { sleepTimeout = setTimeout(() => { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); showToast("App Slept 🌙"); }, 30 * 60000); btn.classList.add('timer-active'); showToast("Sleep mode: 30 Mins 🌙"); }
+};
+
 if ('webkitSpeechRecognition' in window) {
     const rec = new webkitSpeechRecognition(); rec.lang = 'hi-IN';
     micBtn.onclick = () => { vibeClick(); rec.start(); micBtn.style.color = '#ff0055'; };
@@ -236,18 +240,15 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => micBtn.style.color = 'var(--neon-main)';
 }
 
+// === 📡 5. FM SYNC ===
 fmBroadcastBtn.onclick = () => {
     vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
     if(isBroadcastingFM) { showToast("📡 FM Broadcast: LIVE!"); if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused); } 
     else { if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); showToast("📡 Broadcast Ended."); }
 };
-
 async function broadcastFM(song, isPlayingStatus) {
-    await setDoc(doc(db, "fm", "globalRadio"), {
-        isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now()
-    });
+    await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() });
 }
-
 function listenToGlobalFM() {
     onSnapshot(doc(db, "fm", "globalRadio"), (snap) => {
         const d = snap.data();
@@ -295,9 +296,48 @@ function listenToLiveActivity() {
     });
 }
 
-// === 💬 8. WHATSAPP CHAT (OFFLINE FIX & TYPING INDICATOR) ===
+// === 💬 6. WHATSAPP CHAT (AUTO-SCROLL & NOTIFICATION FIX) ===
+
+// Notification Engine
+function startGlobalNotifications() {
+    const appLoadTime = Date.now();
+    // Listen to contacts to set up individual room listeners for unread badges
+    onSnapshot(collection(db, "liveStatus"), (snap) => {
+        snap.forEach(docSnap => {
+            const partnerId = docSnap.id;
+            if(partnerId !== currentUser && !globalChatListeners[partnerId]) {
+                const roomID = getRoomID(currentUser, partnerId);
+                globalChatListeners[partnerId] = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "desc"), limit(1)), (msgSnap) => {
+                    msgSnap.forEach(mDoc => {
+                        const msgData = mDoc.data();
+                        // If message is new, not from me, and I am not currently chatting with them
+                        if(msgData.timestamp > appLoadTime && msgData.sender !== currentUser && currentChatPartner !== partnerId) {
+                            document.getElementById('chatBadge').classList.remove('hidden');
+                            showToast(`💬 New message from ${partnerId}`);
+                        }
+                    });
+                });
+            }
+        });
+    });
+}
+
+function autoScrollChat() {
+    const area = document.getElementById('directMessages');
+    setTimeout(() => { area.scrollTop = area.scrollHeight; }, 100);
+}
+
+function renderMessages(messagesArray) {
+    const area = document.getElementById('directMessages'); area.innerHTML = '';
+    messagesArray.forEach(m => {
+        const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
+    });
+    autoScrollChat();
+}
+
 document.getElementById('btnChatToggle').addEventListener('click', () => {
     vibeClick(); 
+    document.getElementById('chatBadge').classList.add('hidden'); // Clear badge when opened
     document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnChatToggle').classList.add('active');
     
@@ -313,20 +353,13 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
                     const isOnline = data.lastSeen > (Date.now() - 60000);
                     const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
                     
-                    // 🔥 NEW FEATURE: Offline Last Seen Song
                     let badge = '';
-                    if (isOnline) {
-                        badge = isListener ? `<span class="fm-listener-badge live">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
-                    } else {
-                        const shortSongName = data.songName ? (data.songName.length > 15 ? data.songName.substring(0, 15) + '...' : data.songName) : "Unknown";
-                        badge = `<span class="fm-listener-badge">Off-duty | Last heard: ${shortSongName}</span>`;
-                    }
+                    if (isOnline) { badge = isListener ? `<span class="fm-listener-badge live">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`; } 
+                    else { const shortSongName = data.songName ? (data.songName.length > 15 ? data.songName.substring(0, 15) + '...' : data.songName) : "Unknown"; badge = `<span class="fm-listener-badge">Off-duty | Last heard: ${shortSongName}</span>`; }
 
                     const item = document.createElement('div'); item.className = 'contact-item';
-                    // Gray out image slightly if offline
                     const imgStyle = isOnline ? 'border: 2px solid #00ff88;' : 'border: 2px solid #555; filter: grayscale(50%);';
                     item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}" style="${imgStyle}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
-                    
                     item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar);
                     list.appendChild(item);
                 }
@@ -341,21 +374,10 @@ document.getElementById('closeChatBtn').onclick = () => {
     document.getElementById('btnChatToggle').classList.remove('active');
     document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active');
 };
-
 document.getElementById('backToContactsBtn').onclick = () => {
-    vibeClick(); 
-    document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block';
-    currentChatPartner = null; 
-    if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
+    vibeClick(); document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block';
+    currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
 };
-
-function renderMessages(messagesArray) {
-    const area = document.getElementById('directMessages'); area.innerHTML = '';
-    messagesArray.forEach(m => {
-        const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
-    });
-    area.scrollTop = area.scrollHeight;
-}
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
@@ -363,37 +385,32 @@ function openPrivateChat(partnerId, partnerName, avatar) {
     document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
-    const roomID = [currentUser, partnerId].sort().join("_");
+    // CRITICAL FIX: Generates exact same Room ID every time
+    const roomID = getRoomID(currentUser, partnerId);
     
-    // 🔥 NEW FEATURE: Load Offline Chat from LocalStorage First
     const cachedChat = localStorage.getItem('chat_' + roomID);
     if(cachedChat) { renderMessages(JSON.parse(cachedChat)); }
 
-    if(chatUnsub) chatUnsub();
-    if(typingUnsub) typingUnsub();
+    if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
     
     if (db) {
-        // Live Chat Sync
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
-            const msgs = [];
-            snap.forEach(d => msgs.push(d.data()));
-            localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); // Save to cache
+            const msgs = []; snap.forEach(d => msgs.push(d.data()));
+            localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); 
             renderMessages(msgs);
+            autoScrollChat(); // Scroll on new message
         });
 
-        // 🔥 NEW FEATURE: Typing Indicator Listener
         typingUnsub = onSnapshot(doc(db, `privateChats/${roomID}/typing`, partnerId), (snap) => {
             const indicator = document.getElementById('typingIndicator');
-            if(snap.exists() && snap.data().isTyping) { indicator.classList.remove('hidden'); }
-            else { indicator.classList.add('hidden'); }
+            if(snap.exists() && snap.data().isTyping) { indicator.classList.remove('hidden'); } else { indicator.classList.add('hidden'); }
         });
     }
 }
 
-// Typing Event Emitter
 document.getElementById('directChatInput').addEventListener('input', () => {
     if(!currentChatPartner || !db) return;
-    const roomID = [currentUser, currentChatPartner].sort().join("_");
+    const roomID = getRoomID(currentUser, currentChatPartner);
     setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: true });
     clearTimeout(typingTimer);
     typingTimer = setTimeout(() => { setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); }, 1500);
@@ -402,16 +419,15 @@ document.getElementById('directChatInput').addEventListener('input', () => {
 document.getElementById('sendDirectChatBtn').onclick = async () => {
     const inp = document.getElementById('directChatInput'); const txt = inp.value.trim();
     if(!txt || !currentChatPartner || !db) return;
-    const roomID = [currentUser, currentChatPartner].sort().join("_");
+    const roomID = getRoomID(currentUser, currentChatPartner);
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: Date.now() });
     inp.value = '';
-    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); // stop typing immediately
+    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); 
+    autoScrollChat();
 };
-
-// Enter key to send
 document.getElementById('directChatInput').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); };
 
-// === 🧠 9. AI MOOD ENGINE & UI ===
+// === 🧠 7. AI MOOD ENGINE ===
 document.querySelectorAll('.mood-chip').forEach(btn => { btn.onclick = () => { vibeClick(); isPlaylistView = false; fetchMusic(btn.getAttribute('data-mood')); showToast(`AI generating ${btn.innerText} vibes...`); }; });
 document.getElementById('searchBtn').onclick = () => { vibeClick(); isPlaylistView = false; const q = searchInput.value.trim(); if(q) fetchMusic(q); };
 
@@ -457,7 +473,5 @@ document.getElementById('openLyricsAreaBtn').onclick = (e) => {
     document.getElementById('lyricsPanel').classList.remove('hidden'); document.getElementById('lyricsPanel').classList.add('show');
 };
 document.getElementById('closeLyricsBtn').onclick = () => document.getElementById('lyricsPanel').classList.remove('show');
-
 window.addEventListener('beforeunload', () => { if(isBroadcastingFM && currentUser === 'dark_eio' && db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); if(db) updateLiveStatus(false); });
-document.getElementById('logoutBtn').onclick = () => { vibeClick(); localStorage.clear(); updateLiveStatus(false); location.reload(); };
 function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); }
