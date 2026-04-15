@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=29.0">
+    <link rel="stylesheet" href="style.css?v=30.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
@@ -163,7 +163,7 @@
                     <span class="time-label" id="timeTotal">0:00</span>
                 </div>
                 <div class="player-main-ui">
-                    <div class="now-playing" onclick="document.getElementById('lyricsPanel').classList.add('show')">
+                    <div class="now-playing" id="openLyricsAreaBtn">
                         <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="https://via.placeholder.com/80"><div class="record-hole"></div></div>
                         <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
                     </div>
@@ -242,6 +242,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=29.0"></script>
+    <script type="module" src="script.js?v=30.0"></script>
 </body>
 </html>
