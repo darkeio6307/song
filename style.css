@@ -18,7 +18,7 @@ body.theme-muskan { --neon-main: #ff007f; --neon-sec: #ff758c; --bg-gradient: ra
 body.theme-preeti { --neon-main: #00e1ff; --neon-sec: #00ff88; --bg-gradient: radial-gradient(circle at top right, #0b222e, #02070a, #000); }
 body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: radial-gradient(circle at top right, #2e220b, #0a0802, #000); }
 
-/* Auras & Particles */
+/* 🔥 BUG FIXED: Pointer Events None for all floating effects so they don't block clicks */
 .live-aura, .live-aura-secondary { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; pointer-events: none; z-index: 0; }
 .live-aura { top: -20%; left: -20%; width: 140%; height: 140%; background: var(--neon-sec); animation: breath 10s infinite alternate; }
 .live-aura-secondary { bottom: -20%; right: -20%; width: 120%; height: 120%; background: var(--neon-main); animation: breath 15s infinite alternate-reverse; }
@@ -30,7 +30,7 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 /* Global Utilities */
 .glass-widget { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; }
 .glass-widget-heavy { background: var(--glass-heavy); backdrop-filter: blur(35px); border: 1px solid var(--glass-border); }
-.neon-btn-pro { background: linear-gradient(45deg, var(--neon-main), var(--neon-sec)); color: #fff; border: none; font-weight: 800; cursor: pointer; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); text-transform: uppercase;}
+.neon-btn-pro { background: linear-gradient(45deg, var(--neon-main), var(--neon-sec)); color: #fff; border: none; font-weight: 800; cursor: pointer; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); text-transform: uppercase; position: relative; z-index: 100;}
 .neon-btn-pro:active { transform: scale(0.95); }
 .hidden { display: none !important; }
 
@@ -56,26 +56,24 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 .glitch-text { font-size: 38px; font-weight: 900; letter-spacing: 4px; display: block; width: 100%; text-align: center; margin-bottom: 10px; }
 .pro-badge { font-size: 14px; background: var(--neon-sec); color: #fff; padding: 2px 10px; border-radius: 12px; position: absolute; top: -15px; margin-left: 5px; }
 .sync-text { font-size: 12px; color: #aaa; letter-spacing: 1px; margin-top: 10px; }
-.emergency-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 8px 20px; border-radius: 12px; margin-top: 40px; font-size: 11px; cursor: pointer; letter-spacing: 1px; font-weight: bold; }
+.emergency-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 8px 20px; border-radius: 12px; margin-top: 40px; font-size: 11px; cursor: pointer; letter-spacing: 1px; font-weight: bold; position: relative; z-index: 2001;}
 
-/* === 🔐 LOGIN BUG FIX === */
+/* === 🔐 LOGIN BUG FIX (ORBS POINTER EVENTS NONE) === */
 .login-screen { position: absolute; inset: 0; background: radial-gradient(circle at center, #1a0b2e 0%, #000 100%); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-.glass-orb { position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.6; animation: floatOrb 8s infinite alternate; z-index: 1; }
+.glass-orb { position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.6; animation: floatOrb 8s infinite alternate; z-index: 1; pointer-events: none; } /* CRITICAL FIX */
 .orb-1 { width: 200px; height: 200px; background: var(--neon-main); top: 10%; left: 10%; }
 .orb-2 { width: 250px; height: 250px; background: var(--neon-sec); bottom: 15%; right: 5%; animation-delay: -3s; }
 @keyframes floatOrb { 0% { transform: translate(0, 0); } 100% { transform: translate(30px, 40px); } }
 
-/* 🔥 BUG FIXED: Added position relative so Orbs don't block clicks */
-.glass-panel { position: relative; width: 100%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 50px rgba(0,0,0,0.5); border-radius: 40px; text-align: center; z-index: 10; }
-
+.glass-panel { position: relative; width: 100%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 50px rgba(0,0,0,0.5); border-radius: 40px; text-align: center; z-index: 10; pointer-events: auto; }
 .glass-title { font-size: 30px; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-main)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
-.ultra-glass-input { margin-bottom: 20px; border-radius: 20px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; padding: 0 15px; transition: 0.3s; }
+.ultra-glass-input { margin-bottom: 20px; border-radius: 20px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; padding: 0 15px; transition: 0.3s; position: relative; z-index: 100;}
 .ultra-glass-input:focus-within { border-color: var(--neon-main); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
 .ultra-glass-input i { color: var(--neon-main); font-size: 16px; }
 .ultra-glass-input input { flex: 1; padding: 18px 10px; background: transparent; border: none; color: #fff; font-size: 15px; outline: none; }
-#loginBtn, #registerBtn { width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; margin-top: 10px; letter-spacing: 1.5px; font-weight: 900; }
+#loginBtn, #registerBtn { width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; margin-top: 10px; letter-spacing: 1.5px; font-weight: 900; position: relative; z-index: 100;}
 .error { color: #ff3366; font-size: 13px; margin-top: 15px; font-weight: bold; display: none; }
-.toggle-link { font-size: 12px; color: #aaa; margin-top: 20px; cursor: pointer; display: inline-block; font-weight: bold; transition: 0.3s; }
+.toggle-link { font-size: 12px; color: #aaa; margin-top: 20px; cursor: pointer; display: inline-block; font-weight: bold; transition: 0.3s; position: relative; z-index: 100;}
 .toggle-link:hover, .toggle-link:active { color: var(--neon-main); text-shadow: 0 0 10px var(--neon-main); }
 
 /* 💎 PURE GLASS HEADER */
