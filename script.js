@@ -1,8 +1,8 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v27.0 (The Final Polish)
+ * 🌌 ARSHAD SUPREME ENGINE v28.0 (The Quantum 3D Edition)
  * Optimized for: Tecno Pova 7
- * FIXED: Chat Sync (Case Sensitivity), Auto-Scroll, Notifications, Splash Logo
+ * FIXED: Re-added Register System & Added Quantum 3D Logo
  * =========================================================================
  */
 
@@ -38,20 +38,20 @@ let currentQueue = []; let myPlaylist = []; let currentIndex = 0;
 let isPlaylistView = false; let isBroadcastingFM = false; let isListeningToFM = false;
 let currentFMSongId = null; let currentChatPartner = null; 
 let chatUnsub = null; let typingUnsub = null;
-let globalChatListeners = {}; // To listen for notifications
+let globalChatListeners = {}; 
 
 let currentPage = 1; let currentQuery = "Top Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null;
 
-// 🔥 CRITICAL FIX: Always generates identical Room ID regardless of who logged in
-function getRoomID(user1, user2) {
-    return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_");
-}
-
+function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
 
-// === 🔐 1. AUTHENTICATION ===
+// === 🔐 1. AUTHENTICATION & REGISTRATION ===
+document.getElementById('toggleRegister').onclick = () => { vibeClick(); document.getElementById('loginMode').classList.add('hidden'); document.getElementById('registerMode').classList.remove('hidden'); };
+document.getElementById('toggleLogin').onclick = () => { vibeClick(); document.getElementById('registerMode').classList.add('hidden'); document.getElementById('loginMode').classList.remove('hidden'); };
+
+// Login
 document.getElementById('loginBtn').onclick = async () => {
     vibeClick();
     const rawUser = document.getElementById('username').value.trim();
@@ -71,6 +71,40 @@ document.getElementById('loginBtn').onclick = async () => {
     } else {
         document.getElementById('loginError').style.display = 'block';
         document.getElementById('loginBtn').innerHTML = 'ENTER <i class="fa-solid fa-bolt"></i>'; showToast("Galat Password!");
+    }
+};
+
+// Register
+document.getElementById('registerBtn').onclick = async () => {
+    vibeClick();
+    const rawUser = document.getElementById('regUsername').value.trim();
+    const p = document.getElementById('regPassword').value.trim();
+    if(!rawUser || !p) return showToast("Details fill karo!");
+    
+    document.getElementById('registerBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> REGISTERING...';
+    const lowerU = rawUser.toLowerCase();
+    
+    if(db) {
+        try {
+            const snap = await getDoc(doc(db, "users", lowerU));
+            if(snap.exists() || vipDB[lowerU]) {
+                showToast("Name already taken!");
+                document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
+                return;
+            }
+            await setDoc(doc(db, "users", lowerU), {
+                pass: p, relation: "New Soul", badge: "Explorer", theme: "theme-default", avatar: "guest.jpg"
+            });
+            showToast("Registered! Welcome to Universe.");
+            localStorage.setItem('keepMeLoggedIn', rawUser); 
+            setTimeout(() => { location.reload(); }, 1500);
+        } catch(e) {
+            showToast("Error registering.");
+            document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
+        }
+    } else {
+        showToast("Firebase Offline!");
+        document.getElementById('registerBtn').innerHTML = 'REGISTER <i class="fa-solid fa-cloud-arrow-up"></i>';
     }
 };
 
@@ -94,7 +128,7 @@ async function bootSession(rawName, showWelcome = false, userData) {
     if(userData) {
         document.body.className = userData.theme || "theme-default";
         document.getElementById('userAvatar').src = userData.avatar || "guest.jpg";
-        document.getElementById('userBadge').innerText = userData.badge || "Pro Member";
+        document.getElementById('userBadge').innerText = userData.badge || "Explorer";
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
     }
     
@@ -108,7 +142,7 @@ async function bootSession(rawName, showWelcome = false, userData) {
         if(currentUser === "dark_eio") showToast("Welcome back Lord 👑");
         else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️");
         else if(currentUser === "preeti") showToast("Welcome back Angel 🥀");
-        else showToast("Welcome back Master 🎧");
+        else showToast("Welcome to Universe 🎧");
     }
 
     if(currentUser === 'dark_eio') fmBroadcastBtn.classList.remove('hidden');
@@ -118,7 +152,7 @@ async function bootSession(rawName, showWelcome = false, userData) {
         myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
         document.getElementById('profSongCount').innerText = myPlaylist.length;
         trackAndLoadStats(); listenToGlobalFM(); loadLoveCapsule(); listenToLiveActivity(); 
-        startGlobalNotifications(); // Start listening for messages
+        startGlobalNotifications(); 
     }
     fetchMusic("Trending Hit Songs"); 
 }
@@ -218,6 +252,7 @@ playBtn.onclick = () => {
         if(db) updateLiveStatus(false, null);
     }
 };
+
 document.getElementById('nextBtn').onclick = () => { vibeClick(); audio.onended(); };
 document.getElementById('prevBtn').onclick = () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); };
 audio.onended = () => { if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } else fetchMusic("Trending Viral Hits", false); };
@@ -296,12 +331,9 @@ function listenToLiveActivity() {
     });
 }
 
-// === 💬 6. WHATSAPP CHAT (AUTO-SCROLL & NOTIFICATION FIX) ===
-
-// Notification Engine
+// === 💬 6. WHATSAPP CHAT ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
-    // Listen to contacts to set up individual room listeners for unread badges
     onSnapshot(collection(db, "liveStatus"), (snap) => {
         snap.forEach(docSnap => {
             const partnerId = docSnap.id;
@@ -310,7 +342,6 @@ function startGlobalNotifications() {
                 globalChatListeners[partnerId] = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "desc"), limit(1)), (msgSnap) => {
                     msgSnap.forEach(mDoc => {
                         const msgData = mDoc.data();
-                        // If message is new, not from me, and I am not currently chatting with them
                         if(msgData.timestamp > appLoadTime && msgData.sender !== currentUser && currentChatPartner !== partnerId) {
                             document.getElementById('chatBadge').classList.remove('hidden');
                             showToast(`💬 New message from ${partnerId}`);
@@ -322,10 +353,7 @@ function startGlobalNotifications() {
     });
 }
 
-function autoScrollChat() {
-    const area = document.getElementById('directMessages');
-    setTimeout(() => { area.scrollTop = area.scrollHeight; }, 100);
-}
+function autoScrollChat() { const area = document.getElementById('directMessages'); setTimeout(() => { area.scrollTop = area.scrollHeight; }, 100); }
 
 function renderMessages(messagesArray) {
     const area = document.getElementById('directMessages'); area.innerHTML = '';
@@ -336,9 +364,7 @@ function renderMessages(messagesArray) {
 }
 
 document.getElementById('btnChatToggle').addEventListener('click', () => {
-    vibeClick(); 
-    document.getElementById('chatBadge').classList.add('hidden'); // Clear badge when opened
-    document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
+    vibeClick(); document.getElementById('chatBadge').classList.add('hidden'); document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnChatToggle').classList.add('active');
     
     if(db) {
@@ -369,15 +395,8 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
     }
 });
 
-document.getElementById('closeChatBtn').onclick = () => {
-    vibeClick(); document.getElementById('chatWidget').classList.remove('show');
-    document.getElementById('btnChatToggle').classList.remove('active');
-    document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active');
-};
-document.getElementById('backToContactsBtn').onclick = () => {
-    vibeClick(); document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block';
-    currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
-};
+document.getElementById('closeChatBtn').onclick = () => { vibeClick(); document.getElementById('chatWidget').classList.remove('show'); document.getElementById('btnChatToggle').classList.remove('active'); document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); };
+document.getElementById('backToContactsBtn').onclick = () => { vibeClick(); document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block'; currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub(); };
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
@@ -385,9 +404,7 @@ function openPrivateChat(partnerId, partnerName, avatar) {
     document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
-    // CRITICAL FIX: Generates exact same Room ID every time
     const roomID = getRoomID(currentUser, partnerId);
-    
     const cachedChat = localStorage.getItem('chat_' + roomID);
     if(cachedChat) { renderMessages(JSON.parse(cachedChat)); }
 
@@ -397,8 +414,7 @@ function openPrivateChat(partnerId, partnerName, avatar) {
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
             const msgs = []; snap.forEach(d => msgs.push(d.data()));
             localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); 
-            renderMessages(msgs);
-            autoScrollChat(); // Scroll on new message
+            renderMessages(msgs); autoScrollChat(); 
         });
 
         typingUnsub = onSnapshot(doc(db, `privateChats/${roomID}/typing`, partnerId), (snap) => {
@@ -421,9 +437,7 @@ document.getElementById('sendDirectChatBtn').onclick = async () => {
     if(!txt || !currentChatPartner || !db) return;
     const roomID = getRoomID(currentUser, currentChatPartner);
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: Date.now() });
-    inp.value = '';
-    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); 
-    autoScrollChat();
+    inp.value = ''; setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); autoScrollChat();
 };
 document.getElementById('directChatInput').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); };
 
@@ -433,7 +447,7 @@ document.getElementById('searchBtn').onclick = () => { vibeClick(); isPlaylistVi
 
 document.getElementById('btnHome').onclick = () => { 
     vibeClick(); isPlaylistView = false; document.getElementById('searchSection').style.display = 'block'; document.getElementById('moodMatrix').style.display = 'flex';
-    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active'); fetchMusic("Trending Hindi Hits"); 
+    document.getElementById('listHeading').innerText = "Infinite Discovery"; document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnHome').classList.add('active'); fetchMusic("Trending Hindi Hits"); 
 };
 document.getElementById('btnPlaylist').onclick = () => { 
     vibeClick(); isPlaylistView = true; document.getElementById('searchSection').style.display = 'none'; document.getElementById('moodMatrix').style.display = 'none';
