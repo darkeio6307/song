@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=27.0">
+    <link rel="stylesheet" href="style.css?v=28.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
@@ -28,12 +28,14 @@
         
         <div id="splashScreen" class="splash-screen">
             <div class="loader-content">
-                <div class="supreme-music-logo">
-                    <div class="wave wave1"></div><div class="wave wave2"></div>
-                    <i class="fa-solid fa-headphones-simple"></i>
+                <div class="god-core-logo">
+                    <div class="core-ring ring-1"></div>
+                    <div class="core-ring ring-2"></div>
+                    <div class="core-ring ring-3"></div>
+                    <i class="fa-solid fa-headphones-simple core-icon"></i>
                 </div>
                 <h1 class="glitch-text" data-text="ARSHAD">ARSHAD<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Entering God Level...</p>
+                <p class="sync-text">Entering Quantum Core...</p>
                 <button onclick="forceRescue()" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
@@ -41,13 +43,43 @@
         <div id="loginScreen" class="login-screen hidden">
             <div class="glass-orb orb-1"></div><div class="glass-orb orb-2"></div>
             <div class="cyber-login-card glass-panel">
-                <div class="login-header"><h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2></div>
+                
+                <div class="login-header">
+                    <div class="god-core-logo" style="width: 80px; height: 80px; margin-bottom: 10px; margin-top: -20px;">
+                        <div class="core-ring ring-1"></div>
+                        <div class="core-ring ring-2"></div>
+                        <i class="fa-solid fa-fingerprint core-icon" style="font-size: 30px;"></i>
+                    </div>
+                    <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
+                </div>
+
                 <div id="loginMode">
-                    <div class="input-box ultra-glass-input"><i class="fa-solid fa-user-astronaut"></i><input type="text" id="username" placeholder="Codename" autocomplete="off"></div>
-                    <div class="input-box ultra-glass-input"><i class="fa-solid fa-key"></i><input type="password" id="password" placeholder="Passcode"></div>
+                    <div class="input-box ultra-glass-input">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                        <input type="text" id="username" placeholder="Codename" autocomplete="off">
+                    </div>
+                    <div class="input-box ultra-glass-input">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" id="password" placeholder="Passcode">
+                    </div>
                     <button id="loginBtn" class="neon-btn-pro">ENTER <i class="fa-solid fa-bolt"></i></button>
                     <p id="loginError" class="error">Auth Failed!</p>
+                    <p id="toggleRegister" class="toggle-link">New Soul? Register Here</p>
                 </div>
+
+                <div id="registerMode" class="hidden">
+                    <div class="input-box ultra-glass-input">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <input type="text" id="regUsername" placeholder="New Codename" autocomplete="off">
+                    </div>
+                    <div class="input-box ultra-glass-input">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="regPassword" placeholder="Create Passcode">
+                    </div>
+                    <button id="registerBtn" class="neon-btn-pro" style="background: linear-gradient(45deg, #00ff88, #0088ff);">REGISTER <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                    <p id="toggleLogin" class="toggle-link">Already a member? Login</p>
+                </div>
+
             </div>
         </div>
 
@@ -81,7 +113,7 @@
                         <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
                         <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center;">No memories synced yet...</p></div>
                     </div>
-                    <button onclick="window.logoutApp()" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
+                    <button onclick="window.logoutApp()" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT</button>
                 </div>
 
                 <div class="search-bar-v2" id="searchSection">
@@ -178,6 +210,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=27.0"></script>
+    <script type="module" src="script.js?v=28.0"></script>
 </body>
 </html>
