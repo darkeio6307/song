@@ -1,8 +1,8 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v24.0 (The Ultimate Chat & Header Edition)
+ * 🌌 ARSHAD SUPREME ENGINE v25.0 (The God Level Engine)
  * Optimized for: Tecno Pova 7
- * FIXED: Removed Sidebar, Added Top Dropdown, Fixed Chat Wallpaper Bug
+ * NEW: Date Reset Fix, Offline Chat, Typing Indicator, Round Send Button
  * =========================================================================
  */
 
@@ -36,10 +36,11 @@ const fmLiveTag = document.getElementById('fmLiveTag');
 let currentUser = ""; let currentDisplay = "";
 let currentQueue = []; let myPlaylist = []; let currentIndex = 0;
 let isPlaylistView = false; let isBroadcastingFM = false; let isListeningToFM = false;
-let currentFMSongId = null; let currentChatPartner = null; let chatUnsub = null;
+let currentFMSongId = null; let currentChatPartner = null; let chatUnsub = null; let typingUnsub = null;
 
 let currentPage = 1; let currentQuery = "Top Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
+let typingTimer;
 
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
 
@@ -69,8 +70,7 @@ document.getElementById('loginBtn').onclick = async () => {
 window.onload = () => {
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     if (savedUser) {
-        const u = savedUser.toLowerCase();
-        let userData = vipDB[u];
+        const u = savedUser.toLowerCase(); let userData = vipDB[u];
         if(userData) { bootSession(savedUser, false, userData); }
         else { if(db) getDoc(doc(db, "users", u)).then(snap => { if(snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } else bypassBoot(); }).catch(() => bypassBoot()); }
     }
@@ -91,8 +91,7 @@ async function bootSession(rawName, showWelcome = false, userData) {
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
     }
     
-    document.getElementById('userName').innerText = currentDisplay; 
-    document.getElementById('profName').innerText = currentDisplay;
+    document.getElementById('userName').innerText = currentDisplay; document.getElementById('profName').innerText = currentDisplay;
 
     const hrs = new Date().getHours();
     let greet = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
@@ -116,23 +115,37 @@ async function bootSession(rawName, showWelcome = false, userData) {
     fetchMusic("Trending Hit Songs"); 
 }
 
+// 🔥 BUG 1 FIXED: 'TODAY' STAT RESET LOGIC
 function trackAndLoadStats() {
     setInterval(() => { updateDoc(doc(db, "stats", currentUser), { today: increment(1), week: increment(1), month: increment(1) }).catch(()=>{}); }, 60000);
+    
     onSnapshot(doc(db, "stats", currentUser), (snap) => {
-        if(snap.exists()) { const d = snap.data(); document.getElementById('statToday').innerText = d.today || 0; document.getElementById('statWeek').innerText = d.week || 0; document.getElementById('statMonth').innerText = d.month || 0; } 
-        else { setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0 }); }
+        const todayDateStr = new Date().toDateString(); // e.g. "Wed Apr 15 2026"
+        
+        if(snap.exists()) { 
+            const d = snap.data();
+            // Check if day changed
+            if(d.lastDate !== todayDateStr) {
+                // It's a new day! Reset 'today' to 0
+                setDoc(doc(db, "stats", currentUser), { today: 0, lastDate: todayDateStr }, {merge: true});
+                document.getElementById('statToday').innerText = "0";
+            } else {
+                document.getElementById('statToday').innerText = d.today || 0; 
+            }
+            document.getElementById('statWeek').innerText = d.week || 0; 
+            document.getElementById('statMonth').innerText = d.month || 0; 
+        } else { 
+            setDoc(doc(db, "stats", currentUser), { today: 0, week: 0, month: 0, lastDate: todayDateStr }); 
+        }
     });
 }
 
-// === 👤 3. TOP PROFILE DROPDOWN (NEW) ===
+// === 👤 3. TOP PROFILE DROPDOWN ===
 document.getElementById('profileBtn').onclick = () => {
-    vibeClick();
-    const drop = document.getElementById('topProfileStats');
-    if(drop.classList.contains('hidden')) { drop.classList.remove('hidden'); } 
-    else { drop.classList.add('hidden'); }
+    vibeClick(); const drop = document.getElementById('topProfileStats');
+    if(drop.classList.contains('hidden')) { drop.classList.remove('hidden'); } else { drop.classList.add('hidden'); }
 };
 document.getElementById('closeStatsBtn').onclick = () => { vibeClick(); document.getElementById('topProfileStats').classList.add('hidden'); };
-
 
 // === 🎶 4. SCROLLING MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
@@ -193,6 +206,7 @@ function playSong(i) {
     document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
+// === 🎧 4. PLAYER CONTROLS ===
 playBtn.onclick = () => {
     vibeClick();
     if(audio.paused) {
@@ -281,13 +295,11 @@ function listenToLiveActivity() {
     });
 }
 
-// === 💬 8. WHATSAPP CHAT (HALF WALLPAPER BUG FIXED) ===
+// === 💬 8. WHATSAPP CHAT (OFFLINE FIX & TYPING INDICATOR) ===
 document.getElementById('btnChatToggle').addEventListener('click', () => {
     vibeClick(); 
-    document.getElementById('chatWidget').classList.remove('hidden');
-    document.getElementById('chatWidget').classList.add('show'); 
-    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
-    document.getElementById('btnChatToggle').classList.add('active');
+    document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
+    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnChatToggle').classList.add('active');
     
     if(db) {
         onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -296,18 +308,30 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
             let count = 0;
             snap.forEach(docSnap => {
                 const data = docSnap.data();
-                if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
+                if(docSnap.id !== currentUser) {
                     count++;
+                    const isOnline = data.lastSeen > (Date.now() - 60000);
                     const isListener = (data.songId === currentFMSongId && currentFMSongId != null);
-                    const badge = isListener ? `<span style="font-size:9px; background:var(--neon-main); padding:2px 5px; border-radius:5px; color:#000;">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
+                    
+                    // 🔥 NEW FEATURE: Offline Last Seen Song
+                    let badge = '';
+                    if (isOnline) {
+                        badge = isListener ? `<span class="fm-listener-badge live">🎧 Listening to You</span>` : `<span style="font-size:10px; color:#00ff88;">🟢 Online</span>`;
+                    } else {
+                        const shortSongName = data.songName ? (data.songName.length > 15 ? data.songName.substring(0, 15) + '...' : data.songName) : "Unknown";
+                        badge = `<span class="fm-listener-badge">Off-duty | Last heard: ${shortSongName}</span>`;
+                    }
+
                     const item = document.createElement('div'); item.className = 'contact-item';
-                    item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
-                    // Click to open chat
+                    // Gray out image slightly if offline
+                    const imgStyle = isOnline ? 'border: 2px solid #00ff88;' : 'border: 2px solid #555; filter: grayscale(50%);';
+                    item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}" style="${imgStyle}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
+                    
                     item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar);
                     list.appendChild(item);
                 }
             });
-            if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No one online 🏜️</p>';
+            if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No one here 🏜️</p>';
         });
     }
 });
@@ -320,43 +344,72 @@ document.getElementById('closeChatBtn').onclick = () => {
 
 document.getElementById('backToContactsBtn').onclick = () => {
     vibeClick(); 
-    document.getElementById('chatRoomView').style.display = 'none'; 
-    document.getElementById('chatContactsView').style.display = 'block';
-    currentChatPartner = null; if(chatUnsub) chatUnsub();
+    document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block';
+    currentChatPartner = null; 
+    if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
 };
+
+function renderMessages(messagesArray) {
+    const area = document.getElementById('directMessages'); area.innerHTML = '';
+    messagesArray.forEach(m => {
+        const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
+    });
+    area.scrollTop = area.scrollHeight;
+}
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
-    
-    // 🔥 FORCED DISPLAY FLEX TO FIX HALF WALLPAPER BUG
-    document.getElementById('chatContactsView').style.display = 'none'; 
-    document.getElementById('chatRoomView').style.display = 'flex';
+    document.getElementById('chatContactsView').style.display = 'none'; document.getElementById('chatRoomView').style.display = 'flex';
     document.getElementById('chatRoomView').classList.remove('hidden');
-    
-    document.getElementById('chatPartnerName').innerText = partnerName; 
-    document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
+    document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
     const roomID = [currentUser, partnerId].sort().join("_");
+    
+    // 🔥 NEW FEATURE: Load Offline Chat from LocalStorage First
+    const cachedChat = localStorage.getItem('chat_' + roomID);
+    if(cachedChat) { renderMessages(JSON.parse(cachedChat)); }
+
     if(chatUnsub) chatUnsub();
+    if(typingUnsub) typingUnsub();
     
     if (db) {
+        // Live Chat Sync
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
-            const area = document.getElementById('directMessages'); area.innerHTML = '';
-            snap.forEach(d => {
-                const m = d.data(); const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
-            });
-            area.scrollTop = area.scrollHeight;
+            const msgs = [];
+            snap.forEach(d => msgs.push(d.data()));
+            localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); // Save to cache
+            renderMessages(msgs);
+        });
+
+        // 🔥 NEW FEATURE: Typing Indicator Listener
+        typingUnsub = onSnapshot(doc(db, `privateChats/${roomID}/typing`, partnerId), (snap) => {
+            const indicator = document.getElementById('typingIndicator');
+            if(snap.exists() && snap.data().isTyping) { indicator.classList.remove('hidden'); }
+            else { indicator.classList.add('hidden'); }
         });
     }
 }
 
-document.getElementById('sendDirectChatBtn').onclick = async () => {
-    const inp = document.getElementById('directChatInput');
-    if(!inp.value.trim() || !currentChatPartner || !db) return;
+// Typing Event Emitter
+document.getElementById('directChatInput').addEventListener('input', () => {
+    if(!currentChatPartner || !db) return;
     const roomID = [currentUser, currentChatPartner].sort().join("_");
-    await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: inp.value.trim(), timestamp: Date.now() });
+    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: true });
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => { setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); }, 1500);
+});
+
+document.getElementById('sendDirectChatBtn').onclick = async () => {
+    const inp = document.getElementById('directChatInput'); const txt = inp.value.trim();
+    if(!txt || !currentChatPartner || !db) return;
+    const roomID = [currentUser, currentChatPartner].sort().join("_");
+    await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: Date.now() });
     inp.value = '';
+    setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); // stop typing immediately
 };
+
+// Enter key to send
+document.getElementById('directChatInput').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); };
 
 // === 🧠 9. AI MOOD ENGINE & UI ===
 document.querySelectorAll('.mood-chip').forEach(btn => { btn.onclick = () => { vibeClick(); isPlaylistView = false; fetchMusic(btn.getAttribute('data-mood')); showToast(`AI generating ${btn.innerText} vibes...`); }; });
