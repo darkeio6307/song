@@ -103,7 +103,7 @@
 
                 <div class="search-bar-v2" id="searchSection">
                     <div class="search-inner glass-widget">
-                        <button id="micBtn" class="action-btn" style="color: var(--neon-main); padding-right: 10px;"><i class="fa-solid fa-microphone"></i></button>
+                        <i class="fa-solid fa-microphone action-btn" id="micBtn" style="color: var(--neon-main); padding-right: 10px; cursor: pointer;"></i>
                         <input type="text" id="searchInput" placeholder="Search universe...">
                         <button id="searchBtn">GO</button>
                     </div>
@@ -171,77 +171,4 @@
                         <button id="fmBroadcastBtn" class="action-btn hidden"><i class="fa-solid fa-satellite-dish"></i></button>
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
-                        <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
-                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <nav class="dock-nav glass-widget-heavy" id="bottomDock">
-                <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
-                <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>Vault</span></div>
-                <div class="dock-item" id="btnRoomToggle"><i class="fa-solid fa-house-chimney-user"></i><span>Room</span></div>
-                <div class="dock-item" id="btnChatToggle" style="position:relative;">
-                    <div id="chatBadge" class="chat-badge hidden"></div>
-                    <i class="fa-solid fa-comments"></i><span>Chat</span>
-                </div>
-            </nav>
-
-            <div id="roomWidget" class="chat-panel hidden glass-widget-heavy">
-                <div class="chat-header">
-                    <h3 style="color:var(--neon-main); font-size:16px;">Supreme Rooms 🏠</h3>
-                    <button id="closeRoomBtn" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
-                </div>
-                <div class="room-setup-area" style="padding: 20px; text-align: center;">
-                    <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Create a room to listen with your VIPs in sync. (Beta)</p>
-                    <button id="createRoomBtn" class="neon-btn-pro" style="width: 100%; padding: 15px;">CREATE PRIVATE ROOM</button>
-                </div>
-                <div id="activeRoomsList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                    <p class="empty-msg" style="text-align:center; margin-top:20px;">No active rooms found.</p>
-                </div>
-            </div>
-
-            <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
-                <div id="chatContactsView" class="chat-view">
-                    <div class="chat-live-status-area">
-                        <div class="chat-header" style="border-bottom:none; padding-bottom:5px;">
-                            <h3 style="color:var(--neon-main); font-size:14px;"><i class="fa-solid fa-satellite-dish"></i> Live Galaxy Souls</h3>
-                            <button id="closeChatBtn" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                        <div class="stories-scroll" id="liveStoriesContainer" style="padding: 0 20px 10px;"></div>
-                    </div>
-                    <div id="onlineUsersList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                        <p class="empty-msg">Searching the cosmos...</p>
-                    </div>
-                </div>
-
-                <div id="chatRoomView" class="chat-view hidden" style="display: none; flex-direction: column; height: 100%; width: 100%;">
-                    <div class="chat-header whatsapp-header">
-                        <button id="backToContactsBtn"><i class="fa-solid fa-arrow-left"></i></button>
-                        <img id="chatPartnerAvatar" src="darkeio.jpg">
-                        <div style="display:flex; flex-direction:column;">
-                            <h3 id="chatPartnerName">User</h3>
-                            <span id="typingIndicator" class="typing-text hidden">typing...</span>
-                        </div>
-                    </div>
-                    <div id="directMessages" class="chat-messages whatsapp-bg" style="flex: 1; height: 100%;"></div>
-                    <div class="chat-input-wrapper">
-                        <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
-                        <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
-                <div class="lyrics-header"><h3>Live Lyrics 🎤</h3><button id="closeLyricsBtn" style="background:none; border:none; color:#ff3366; font-size:24px;"><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="lyrics-content"><p class="lyrics-text placeholder-glow">Vibing to the soul...</p></div>
-            </div>
-        </div>
-        
-        <div id="toast" class="toast-popup">Confirmed!</div>
-    </div>
-
-    <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=30.0"></script>
-</body>
-</html>
+                        <button id="nextBtn" class="action-btn"><i class="fa-
