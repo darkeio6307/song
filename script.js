@@ -26,7 +26,7 @@ try { const firebaseApp = initializeApp(firebaseConfig); db = getFirestore(fireb
 
 const vipDB = { 
     "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "Universe Lord 👑", badge: "The Creator", theme: "theme-default", avatar: "darkeio.jpg", headerText: "God Mode 👑" },
-    "muskan": { displayName: "Muskan", pass: "Love", relation: "My Love, My Life ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg", headerText: "Love ❤️" },
+    "muskan": { displayName: "Muskan", pass: "sweetheart", relation: "My Love, My Life ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg", headerText: "Love ❤️" },
     "priti": { displayName: "Priti", pass: "bff", relation: "Best Friend 🤞", badge: "Angel", theme: "theme-preeti", avatar: "bff.jpg", headerText: "Best Friend 🥀" }
 };
 
