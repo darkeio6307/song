@@ -1,12 +1,11 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v37.0 (The Flawless VIP & Room Update)
+ * 🌌 ARSHAD SUPREME ENGINE v38.0 (The Anti-Freeze Update)
  * Optimized for: Tecno Pova 7
  * CRITICAL FIXES: 
- * 1. Black Screen Chat Bug Fixed (DOM display handling)
- * 2. Room Feature Fixed (Host can delete, Syncs audio, Auto-expire 3h)
- * 3. Exact FM Souls Count (Checks matching songId strictly)
- * 4. VIP Headers implemented for specific users
+ * 1. Black Screen / Hidden Buttons FIXED (Removed hidden class conflict)
+ * 2. Normal Tab Freeze FIXED (Added failsafe boot timer & try-catch)
+ * 3. LocalStorage JSON Crash Prevented
  * =========================================================================
  */
 
@@ -25,7 +24,6 @@ const firebaseConfig = {
 let db = null;
 try { const firebaseApp = initializeApp(firebaseConfig); db = getFirestore(firebaseApp); } catch(e) { console.error("Firebase Offline"); }
 
-// 🔥 VIP DATABASE WITH CUSTOM HEADERS
 const vipDB = { 
     "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "Universe Lord 👑", badge: "The Creator", theme: "theme-default", avatar: "darkeio.jpg", headerText: "God Mode 👑" },
     "muskan": { displayName: "Muskan", pass: "Love", relation: "My Love, My Life ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg", headerText: "Love ❤️" },
@@ -50,11 +48,7 @@ let currentPage = 1; let currentQuery = "Trending Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null; let isMapView = false;
 
-// Room States
-let myHostedRoomId = null;
-let myJoinedRoomId = null;
-let joinedRoomUnsub = null;
-
+let myHostedRoomId = null; let myJoinedRoomId = null; let joinedRoomUnsub = null;
 const aiVibes = ["Trending Hindi Hits", "Arijit Singh Romantic", "Sad Lofi Hindi", "Phonk Gym Motivation", "Bollywood Hits"];
 
 function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
@@ -286,7 +280,7 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => mic.style.color = 'var(--neon-main)';
 }
 
-// === 📡 5. FM RADIO ===
+// === 📡 5. FM RADIO OPTIMIZED ===
 let lastAudioSrc = "";
 fmBroadcastBtn.addEventListener('click', () => {
     vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
@@ -326,32 +320,24 @@ function listenToGlobalFM() {
         }
     });
 
-    // 🔥 EXACT SOULS COUNT (ONLY MATCHING SONG ID AND ACTIVE)
     onSnapshot(collection(db, "liveStatus"), (snap) => {
         let fmListeners = 0;
         snap.forEach(docSnap => {
             const data = docSnap.data();
             if(data.lastSeen > (Date.now() - 60000) && data.isPlaying) {
-                // If this person is playing the exact song being broadcasted
-                if(currentFMSongId && data.songId === currentFMSongId) {
-                    fmListeners++;
-                }
+                if(currentFMSongId && data.songId === currentFMSongId) { fmListeners++; }
             }
         });
-        
         const fmCountEl = document.getElementById('fmCount');
-        if(isBroadcastingFM || isListeningToFM) {
-            fmLiveTag.classList.remove('hidden');
-            fmCountEl.innerText = `${fmListeners} souls`;
-        }
+        if(isBroadcastingFM || isListeningToFM) { fmLiveTag.classList.remove('hidden'); fmCountEl.innerText = `${fmListeners} souls`; }
     });
 }
 
-// === 🏠 6. ROOM FEATURE (CREATE, SYNC, AUTO-DELETE) ===
+// === 🏠 6. ROOM FEATURE ===
 document.getElementById('btnRoomToggle').addEventListener('click', () => { 
     vibeClick(); 
     document.getElementById('chatWidget').classList.remove('show'); 
-    document.getElementById('roomWidget').classList.toggle('show'); 
+    document.getElementById('roomWidget').classList.add('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
     document.getElementById('btnRoomToggle').classList.add('active'); 
 });
@@ -369,7 +355,6 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
     myHostedRoomId = roomCode;
     
-    // Initial Room State
     let songData = currentQueue[currentIndex] || null;
     await setDoc(doc(db, "rooms", roomCode), { 
         hostId: currentUser, hostName: currentDisplay, active: true, createdAt: Date.now(),
@@ -390,7 +375,6 @@ async function updateRoomState(song, isPlaying) {
     });
 }
 
-// Host deletes room
 window.deleteRoom = async (roomId, e) => {
     e.stopPropagation(); vibeClick();
     if(db) {
@@ -408,16 +392,10 @@ function listenToRooms() {
         const list = document.getElementById('activeRoomsList'); list.innerHTML = ''; let count = 0; const frag = document.createDocumentFragment();
         snap.forEach(docSnap => {
             const data = docSnap.data();
-            
-            // Auto Expire after 3 Hours (10800000 ms)
-            if(Date.now() - data.createdAt > 10800000) {
-                deleteDoc(doc(db, "rooms", docSnap.id)); return;
-            }
-            
+            if(Date.now() - data.createdAt > 10800000) { deleteDoc(doc(db, "rooms", docSnap.id)); return; }
             if(data.active) {
                 count++; const div = document.createElement('div'); div.className = 'contact-item';
                 const delBtnHtml = (data.hostId === currentUser) ? `<button class="room-del-btn" onclick="deleteRoom('${docSnap.id}', event)"><i class="fa-solid fa-trash"></i></button>` : '';
-                
                 div.innerHTML = `<div class="story-ring" style="display:flex; justify-content:center; align-items:center; width:50px; height:50px;"><i class="fa-solid fa-house-signal" style="color:#00ff88; font-size:20px;"></i></div>
                                  <div style="flex:1; margin-left:15px;"><h4>Room #${docSnap.id}</h4><p class="fm-listener-badge live">Host: ${data.hostName}</p></div>
                                  ${delBtnHtml}`;
@@ -470,7 +448,7 @@ roomLiveTag.onclick = () => {
     }
 };
 
-// === 💬 7. CHAT (BLACK SCREEN BUG FIXED & ORDERING) ===
+// === 💬 7. CHAT ENGINE (FIXED BLACK SCREEN) ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -524,7 +502,6 @@ document.getElementById('backToContactsBtn').addEventListener('click', () => { v
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
-    // 🔥 FIX: Properly hide/show using clear class toggling to avoid black screens
     document.getElementById('chatContactsView').classList.add('hidden'); 
     document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
@@ -625,7 +602,7 @@ document.getElementById('btnPlaylist').addEventListener('click', () => {
 });
 
 async function updateLiveStatus(isPlaying, song = null) {
-    if(isBroadcastingFM || !db) return; const ref = doc(db, "liveStatus", currentUser);
+    if(!db) return; const ref = doc(db, "liveStatus", currentUser);
     if(isPlaying && song) { await setDoc(ref, { isPlaying: true, songName: song.name, songId: song.id, displayName: currentDisplay, avatar: vipDB[currentUser]?.avatar || "guest.jpg", lastSeen: Date.now() }); } 
     else { await updateDoc(ref, { isPlaying: false, lastSeen: Date.now() }); }
 }
@@ -637,25 +614,38 @@ document.getElementById('openLyricsAreaBtn').addEventListener('click', (e) => {
 });
 document.getElementById('closeLyricsBtn').addEventListener('click', () => document.getElementById('lyricsPanel').classList.remove('show'));
 
-// === 🚨 SAFE BOOT UP LOGIC ===
+// === 🚨 SAFE BOOT UP LOGIC WITH FAILSAFE TIMER ===
 document.addEventListener('DOMContentLoaded', () => {
+    // FAILSAFE: Always force-hide splash after 4 seconds max
+    const failsafeTimer = setTimeout(() => {
+        document.getElementById('splashScreen').style.display = 'none';
+        if(localStorage.getItem('keepMeLoggedIn') && document.getElementById('mainApp').classList.contains('hidden')) {
+            document.getElementById('loginScreen').classList.remove('hidden');
+        } else if (!localStorage.getItem('keepMeLoggedIn')) {
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+    }, 4000);
+
     try {
         const savedUser = localStorage.getItem('keepMeLoggedIn');
         if (savedUser) {
             const u = savedUser.toLowerCase(); let userData = vipDB[u];
-            if (userData) { bootSession(savedUser, false, userData); }
+            if (userData) { clearTimeout(failsafeTimer); bootSession(savedUser, false, userData); }
             else {
                 if (db) {
                     getDoc(doc(db, "users", u)).then(snap => {
+                        clearTimeout(failsafeTimer);
                         if (snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } 
                         else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
-                    }).catch(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); });
-                } else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+                    }).catch(() => { clearTimeout(failsafeTimer); document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); });
+                } else { clearTimeout(failsafeTimer); document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
             }
         } else {
+            clearTimeout(failsafeTimer);
             setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }, 3500);
         }
     } catch(e) {
+        clearTimeout(failsafeTimer);
         document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden');
     }
 });
