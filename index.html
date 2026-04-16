@@ -10,9 +10,14 @@
     <meta name="theme-color" content="#0f0c29">
     
     <script>
+        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail: ', err));
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW Registered!', reg.scope);
+                }).catch(err => {
+                    console.log('SW Registration Failed!', err);
+                });
             });
         }
     </script>
@@ -93,10 +98,10 @@
                 </div>
 
                 <div class="ai-mood-matrix" id="moodMatrix">
-                    <button class="mood-chip" data-mood="Top 50 Spotify India">🔥 Top 50</button>
-                    <button class="mood-chip" data-mood="Latest Bollywood Hits 2026">🎵 Bollywood</button>
-                    <button class="mood-chip" data-mood="Arijit Singh LoFi">💔 Lofi</button>
-                    <button class="mood-chip" data-mood="Trending Punjabi Songs">🚀 Punjabi</button>
+                    <button class="mood-chip" data-mood="Trending Hindi Hits">🔥 Viral</button>
+                    <button class="mood-chip" data-mood="Sad Lofi Hindi">💔 Sad</button>
+                    <button class="mood-chip" data-mood="Deep Focus Study">📚 Focus</button>
+                    <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
                 </div>
             </div>
 
@@ -170,21 +175,22 @@
                 </div>
             </nav>
 
-            <div id="roomWidget" class="chat-panel hidden glass-widget-heavy">
-                <div class="chat-header">
-                    <h3 style="color:var(--neon-main); font-size:16px;">Supreme Rooms 🏠</h3>
-                    <button id="closeRoomBtn" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
+            <div id="roomWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
+                <div class="chat-header native-header">
+                    <h2>Supreme Rooms 🏠</h2>
+                    <button id="closeRoomBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
                 <div class="room-setup-area" style="padding: 20px; text-align: center;">
-                    <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Create a room to listen with your VIPs in sync. (Beta)</p>
-                    <button id="createRoomBtn" class="neon-btn-pro" style="width: 100%; padding: 15px;">CREATE PRIVATE ROOM</button>
+                    <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Create a private space to listen and vibe together.</p>
+                    <button id="createRoomBtn" class="neon-btn-pro" style="width: 100%; padding: 18px; font-size: 14px;">CREATE PRIVATE ROOM</button>
                 </div>
-                <div id="activeRoomsList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                <div id="activeRoomsList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.05);">
                     <p class="empty-msg" style="text-align:center; margin-top:20px;">No active rooms found.</p>
                 </div>
             </div>
 
             <div id="chatWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
+                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
                         <div class="chat-header native-header">
@@ -208,7 +214,9 @@
                             <span id="typingIndicator" class="typing-text hidden">typing...</span>
                         </div>
                     </div>
+                    
                     <div id="directMessages" class="chat-messages telegram-bg" style="flex: 1; height: 100%;"></div>
+                    
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
