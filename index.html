@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Arshad OS Music</title>
+    <title>Music</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=36.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
     <script>
+        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Registered!', reg.scope)).catch(err => console.log('SW Registration Failed!', err));
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW Registered!', reg.scope);
+                }).catch(err => {
+                    console.log('SW Registration Failed!', err);
+                });
             });
         }
     </script>
@@ -124,7 +129,7 @@
                     <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
                     <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center; width:100%;">No memories synced yet...</p></div>
                 </div>
-                <button id="logoutBtn" class="legendary-logout-btn" onclick="logoutApp()"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
+                <button id="logoutBtn" class="legendary-logout-btn"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
             </div>
 
             <div id="universeCanvasContainer" class="canvas-view hidden">
@@ -147,13 +152,13 @@
                 </div>
                 <div class="player-main-ui">
                     <div class="now-playing" id="openLyricsAreaBtn">
-                        <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="darkeio.jpg"><div class="record-hole"></div></div>
+                        <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="https://via.placeholder.com/80"><div class="record-hole"></div></div>
                         <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
                     </div>
                     <div class="playback-controls">
                         <button id="fmBroadcastBtn" class="action-btn hidden"><i class="fa-solid fa-satellite-dish"></i></button>
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
-                        <button id="playBtn" class="play-trigger neon-btn-pro"><i class="fa-solid fa-play"></i></button>
+                        <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
                         <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
                     </div>
@@ -185,6 +190,7 @@
             </div>
 
             <div id="chatWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
+                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
                         <div class="chat-header native-header">
