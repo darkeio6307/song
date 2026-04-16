@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ARSHAD Vibes | Supreme Universe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=33.0">
+    <link rel="stylesheet" href="style.css?v=34.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
-    
-    <script>
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(r => { for(let i of r) i.unregister(); }); }
-    </script>
 </head>
 <body class="theme-default">
     <div class="live-aura" id="bgAura"></div>
@@ -89,7 +85,7 @@
                 </div>
 
                 <div class="ai-mood-matrix" id="moodMatrix">
-                    <button class="mood-chip" data-mood="Viral Hindi">🔥 Viral</button>
+                    <button class="mood-chip" data-mood="Trending Hindi Hits">🔥 Viral</button>
                     <button class="mood-chip" data-mood="Sad Lofi Hindi">💔 Sad</button>
                     <button class="mood-chip" data-mood="Deep Focus Study">📚 Focus</button>
                     <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
@@ -180,30 +176,34 @@
                 </div>
             </div>
 
-            <div id="chatWidget" class="chat-panel hidden glass-widget-heavy">
+            <div id="chatWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
+                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
-                        <div class="chat-header" style="border-bottom:none; padding-bottom:5px;">
-                            <h3 style="color:var(--neon-main); font-size:14px;"><i class="fa-solid fa-satellite-dish"></i> Live Galaxy Souls</h3>
-                            <button id="closeChatBtn" style="background:none; border:none; color:#ff3366; font-size:24px; cursor:pointer;"><i class="fa-solid fa-chevron-down"></i></button>
+                        <div class="chat-header native-header">
+                            <h2>Chats</h2>
+                            <button id="closeChatBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
                         </div>
                         <div class="stories-scroll" id="liveStoriesContainer" style="padding: 0 20px 10px;"></div>
                     </div>
-                    <div id="onlineUsersList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div id="onlineUsersList" class="contacts-list">
                         <p class="empty-msg">Searching the cosmos...</p>
                     </div>
                 </div>
 
                 <div id="chatRoomView" class="chat-view hidden" style="display: none; flex-direction: column; height: 100%; width: 100%;">
-                    <div class="chat-header whatsapp-header">
-                        <button id="backToContactsBtn"><i class="fa-solid fa-arrow-left"></i></button>
-                        <img id="chatPartnerAvatar" src="darkeio.jpg">
-                        <div style="display:flex; flex-direction:column;">
+                    <div class="chat-header telegram-header">
+                        <button id="backToContactsBtn" class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                        <img id="chatPartnerAvatar" src="darkeio.jpg" class="chat-avatar">
+                        <div class="chat-title-info">
                             <h3 id="chatPartnerName">User</h3>
+                            <span id="chatPartnerStatus" class="status-text">Connecting...</span>
                             <span id="typingIndicator" class="typing-text hidden">typing...</span>
                         </div>
                     </div>
-                    <div id="directMessages" class="chat-messages whatsapp-bg" style="flex: 1; height: 100%;"></div>
+                    
+                    <div id="directMessages" class="chat-messages telegram-bg" style="flex: 1; height: 100%;"></div>
+                    
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
@@ -211,8 +211,11 @@
                 </div>
             </div>
 
-            <div id="lyricsPanel" class="lyrics-panel hidden glass-widget-heavy">
-                <div class="lyrics-header"><h3>Live Lyrics 🎤</h3><button id="closeLyricsBtn" style="background:none; border:none; color:#ff3366; font-size:24px;"><i class="fa-solid fa-chevron-down"></i></button></div>
+            <div id="lyricsPanel" class="lyrics-panel full-screen-panel hidden glass-widget-heavy">
+                <div class="lyrics-header native-header">
+                    <h2>Live Lyrics 🎤</h2>
+                    <button id="closeLyricsBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
                 <div class="lyrics-content"><p class="lyrics-text placeholder-glow">Vibing to the soul...</p></div>
             </div>
         </div>
@@ -221,6 +224,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=33.0"></script>
+    <script type="module" src="script.js?v=34.0"></script>
 </body>
 </html>
