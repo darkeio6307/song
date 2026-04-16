@@ -12,7 +12,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Registered')).catch(err => console.log('SW Failed', err));
+                navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Active')).catch(e => console.log('SW Error'));
             });
         }
     </script>
@@ -31,7 +31,7 @@
                     <i class="fa-solid fa-headphones-simple core-icon"></i>
                 </div>
                 <h1 class="glitch-text" data-text="MUSIC">MUSIC<span class="pro-badge">SUPREME</span></h1>
-                <p class="sync-text">Fixing the Quantum Fabric...</p>
+                <p class="sync-text">Optimizing Quantum Core...</p>
                 <button id="emergencyRescueBtn" class="emergency-btn">FORCE ENTER ⚡</button>
             </div>
         </div>
@@ -46,6 +46,7 @@
                     </div>
                     <h2 id="loginTitle" class="glass-title">ELITE PORTAL</h2>
                 </div>
+
                 <div id="loginMode">
                     <div class="input-box ultra-glass-input"><i class="fa-solid fa-user-astronaut"></i><input type="text" id="username" placeholder="Codename" autocomplete="off"></div>
                     <div class="input-box ultra-glass-input"><i class="fa-solid fa-key"></i><input type="password" id="password" placeholder="Passcode"></div>
@@ -53,6 +54,7 @@
                     <p id="loginError" class="error">Auth Failed!</p>
                     <p id="toggleRegister" class="toggle-link">New Soul? Register Here</p>
                 </div>
+
                 <div id="registerMode" class="hidden">
                     <div class="input-box ultra-glass-input"><i class="fa-solid fa-user-plus"></i><input type="text" id="regUsername" placeholder="New Codename" autocomplete="off"></div>
                     <div class="input-box ultra-glass-input"><i class="fa-solid fa-lock"></i><input type="password" id="regPassword" placeholder="Create Passcode"></div>
@@ -67,7 +69,7 @@
             <div class="fixed-top-section glass-header">
                 <header class="main-header">
                     <div class="greet-area">
-                        <p id="timeGreeting">Aadaab,</p>
+                        <p id="timeGreeting" style="font-weight: 800; color: var(--neon-main); font-size: 14px;">Aadaab,</p>
                         <h2 id="userName" class="hologram-text">Dark_eio</h2>
                         <button id="viewSwitchBtn" class="view-toggle-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map</button>
                     </div>
@@ -137,7 +139,7 @@
                 <div class="scroll-bottom-pad"></div> 
             </div>
 
-            <div class="pro-player" id="proPlayerArea">
+            <div class="pro-player glass-widget-heavy" id="proPlayerArea">
                 <div class="seek-wrapper">
                     <span class="time-label" id="timeCurrent">0:00</span>
                     <input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider">
@@ -149,10 +151,11 @@
                         <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
                     </div>
                     <div class="playback-controls">
-                        <button id="fmBroadcastBtn" class="action-btn hidden"><i class="fa-solid fa-satellite-dish"></i></button>
+                        <button id="fmBroadcastBtn" class="action-btn"><i class="fa-solid fa-satellite-dish"></i></button>
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
+                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
                     </div>
                 </div>
             </div>
@@ -167,7 +170,7 @@
                 </div>
             </nav>
 
-            <div id="roomWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
+            <div id="roomWidget" class="chat-panel full-screen-panel glass-widget-heavy">
                 <div class="chat-header native-header">
                     <h2>Supreme Rooms 🏠</h2>
                     <button id="closeRoomBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
@@ -181,7 +184,8 @@
                 </div>
             </div>
 
-            <div id="chatWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
+            <div id="chatWidget" class="chat-panel full-screen-panel glass-widget-heavy">
+                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
                         <div class="chat-header native-header">
@@ -205,7 +209,9 @@
                             <span id="typingIndicator" class="typing-text hidden">typing...</span>
                         </div>
                     </div>
+                    
                     <div id="directMessages" class="chat-messages telegram-bg" style="flex: 1; height: 100%;"></div>
+                    
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
@@ -213,7 +219,7 @@
                 </div>
             </div>
 
-            <div id="lyricsPanel" class="lyrics-panel full-screen-panel hidden glass-widget-heavy">
+            <div id="lyricsPanel" class="lyrics-panel full-screen-panel glass-widget-heavy">
                 <div class="lyrics-header native-header">
                     <h2>Live Lyrics 🎤</h2>
                     <button id="closeLyricsBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
