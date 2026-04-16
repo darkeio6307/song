@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="style.css?v=36.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Registered!', reg.scope)).catch(err => console.log('SW Registration Failed!', err));
+            });
+        }
+    </script>
 </head>
 <body class="theme-default">
     <div class="live-aura" id="bgAura"></div>
@@ -111,7 +119,12 @@
                         <button id="powerForceTheme" class="p-btn blue"><i class="fa-solid fa-palette"></i> FORCE THEME</button>
                     </div>
                 </div>
-                <button id="logoutBtn" class="legendary-logout-btn" onclick="logoutApp()" style="margin-top: 15px;"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
+
+                <div class="legendary-capsule" style="margin-top:15px;">
+                    <div class="capsule-title"><i class="fa-solid fa-heart-pulse"></i> Memory Capsule</div>
+                    <div id="capsuleList" class="capsule-scroll"><p style="font-size:11px; color:#888; text-align:center; width:100%;">No memories synced yet...</p></div>
+                </div>
+                <button id="logoutBtn" class="legendary-logout-btn" onclick="logoutApp()"><i class="fa-solid fa-power-off"></i> DISCONNECT FROM UNIVERSE</button>
             </div>
 
             <div id="universeCanvasContainer" class="canvas-view hidden">
@@ -126,7 +139,7 @@
                 <div class="scroll-bottom-pad"></div> 
             </div>
 
-            <div class="pro-player" id="proPlayerArea">
+            <div class="pro-player glass-widget-heavy" id="proPlayerArea">
                 <div class="seek-wrapper">
                     <span class="time-label" id="timeCurrent">0:00</span>
                     <input type="range" id="seekSlider" min="0" max="100" value="0" class="custom-slider">
@@ -142,11 +155,12 @@
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
                         <button id="playBtn" class="play-trigger neon-btn-pro"><i class="fa-solid fa-play"></i></button>
                         <button id="nextBtn" class="action-btn"><i class="fa-solid fa-forward-fast"></i></button>
+                        <button id="sleepTimerBtn" class="action-btn" title="Sleep Timer"><i class="fa-solid fa-moon"></i></button>
                     </div>
                 </div>
             </div>
 
-            <nav class="dock-nav" id="bottomDock">
+            <nav class="dock-nav glass-widget-heavy" id="bottomDock">
                 <div class="dock-item active" id="btnHome"><i class="fa-solid fa-infinity"></i><span>Universe</span></div>
                 <div class="dock-item" id="btnPlaylist"><i class="fa-solid fa-vault"></i><span>Vault</span></div>
                 <div class="dock-item" id="btnRoomToggle"><i class="fa-solid fa-house-chimney-user"></i><span>Room</span></div>
@@ -156,7 +170,7 @@
                 </div>
             </nav>
 
-            <div id="roomWidget" class="chat-panel full-screen-panel hidden">
+            <div id="roomWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
                 <div class="chat-header native-header">
                     <h2>Supreme Rooms 🏠</h2>
                     <button id="closeRoomBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
@@ -165,21 +179,26 @@
                     <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Create a private space to listen and vibe together.</p>
                     <button id="createRoomBtn" class="neon-btn-pro" style="width: 100%; padding: 18px; font-size: 14px;">CREATE PRIVATE ROOM</button>
                 </div>
-                <div id="activeRoomsList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.05);"></div>
+                <div id="activeRoomsList" class="contacts-list" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                    <p class="empty-msg" style="text-align:center; margin-top:20px;">No active rooms found.</p>
+                </div>
             </div>
 
-            <div id="chatWidget" class="chat-panel full-screen-panel hidden">
+            <div id="chatWidget" class="chat-panel full-screen-panel hidden glass-widget-heavy">
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
                         <div class="chat-header native-header">
                             <h2>Chats</h2>
                             <button id="closeChatBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
                         </div>
+                        <div class="stories-scroll" id="liveStoriesContainer" style="padding: 0 20px 10px;"></div>
                     </div>
-                    <div id="onlineUsersList" class="contacts-list"></div>
+                    <div id="onlineUsersList" class="contacts-list">
+                        <p class="empty-msg">Searching the cosmos...</p>
+                    </div>
                 </div>
 
-                <div id="chatRoomView" class="chat-view hidden" style="display: none; flex-direction: column; height: 100%;">
+                <div id="chatRoomView" class="chat-view hidden" style="display: none; flex-direction: column; height: 100%; width: 100%;">
                     <div class="chat-header telegram-header">
                         <button id="backToContactsBtn" class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
                         <img id="chatPartnerAvatar" src="darkeio.jpg" class="chat-avatar">
@@ -190,7 +209,7 @@
                         </div>
                     </div>
                     
-                    <div id="directMessages" class="chat-messages telegram-bg" style="flex: 1;"></div>
+                    <div id="directMessages" class="chat-messages telegram-bg" style="flex: 1; height: 100%;"></div>
                     
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
@@ -198,18 +217,19 @@
                     </div>
                 </div>
             </div>
-            
-            <div id="lyricsPanel" class="lyrics-panel full-screen-panel hidden">
+
+            <div id="lyricsPanel" class="lyrics-panel full-screen-panel hidden glass-widget-heavy">
                 <div class="lyrics-header native-header">
                     <h2>Live Lyrics 🎤</h2>
                     <button id="closeLyricsBtn" class="close-native"><i class="fa-solid fa-chevron-down"></i></button>
                 </div>
                 <div class="lyrics-content"><p class="lyrics-text placeholder-glow">Vibing to the soul...</p></div>
             </div>
-
         </div>
+        
         <div id="toast" class="toast-popup">Confirmed!</div>
     </div>
+
     <audio id="audioEngine" crossorigin="anonymous"></audio>
     <script type="module" src="script.js?v=36.0"></script>
 </body>
