@@ -1,9 +1,9 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v32.0 (The Spotify & Telegram Update)
+ * 🌌 ARSHAD SUPREME ENGINE v33.0 (The Hyper-Smooth Apple Edition)
  * Optimized for: Tecno Pova 7
- * FEATURES: Telegram Chat Smoothness, Spotify Fade-in, AI Smart Queue
- * CRITICAL FIX: Script running natively, No DOM clearing lag!
+ * FEATURES: GPU Acceleration, Async Fast-Load, Auto AI Shuffle
+ * CRITICAL FIX: "User" Name Bug, Blank App Start Bug, Chat Lag Bug Solved.
  * =========================================================================
  */
 
@@ -46,7 +46,7 @@ let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null;
 let isMapView = false;
 
-// The AI Vibe Generator (For Random Home Load)
+// AI Vibe Library
 const aiVibes = ["Trending Viral Hits", "Arijit Singh Romantic", "Deep Focus Lofi", "Phonk Gym Motivation", "Bollywood 2026 Hits"];
 
 function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
@@ -56,8 +56,7 @@ function showToast(m) { const t = document.getElementById('toast'); t.innerText 
 // === 🌌 1. STAR-MAP CANVAS ENGINE ===
 const canvas = document.getElementById('starMapCanvas');
 const ctx = canvas.getContext('2d');
-let stars = [];
-let camX = 0, camY = 0;
+let stars = []; let camX = 0, camY = 0;
 
 function initStarMap() {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -72,8 +71,7 @@ function renderCanvas() {
     if(!isMapView) return;
     ctx.fillStyle = '#000'; ctx.fillRect(0,0, canvas.width, canvas.height);
     stars.forEach(star => {
-        const screenX = star.x - camX + canvas.width/2;
-        const screenY = star.y - camY + canvas.height/2;
+        const screenX = star.x - camX + canvas.width/2; const screenY = star.y - camY + canvas.height/2;
         if(screenX > -50 && screenX < canvas.width+50 && screenY > -50 && screenY < canvas.height+50) {
             ctx.shadowBlur = 10; ctx.shadowColor = star.color; ctx.fillStyle = star.color;
             ctx.beginPath(); ctx.arc(screenX, screenY, star.size, 0, Math.PI*2); ctx.fill();
@@ -88,11 +86,7 @@ function renderCanvas() {
 
 let isDragging = false, lastX, lastY;
 canvas.addEventListener('touchstart', e => { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }, {passive: true});
-canvas.addEventListener('touchmove', e => {
-    if(!isDragging) return;
-    camX -= (e.touches[0].clientX - lastX); camY -= (e.touches[0].clientY - lastY);
-    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
-}, {passive: true});
+canvas.addEventListener('touchmove', e => { if(!isDragging) return; camX -= (e.touches[0].clientX - lastX); camY -= (e.touches[0].clientY - lastY); lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }, {passive: true});
 canvas.addEventListener('touchend', () => {
     isDragging = false; let closestDist = Infinity; let closestIdx = -1;
     stars.forEach((star, idx) => {
@@ -111,10 +105,16 @@ document.getElementById('viewSwitchBtn').addEventListener('click', () => {
 });
 
 
-// === 🌌 2. MASTER SESSION & STATS ===
-async function bootSession(rawName, showWelcome = false, userData) {
-    currentDisplay = rawName; currentUser = rawName.toLowerCase();
-    document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.add('hidden'); app.classList.remove('hidden');
+// === 🌌 2. MASTER SESSION & HYPER FAST LOAD ===
+function bootSession(rawName, showWelcome = false, userData) {
+    // 🔥 BUG 1 FIXED: Properly capitalize name if NOT in VIP DB, else use Display Name
+    currentUser = rawName.toLowerCase();
+    currentDisplay = userData ? userData.displayName : (rawName.charAt(0).toUpperCase() + rawName.slice(1));
+    
+    // Load UI instantly
+    document.getElementById('splashScreen').style.display = 'none'; 
+    document.getElementById('loginScreen').classList.add('hidden'); 
+    app.classList.remove('hidden');
 
     if(userData) {
         document.body.className = userData.theme || "theme-default";
@@ -122,24 +122,28 @@ async function bootSession(rawName, showWelcome = false, userData) {
         document.getElementById('userBadge').innerText = userData.badge || "Explorer";
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
     }
-    document.getElementById('userName').innerText = currentDisplay; document.getElementById('profName').innerText = currentDisplay;
+    
+    document.getElementById('userName').innerText = currentDisplay; 
+    document.getElementById('profName').innerText = currentDisplay;
     const hrs = new Date().getHours(); document.getElementById('timeGreeting').innerText = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
 
     if(showWelcome) {
         if(currentUser === "dark_eio") showToast("Welcome back Lord 👑"); else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️"); else showToast("Welcome to Universe 🎧");
     }
-
     if(currentUser === 'dark_eio') { fmBroadcastBtn.classList.remove('hidden'); document.getElementById('lordPowerPanel').classList.remove('hidden'); }
     
+    // 🔥 BUG 2 FIXED: Fetch music IMMEDIATELY without waiting for Firebase
+    const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)];
+    setTimeout(() => { fetchMusic(startingVibe); }, 100);
+
+    // Initialize Firebase silently in background
     if (db) {
-        const vSnap = await getDoc(doc(db, "vaults", currentUser)); myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
-        document.getElementById('profSongCount').innerText = myPlaylist.length;
+        getDoc(doc(db, "vaults", currentUser)).then(vSnap => {
+            myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
+            document.getElementById('profSongCount').innerText = myPlaylist.length;
+        }).catch(e=>{});
         trackAndLoadStats(); listenToGlobalFM(); loadLoveCapsule(); listenToLiveActivity(); startGlobalNotifications(); 
     }
-    
-    // 🔥 HOME PAGE RANDOM AI VIBE (BUG 1 FIXED)
-    const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)];
-    fetchMusic(startingVibe); 
 }
 
 function trackAndLoadStats() {
@@ -166,7 +170,7 @@ document.getElementById('powerForceTheme').addEventListener('click', () => { vib
 // === 🎶 3. SCROLLING MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
     const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
-    if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; } 
+    if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
     else { loader.classList.remove('hidden'); }
     isLoadingMore = true;
     try {
@@ -174,8 +178,8 @@ async function fetchMusic(q, isLoadMore = false) {
         const data = await res.json();
         if(data.success && data.data.results.length > 0) {
             const startIndex = currentQueue.length; currentQueue = [...currentQueue, ...data.data.results];
-            if(isLoadMore) appendLibrary(data.data.results, startIndex);
-            else { renderLibrary(); heading.innerText = `'${q}' - Infinite Vibes`; }
+            appendLibrary(data.data.results, startIndex);
+            if(!isLoadMore) heading.innerText = `'${q}' Vibes`;
             if(isMapView) initStarMap();
         } else { hasMoreSongs = false; if(!isLoadMore) showToast("No matches found."); }
     } catch(e) { if(!isLoadMore) showToast("Network Drop!"); }
@@ -185,7 +189,7 @@ async function fetchMusic(q, isLoadMore = false) {
 function renderLibrary() { document.getElementById('songsList').innerHTML = ''; appendLibrary(currentQueue, 0); }
 function appendLibrary(songs, startIndex) {
     const list = document.getElementById('songsList');
-    const frag = document.createDocumentFragment();
+    const frag = document.createDocumentFragment(); // HIGH PERFORMANCE DOM
     songs.forEach((song, i) => {
         const globalIndex = startIndex + i; const div = document.createElement('div'); div.className = 'song-card glass-widget';
         const isFav = myPlaylist.some(s => s.id === song.id);
@@ -219,13 +223,10 @@ function playSong(i) {
     document.getElementById('bgAura').style.background = `url(${song.image[1].url})`; document.getElementById('bgAura').style.backgroundSize = "cover";
     
     audio.src = song.downloadUrl[4].url; 
-    audio.volume = 0; // Start silent
+    audio.volume = 0; // Spotify Fade
     audio.play().then(() => {
-        // Fade in logic
-        let vol = 0;
-        let fadeInterval = setInterval(() => {
-            if(vol < 1) { vol += 0.05; audio.volume = Math.min(1, vol); }
-            else clearInterval(fadeInterval);
+        let vol = 0; let fadeInterval = setInterval(() => {
+            if(vol < 1) { vol += 0.05; audio.volume = Math.min(1, vol); } else clearInterval(fadeInterval);
         }, 50);
     }).catch(e=>{});
     
@@ -254,23 +255,15 @@ playBtn.addEventListener('click', () => {
 document.getElementById('nextBtn').addEventListener('click', () => { vibeClick(); audio.onended(); });
 document.getElementById('prevBtn').addEventListener('click', () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); });
 
-// 🔥 AI RANDOM SHUFFLE NEXT SONG (BUG 2 FIXED)
+// 🔥 AI RANDOM SHUFFLE NEXT SONG
 audio.onended = () => { 
-    if(isPlaylistView) { 
-        if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); 
-    } else { 
-        // Not in playlist? Pick a random song from current 50 queue to keep vibe fresh!
-        let nextIndex = Math.floor(Math.random() * currentQueue.length);
-        playSong(nextIndex);
-    } 
+    if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } 
+    else { let nextIndex = Math.floor(Math.random() * currentQueue.length); playSong(nextIndex); } 
 };
 
 audio.ontimeupdate = () => { 
     if(!isNaN(audio.duration)) { 
-        seekSlider.value = (audio.currentTime/audio.duration)*100; 
-        document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); 
-        document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
-        // Fade out at end
+        seekSlider.value = (audio.currentTime/audio.duration)*100; document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
         if (audio.duration - audio.currentTime < 3 && audio.volume > 0.05) audio.volume -= 0.01; 
     } 
 };
@@ -296,7 +289,6 @@ fmBroadcastBtn.addEventListener('click', () => {
     if(isBroadcastingFM) { showToast("📡 FM Broadcast: LIVE!"); if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused); } 
     else { if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); showToast("📡 Broadcast Ended."); }
 });
-
 async function broadcastFM(song, isPlayingStatus) { await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() }); }
 
 function listenToGlobalFM() {
@@ -365,11 +357,7 @@ function startGlobalNotifications() {
     });
 }
 
-function autoScrollChat() { 
-    const area = document.getElementById('directMessages'); 
-    // Uses CSS scroll-behavior smooth for silky scroll
-    setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50); 
-}
+function autoScrollChat() { const area = document.getElementById('directMessages'); setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50); }
 
 document.getElementById('btnChatToggle').addEventListener('click', () => {
     vibeClick(); document.getElementById('chatBadge').classList.add('hidden'); document.getElementById('roomWidget').classList.remove('show'); document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
@@ -379,6 +367,7 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
         onSnapshot(collection(db, "liveStatus"), (snap) => {
             if(currentChatPartner) return; 
             const list = document.getElementById('onlineUsersList'); list.innerHTML = ''; let count = 0;
+            const frag = document.createDocumentFragment();
             snap.forEach(docSnap => {
                 const data = docSnap.data();
                 if(docSnap.id !== currentUser) {
@@ -387,9 +376,10 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
                     const item = document.createElement('div'); item.className = 'contact-item'; const imgStyle = isOnline ? 'border: 2px solid #00ff88;' : 'border: 2px solid #555; filter: grayscale(50%);';
                     item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}" style="${imgStyle}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
                     item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar);
-                    list.appendChild(item);
+                    frag.appendChild(item);
                 }
             });
+            list.appendChild(frag);
             if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No one here 🏜️</p>';
         });
     }
@@ -405,15 +395,15 @@ function openPrivateChat(partnerId, partnerName, avatar) {
     
     const roomID = getRoomID(currentUser, partnerId);
     const area = document.getElementById('directMessages');
-    area.innerHTML = ''; // Clear only once on open
+    area.innerHTML = ''; 
     
-    // Load from cache first for zero-lag feeling
     const cachedChat = localStorage.getItem('chat_' + roomID);
     if(cachedChat) { 
+        const frag = document.createDocumentFragment();
         JSON.parse(cachedChat).forEach(m => {
-            const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
+            const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; frag.appendChild(div);
         });
-        autoScrollChat();
+        area.appendChild(frag); autoScrollChat();
     }
 
     if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
@@ -421,22 +411,19 @@ function openPrivateChat(partnerId, partnerName, avatar) {
     if (db) {
         let isInitialLoad = true;
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
-            // 🔥 HYPER-OPTIMIZED: Only append new messages instead of wiping everything!
             if(isInitialLoad) {
-                area.innerHTML = ''; const msgs = [];
+                area.innerHTML = ''; const msgs = []; const frag = document.createDocumentFragment();
                 snap.forEach(d => {
                     const m = d.data(); msgs.push(m);
-                    const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; area.appendChild(div);
+                    const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text; frag.appendChild(div);
                 });
-                localStorage.setItem('chat_' + roomID, JSON.stringify(msgs));
-                autoScrollChat(); isInitialLoad = false;
+                area.appendChild(frag); localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); autoScrollChat(); isInitialLoad = false;
             } else {
                 snap.docChanges().forEach(change => {
                     if(change.type === 'added') {
                         const m = change.doc.data();
                         const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.innerHTML = m.text;
                         area.appendChild(div);
-                        // Save to cache
                         const cached = JSON.parse(localStorage.getItem('chat_' + roomID) || "[]"); cached.push(m); localStorage.setItem('chat_' + roomID, JSON.stringify(cached));
                     }
                 });
@@ -460,16 +447,14 @@ document.getElementById('directChatInput').addEventListener('input', () => {
 document.getElementById('sendDirectChatBtn').addEventListener('click', async () => {
     const inp = document.getElementById('directChatInput'); const txt = inp.value.trim();
     if(!txt || !currentChatPartner || !db) return; const roomID = getRoomID(currentUser, currentChatPartner);
-    // Optimistically show message immediately for 0ms lag
     const area = document.getElementById('directMessages');
     const div = document.createElement('div'); div.className = `chat-msg mine`; div.innerHTML = txt; div.style.opacity = '0.7'; area.appendChild(div); autoScrollChat();
     inp.value = ''; setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false });
-    
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: Date.now() });
 });
 document.getElementById('directChatInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); });
 
-// === 🧠 8. AI MOOD ENGINE & MENUS ===
+// === 🧠 8. AI MOOD ENGINE ===
 document.querySelectorAll('.mood-chip').forEach(btn => { btn.onclick = () => { vibeClick(); isPlaylistView = false; fetchMusic(btn.getAttribute('data-mood')); showToast(`AI generating ${btn.innerText} vibes...`); }; });
 document.getElementById('searchBtn').addEventListener('click', () => { vibeClick(); isPlaylistView = false; const q = document.getElementById('searchInput').value.trim(); if(q) fetchMusic(q); });
 
@@ -519,7 +504,6 @@ window.addEventListener('beforeunload', () => { if(isBroadcastingFM && currentUs
 
 // === 🚨 SAFE STARTUP LOGIC ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if user is logged in
     const savedUser = localStorage.getItem('keepMeLoggedIn');
     if (savedUser) {
         const u = savedUser.toLowerCase(); let userData = vipDB[u];
@@ -543,7 +527,6 @@ document.getElementById('emergencyRescueBtn').addEventListener('click', () => {
     else document.getElementById('loginScreen').classList.remove('hidden');
 });
 
-// Auth Buttons
 document.getElementById('toggleRegister').addEventListener('click', () => { vibeClick(); document.getElementById('loginMode').classList.add('hidden'); document.getElementById('registerMode').classList.remove('hidden'); });
 document.getElementById('toggleLogin').addEventListener('click', () => { vibeClick(); document.getElementById('registerMode').classList.add('hidden'); document.getElementById('loginMode').classList.remove('hidden'); });
 document.getElementById('loginBtn').addEventListener('click', async () => {
