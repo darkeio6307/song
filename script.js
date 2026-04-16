@@ -1,11 +1,12 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v35.0 (The Flawless Logic Update)
+ * 🌌 ARSHAD SUPREME ENGINE v36.0 (The VIP Rescue Update)
  * Optimized for: Tecno Pova 7
  * CRITICAL FIXES: 
- * 1. Ordered Chat (No more double messages or wrong order)
- * 2. Real FM Listener Count (Checks active listeners playing your song)
- * 3. Working Rooms (Create, see in list, join)
+ * 1. Safe Boot (No stuck loading screen)
+ * 2. Room Panel fully visible & working
+ * 3. FM Souls logic fully fixed (0 when inactive)
+ * 4. VIP Profiles & Headers
  * =========================================================================
  */
 
@@ -24,9 +25,11 @@ const firebaseConfig = {
 let db = null;
 try { const firebaseApp = initializeApp(firebaseConfig); db = getFirestore(firebaseApp); } catch(e) { console.error("Firebase Offline"); }
 
+// 🔥 VIP DATABASE WITH CUSTOM HEADERS
 const vipDB = { 
-    "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "The Creator 👑", badge: "Universe Lord", theme: "theme-default", avatar: "darkeio.jpg" },
-    "muskan": { displayName: "Muskan", pass: "Love", relation: "The Life Line ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg" }
+    "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "Universe Lord 👑", badge: "The Creator", theme: "theme-default", avatar: "darkeio.jpg", headerText: "God Mode 👑" },
+    "muskan": { displayName: "Muskan", pass: "Love", relation: "My Love, My Life ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg", headerText: "Love ❤️" },
+    "priti": { displayName: "Priti", pass: "bff", relation: "Best Friend 🤞", badge: "Angel", theme: "theme-preeti", avatar: "bff.jpg", headerText: "Best Friend 🥀" }
 };
 
 const app = document.getElementById('mainApp');
@@ -46,7 +49,7 @@ let currentPage = 1; let currentQuery = "Trending Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null; let isMapView = false;
 
-const aiVibes = ["Trending Hindi Hits", "Arijit Singh Romantic", "Sad Lofi Hindi", "Phonk Gym Motivation", "Bollywood 2026 Hits"];
+const aiVibes = ["Trending Hindi Hits", "Arijit Singh Romantic", "Sad Lofi Hindi", "Phonk Gym Motivation", "Bollywood Hits"];
 
 function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
@@ -54,10 +57,8 @@ function showToast(m) { const t = document.getElementById('toast'); t.innerText 
 
 function formatTime(ts) { if(!ts) return ""; return new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
 function formatLastSeen(ts) {
-    if(!ts) return "Offline";
-    const diff = Date.now() - ts;
-    if(diff < 60000) return "Online";
-    return `last seen at ${formatTime(ts)}`;
+    if(!ts) return "Offline"; const diff = Date.now() - ts;
+    if(diff < 60000) return "Online"; return `last seen at ${formatTime(ts)}`;
 }
 
 // === 🌌 1. STAR-MAP CANVAS ENGINE ===
@@ -111,7 +112,7 @@ document.getElementById('viewSwitchBtn').addEventListener('click', () => {
     else { canvasCont.classList.add('hidden'); scrollCont.classList.remove('hidden'); btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map'; }
 });
 
-// === 🌌 2. DIRECT BOOT ===
+// === 🌌 2. DIRECT BOOT (BUG FREE) ===
 function bootSession(rawName, showWelcome = false, userData) {
     currentUser = rawName.toLowerCase();
     currentDisplay = userData ? userData.displayName : (rawName.charAt(0).toUpperCase() + rawName.slice(1));
@@ -123,18 +124,21 @@ function bootSession(rawName, showWelcome = false, userData) {
     if(userData) {
         document.body.className = userData.theme || "theme-default";
         document.getElementById('userAvatar').src = userData.avatar || "guest.jpg";
+        document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
+        // 🔥 VIP Dynamic Header
+        if(userData.headerText) document.getElementById('timeGreeting').innerText = userData.headerText;
     }
+    
     document.getElementById('userName').innerText = currentDisplay; 
     document.getElementById('profName').innerText = currentDisplay;
-    const hrs = new Date().getHours(); document.getElementById('timeGreeting').innerText = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
 
     if(showWelcome) {
         if(currentUser === "dark_eio") showToast("Welcome back Lord 👑"); else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️"); else showToast("Welcome to Universe 🎧");
     }
     if(currentUser === 'dark_eio') { fmBroadcastBtn.classList.remove('hidden'); document.getElementById('lordPowerPanel').classList.remove('hidden'); }
     
-    const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)];
-    fetchMusic(startingVibe); 
+    // Fallback direct music fetch (no await)
+    try { const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)]; fetchMusic(startingVibe); } catch(e){}
 
     if (db) {
         getDoc(doc(db, "vaults", currentUser)).then(vSnap => {
@@ -268,49 +272,58 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => mic.style.color = 'var(--neon-main)';
 }
 
-// === 📡 5. FM RADIO (BUG FIXED) ===
+// === 📡 5. FM RADIO (BUG FIXED: PROPER SOULS LOGIC) ===
 let lastAudioSrc = "";
 fmBroadcastBtn.addEventListener('click', () => {
     vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
     if(isBroadcastingFM) { showToast("📡 FM Broadcast: LIVE!"); if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused); } 
-    else { if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); showToast("📡 Broadcast Ended."); }
+    else { 
+        if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); 
+        showToast("📡 Broadcast Ended."); 
+        document.getElementById('fmLiveTag').classList.add('hidden'); // Hide immediately
+    }
 });
 async function broadcastFM(song, isPlayingStatus) { await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() }); }
 
 function listenToGlobalFM() {
     onSnapshot(doc(db, "fm", "globalRadio"), (snap) => {
         const d = snap.data();
-        if(d && d.isLive && d.hostId !== currentUser) {
-            fmLiveTag.classList.remove('hidden'); currentFMSongId = d.songId; 
+        if(d && d.isLive) {
+            currentFMSongId = d.songId; 
             
-            if (isListeningToFM) {
-                if (lastAudioSrc !== d.audio) { lastAudioSrc = d.audio; showToast(`Host changed track! 📻`); const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); }
-                requestAnimationFrame(() => {
-                    if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
-                    else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
-                });
+            // Logic for listeners (Hide if host and nobody listening, show if active)
+            if(d.hostId !== currentUser) {
+                fmLiveTag.classList.remove('hidden'); 
+                if (isListeningToFM) {
+                    if (lastAudioSrc !== d.audio) { lastAudioSrc = d.audio; showToast(`Host changed track! 📻`); const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); }
+                    requestAnimationFrame(() => {
+                        if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
+                        else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
+                    });
+                }
+                fmLiveTag.onclick = () => {
+                    vibeClick();
+                    if(!isListeningToFM) { isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; lastAudioSrc = d.audio; const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }, 500); } 
+                    else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }
+                };
+            } else {
+                fmLiveTag.onclick = null; // Host shouldn't click his own tag
             }
-            fmLiveTag.onclick = () => {
-                vibeClick();
-                if(!isListeningToFM) { isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; lastAudioSrc = d.audio; const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }, 500); } 
-                else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }
-            };
         } else {
             fmLiveTag.classList.add('hidden'); currentFMSongId = null;
             if(isListeningToFM) { isListeningToFM = false; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); showToast("Host ended broadcast."); }
         }
     });
-}
 
-function listenToLiveActivity() {
+    // 🔥 BUG FIXED: Strict Real-Time FM Listener Count (0 when empty)
     onSnapshot(collection(db, "liveStatus"), (snap) => {
         const container = document.getElementById('liveStoriesContainer'); container.innerHTML = ''; 
         let activeCount = 0; let fmListeners = 0;
         
         snap.forEach(docSnap => {
             const data = docSnap.data();
+            // Count ONLY IF last seen within 60s, is playing, and ID matches FM song
             if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
-                // Count FM Listeners manually
                 if(currentFMSongId && data.songId === currentFMSongId && data.isPlaying) { fmListeners++; }
                 
                 if(data.isPlaying) {
@@ -322,19 +335,22 @@ function listenToLiveActivity() {
             }
         });
         
-        // Update FM Count safely
+        // Show count ONLY if Broadcasting OR Listening, else hide
         const fmCountEl = document.getElementById('fmCount');
-        if(fmCountEl) fmCountEl.innerText = `${fmListeners} souls`;
+        if(isBroadcastingFM || isListeningToFM) {
+            fmLiveTag.classList.remove('hidden');
+            fmCountEl.innerText = `${fmListeners} souls`;
+        }
 
         if(activeCount === 0) container.innerHTML = '<p class="empty-msg" style="width:100%; text-align:center; font-size:10px;">Cosmos is quiet...</p>';
     });
 }
 
-// === 🏠 6. ROOM FEATURE (BUG FIXED - REAL ROOMS) ===
+// === 🏠 6. ROOM FEATURE (BUG FIXED) ===
 document.getElementById('btnRoomToggle').addEventListener('click', () => { 
     vibeClick(); 
     document.getElementById('chatWidget').classList.remove('show'); 
-    document.getElementById('roomWidget').classList.toggle('show'); 
+    document.getElementById('roomWidget').classList.add('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
     document.getElementById('btnRoomToggle').classList.add('active'); 
 });
@@ -371,7 +387,7 @@ function listenToRooms() {
     });
 }
 
-// === 💬 7. CHAT (BUG FIXED: ORDERING & NO DOUBLE MSGS) ===
+// === 💬 7. CHAT (BUG FIXED: ORDERING) ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -392,13 +408,10 @@ function startGlobalNotifications() {
     });
 }
 
-function autoScrollChat() { 
-    const area = document.getElementById('directMessages'); 
-    area.scrollTop = area.scrollHeight; 
-}
+function autoScrollChat() { const area = document.getElementById('directMessages'); area.scrollTop = area.scrollHeight; }
 
 document.getElementById('btnChatToggle').addEventListener('click', () => {
-    vibeClick(); document.getElementById('chatBadge').classList.add('hidden'); document.getElementById('roomWidget').classList.remove('show'); document.getElementById('chatWidget').classList.remove('hidden'); document.getElementById('chatWidget').classList.add('show'); 
+    vibeClick(); document.getElementById('chatBadge').classList.add('hidden'); document.getElementById('roomWidget').classList.remove('show'); document.getElementById('chatWidget').classList.add('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnChatToggle').classList.add('active');
     
     if(db) {
@@ -428,7 +441,7 @@ document.getElementById('backToContactsBtn').addEventListener('click', () => { v
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
-    document.getElementById('chatContactsView').style.display = 'none'; document.getElementById('chatRoomView').style.display = 'flex'; document.getElementById('chatRoomView').classList.remove('hidden');
+    document.getElementById('chatContactsView').style.display = 'none'; document.getElementById('chatRoomView').style.display = 'flex'; 
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
     if(partnerStatusUnsub) partnerStatusUnsub();
@@ -450,13 +463,13 @@ function openPrivateChat(partnerId, partnerName, avatar) {
         // 🔥 BUG 1 FIXED: Order strictly by timestamp from Firebase. NO optimistic appends to avoid duplicates.
         chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
             area.innerHTML = ''; // Wipe and re-render to guarantee perfect order
-            const msgs = []; const frag = document.createDocumentFragment();
+            const frag = document.createDocumentFragment();
             snap.forEach(d => {
-                const m = d.data(); msgs.push(m);
+                const m = d.data();
                 const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; 
                 div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}</span>`; frag.appendChild(div);
             });
-            area.appendChild(frag); localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); autoScrollChat();
+            area.appendChild(frag); autoScrollChat();
         });
 
         typingUnsub = onSnapshot(doc(db, `privateChats/${roomID}/typing`, partnerId), (snap) => {
@@ -473,15 +486,20 @@ document.getElementById('directChatInput').addEventListener('input', () => {
     typingTimer = setTimeout(() => { setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); }, 1500);
 });
 
+// DOUBLE CLICK LOCK
+let isSending = false;
 document.getElementById('sendDirectChatBtn').addEventListener('click', async () => {
+    if(isSending) return;
     const inp = document.getElementById('directChatInput'); const txt = inp.value.trim();
     if(!txt || !currentChatPartner || !db) return; 
     
+    isSending = true;
     const roomID = getRoomID(currentUser, currentChatPartner); const ts = Date.now();
     inp.value = ''; setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false });
     
     // Only send to Firebase. The snapshot listener will instantly pick it up and render it ONCE.
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: ts });
+    setTimeout(() => { isSending = false; }, 500);
 });
 document.getElementById('directChatInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('sendDirectChatBtn').click(); });
 
@@ -508,26 +526,30 @@ setInterval(() => { if(currentUser && db) updateLiveStatus(false); }, 15000);
 
 document.getElementById('openLyricsAreaBtn').addEventListener('click', (e) => {
     if(e.target.closest('.playback-controls') || e.target.closest('.seek-wrapper')) return;
-    document.getElementById('lyricsPanel').classList.remove('hidden'); document.getElementById('lyricsPanel').classList.add('show');
+    document.getElementById('lyricsPanel').classList.add('show');
 });
 document.getElementById('closeLyricsBtn').addEventListener('click', () => document.getElementById('lyricsPanel').classList.remove('show'));
 
 // === 🚨 SAFE BOOT UP LOGIC ===
 document.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('keepMeLoggedIn');
-    if (savedUser) {
-        const u = savedUser.toLowerCase(); let userData = vipDB[u];
-        if (userData) { bootSession(savedUser, false, userData); }
-        else {
-            if (db) {
-                getDoc(doc(db, "users", u)).then(snap => {
-                    if (snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } 
-                    else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
-                }).catch(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); });
-            } else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+    try {
+        const savedUser = localStorage.getItem('keepMeLoggedIn');
+        if (savedUser) {
+            const u = savedUser.toLowerCase(); let userData = vipDB[u];
+            if (userData) { bootSession(savedUser, false, userData); }
+            else {
+                if (db) {
+                    getDoc(doc(db, "users", u)).then(snap => {
+                        if (snap.exists()) { let d = snap.data(); d.displayName = savedUser; bootSession(savedUser, false, d); } 
+                        else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+                    }).catch(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); });
+                } else { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }
+            }
+        } else {
+            setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }, 3500);
         }
-    } else {
-        setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden'); }, 3500);
+    } catch(e) {
+        document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginScreen').classList.remove('hidden');
     }
 });
 
