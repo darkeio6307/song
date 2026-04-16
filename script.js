@@ -1,17 +1,17 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v36.0 (The VIP Rescue Update)
+ * 🌌 ARSHAD SUPREME ENGINE v37.0 (The Flawless VIP & Room Update)
  * Optimized for: Tecno Pova 7
  * CRITICAL FIXES: 
- * 1. Safe Boot (No stuck loading screen)
- * 2. Room Panel fully visible & working
- * 3. FM Souls logic fully fixed (0 when inactive)
- * 4. VIP Profiles & Headers
+ * 1. Black Screen Chat Bug Fixed (DOM display handling)
+ * 2. Room Feature Fixed (Host can delete, Syncs audio, Auto-expire 3h)
+ * 3. Exact FM Souls Count (Checks matching songId strictly)
+ * 4. VIP Headers implemented for specific users
  * =========================================================================
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnwHn6b2F8O8M-3Elk54tydzqldj78Cxg",
@@ -37,6 +37,7 @@ const audio = document.getElementById('audioEngine');
 const playBtn = document.getElementById('playBtn');
 const fmBroadcastBtn = document.getElementById('fmBroadcastBtn');
 const fmLiveTag = document.getElementById('fmLiveTag');
+const roomLiveTag = document.getElementById('roomLiveTag');
 
 let currentUser = ""; let currentDisplay = "";
 let currentQueue = []; let myPlaylist = []; let currentIndex = 0;
@@ -48,6 +49,11 @@ let globalChatListeners = {};
 let currentPage = 1; let currentQuery = "Trending Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null; let isMapView = false;
+
+// Room States
+let myHostedRoomId = null;
+let myJoinedRoomId = null;
+let joinedRoomUnsub = null;
 
 const aiVibes = ["Trending Hindi Hits", "Arijit Singh Romantic", "Sad Lofi Hindi", "Phonk Gym Motivation", "Bollywood Hits"];
 
@@ -112,7 +118,7 @@ document.getElementById('viewSwitchBtn').addEventListener('click', () => {
     else { canvasCont.classList.add('hidden'); scrollCont.classList.remove('hidden'); btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map'; }
 });
 
-// === 🌌 2. DIRECT BOOT (BUG FREE) ===
+// === 🌌 2. DIRECT BOOT (TRY-CATCH SAFE) ===
 function bootSession(rawName, showWelcome = false, userData) {
     currentUser = rawName.toLowerCase();
     currentDisplay = userData ? userData.displayName : (rawName.charAt(0).toUpperCase() + rawName.slice(1));
@@ -125,8 +131,12 @@ function bootSession(rawName, showWelcome = false, userData) {
         document.body.className = userData.theme || "theme-default";
         document.getElementById('userAvatar').src = userData.avatar || "guest.jpg";
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
-        // 🔥 VIP Dynamic Header
-        if(userData.headerText) document.getElementById('timeGreeting').innerText = userData.headerText;
+        if(userData.headerText) {
+            document.getElementById('timeGreeting').innerText = userData.headerText;
+        } else {
+            const hrs = new Date().getHours(); 
+            document.getElementById('timeGreeting').innerText = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
+        }
     }
     
     document.getElementById('userName').innerText = currentDisplay; 
@@ -137,7 +147,6 @@ function bootSession(rawName, showWelcome = false, userData) {
     }
     if(currentUser === 'dark_eio') { fmBroadcastBtn.classList.remove('hidden'); document.getElementById('lordPowerPanel').classList.remove('hidden'); }
     
-    // Fallback direct music fetch (no await)
     try { const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)]; fetchMusic(startingVibe); } catch(e){}
 
     if (db) {
@@ -225,8 +234,11 @@ function playSong(i) {
     audio.play().then(() => { let vol = 0; let fadeInterval = setInterval(() => { if(vol < 1) { vol += 0.05; audio.volume = Math.min(1, vol); } else clearInterval(fadeInterval); }, 50); }).catch(e=>{});
     
     document.getElementById('vinylDisk').classList.add('spin-vinyl'); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('profileBtn').classList.add('playing'); 
+    
     if(isBroadcastingFM && currentUser === 'dark_eio' && db) broadcastFM(song, true);
+    if(myHostedRoomId && db) updateRoomState(song, true);
     if(db) updateLiveStatus(true, song);
+    
     document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
@@ -235,10 +247,12 @@ playBtn.addEventListener('click', () => {
     if(audio.paused) {
         audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing');
         if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], true);
+        if(myHostedRoomId && db) updateRoomState(currentQueue[currentIndex], true);
         if(db) updateLiveStatus(true, currentQueue[currentIndex]);
     } else {
         audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
         if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], false);
+        if(myHostedRoomId && db) updateRoomState(currentQueue[currentIndex], false);
         if(db) updateLiveStatus(false, null);
     }
 });
@@ -272,7 +286,7 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => mic.style.color = 'var(--neon-main)';
 }
 
-// === 📡 5. FM RADIO (BUG FIXED: PROPER SOULS LOGIC) ===
+// === 📡 5. FM RADIO ===
 let lastAudioSrc = "";
 fmBroadcastBtn.addEventListener('click', () => {
     vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
@@ -280,7 +294,7 @@ fmBroadcastBtn.addEventListener('click', () => {
     else { 
         if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); 
         showToast("📡 Broadcast Ended."); 
-        document.getElementById('fmLiveTag').classList.add('hidden'); // Hide immediately
+        document.getElementById('fmLiveTag').classList.add('hidden');
     }
 });
 async function broadcastFM(song, isPlayingStatus) { await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() }); }
@@ -290,8 +304,6 @@ function listenToGlobalFM() {
         const d = snap.data();
         if(d && d.isLive) {
             currentFMSongId = d.songId; 
-            
-            // Logic for listeners (Hide if host and nobody listening, show if active)
             if(d.hostId !== currentUser) {
                 fmLiveTag.classList.remove('hidden'); 
                 if (isListeningToFM) {
@@ -306,51 +318,40 @@ function listenToGlobalFM() {
                     if(!isListeningToFM) { isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; lastAudioSrc = d.audio; const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }, 500); } 
                     else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }
                 };
-            } else {
-                fmLiveTag.onclick = null; // Host shouldn't click his own tag
             }
         } else {
-            fmLiveTag.classList.add('hidden'); currentFMSongId = null;
+            if(d && d.hostId !== currentUser) fmLiveTag.classList.add('hidden'); 
+            currentFMSongId = null;
             if(isListeningToFM) { isListeningToFM = false; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); showToast("Host ended broadcast."); }
         }
     });
 
-    // 🔥 BUG FIXED: Strict Real-Time FM Listener Count (0 when empty)
+    // 🔥 EXACT SOULS COUNT (ONLY MATCHING SONG ID AND ACTIVE)
     onSnapshot(collection(db, "liveStatus"), (snap) => {
-        const container = document.getElementById('liveStoriesContainer'); container.innerHTML = ''; 
-        let activeCount = 0; let fmListeners = 0;
-        
+        let fmListeners = 0;
         snap.forEach(docSnap => {
             const data = docSnap.data();
-            // Count ONLY IF last seen within 60s, is playing, and ID matches FM song
-            if(docSnap.id !== currentUser && data.lastSeen > (Date.now() - 60000)) {
-                if(currentFMSongId && data.songId === currentFMSongId && data.isPlaying) { fmListeners++; }
-                
-                if(data.isPlaying) {
-                    activeCount++; const item = document.createElement('div'); item.className = 'story-item';
-                    item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
-                    item.onclick = () => { const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] }; currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`); };
-                    container.appendChild(item);
+            if(data.lastSeen > (Date.now() - 60000) && data.isPlaying) {
+                // If this person is playing the exact song being broadcasted
+                if(currentFMSongId && data.songId === currentFMSongId) {
+                    fmListeners++;
                 }
             }
         });
         
-        // Show count ONLY if Broadcasting OR Listening, else hide
         const fmCountEl = document.getElementById('fmCount');
         if(isBroadcastingFM || isListeningToFM) {
             fmLiveTag.classList.remove('hidden');
             fmCountEl.innerText = `${fmListeners} souls`;
         }
-
-        if(activeCount === 0) container.innerHTML = '<p class="empty-msg" style="width:100%; text-align:center; font-size:10px;">Cosmos is quiet...</p>';
     });
 }
 
-// === 🏠 6. ROOM FEATURE (BUG FIXED) ===
+// === 🏠 6. ROOM FEATURE (CREATE, SYNC, AUTO-DELETE) ===
 document.getElementById('btnRoomToggle').addEventListener('click', () => { 
     vibeClick(); 
     document.getElementById('chatWidget').classList.remove('show'); 
-    document.getElementById('roomWidget').classList.add('show'); 
+    document.getElementById('roomWidget').classList.toggle('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
     document.getElementById('btnRoomToggle').classList.add('active'); 
 });
@@ -364,21 +365,63 @@ document.getElementById('closeRoomBtn').addEventListener('click', () => {
 document.getElementById('createRoomBtn').addEventListener('click', async () => { 
     vibeClick(); 
     if(!db) return showToast("Offline");
+    if(myHostedRoomId) return showToast("You already have an active room!");
     const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
-    await setDoc(doc(db, "rooms", roomCode), { host: currentUser, hostName: currentDisplay, active: true, createdAt: Date.now() });
+    myHostedRoomId = roomCode;
+    
+    // Initial Room State
+    let songData = currentQueue[currentIndex] || null;
+    await setDoc(doc(db, "rooms", roomCode), { 
+        hostId: currentUser, hostName: currentDisplay, active: true, createdAt: Date.now(),
+        songId: songData ? songData.id : null, audio: songData ? songData.downloadUrl[4].url : null,
+        songName: songData ? songData.name : "Silence", artist: songData ? songData.artists.primary[0].name : "",
+        cover: songData ? songData.image[2].url : "", isPlaying: !audio.paused
+    });
+    
     showToast(`Room #${roomCode} Created!`);
+    document.getElementById('createRoomBtn').innerText = "ROOM ACTIVE (LISTED)";
 });
+
+async function updateRoomState(song, isPlaying) {
+    if(!myHostedRoomId || !db) return;
+    await updateDoc(doc(db, "rooms", myHostedRoomId), {
+        songId: song.id, audio: song.downloadUrl[4].url, songName: song.name, 
+        cover: song.image[2].url, artist: song.artists.primary[0].name, isPlaying: isPlaying
+    });
+}
+
+// Host deletes room
+window.deleteRoom = async (roomId, e) => {
+    e.stopPropagation(); vibeClick();
+    if(db) {
+        await deleteDoc(doc(db, "rooms", roomId));
+        if(myHostedRoomId === roomId) {
+            myHostedRoomId = null;
+            document.getElementById('createRoomBtn').innerText = "CREATE PRIVATE ROOM";
+            showToast("Room Closed");
+        }
+    }
+};
 
 function listenToRooms() {
     onSnapshot(collection(db, "rooms"), (snap) => {
         const list = document.getElementById('activeRoomsList'); list.innerHTML = ''; let count = 0; const frag = document.createDocumentFragment();
         snap.forEach(docSnap => {
             const data = docSnap.data();
+            
+            // Auto Expire after 3 Hours (10800000 ms)
+            if(Date.now() - data.createdAt > 10800000) {
+                deleteDoc(doc(db, "rooms", docSnap.id)); return;
+            }
+            
             if(data.active) {
                 count++; const div = document.createElement('div'); div.className = 'contact-item';
+                const delBtnHtml = (data.hostId === currentUser) ? `<button class="room-del-btn" onclick="deleteRoom('${docSnap.id}', event)"><i class="fa-solid fa-trash"></i></button>` : '';
+                
                 div.innerHTML = `<div class="story-ring" style="display:flex; justify-content:center; align-items:center; width:50px; height:50px;"><i class="fa-solid fa-house-signal" style="color:#00ff88; font-size:20px;"></i></div>
-                                 <div style="flex:1; margin-left:15px;"><h4>Room #${docSnap.id}</h4><p class="fm-listener-badge live">Host: ${data.hostName}</p></div>`;
-                div.onclick = () => showToast(`Joined Room #${docSnap.id} (Syncing Vibes...)`);
+                                 <div style="flex:1; margin-left:15px;"><h4>Room #${docSnap.id}</h4><p class="fm-listener-badge live">Host: ${data.hostName}</p></div>
+                                 ${delBtnHtml}`;
+                div.onclick = () => joinRoom(docSnap.id, data.hostId);
                 frag.appendChild(div);
             }
         });
@@ -387,7 +430,47 @@ function listenToRooms() {
     });
 }
 
-// === 💬 7. CHAT (BUG FIXED: ORDERING) ===
+function joinRoom(roomId, hostId) {
+    if(hostId === currentUser) return showToast("You are the host!");
+    if(myJoinedRoomId === roomId) return;
+    
+    if(joinedRoomUnsub) joinedRoomUnsub();
+    myJoinedRoomId = roomId;
+    roomLiveTag.classList.remove('hidden');
+    document.getElementById('roomLiveText').innerText = "Room #" + roomId;
+    showToast(`Joined Room #${roomId}`);
+    
+    joinedRoomUnsub = onSnapshot(doc(db, "rooms", roomId), snap => {
+        if(!snap.exists() || !snap.data().active) {
+            showToast("Room ended by host.");
+            roomLiveTag.classList.add('hidden'); myJoinedRoomId = null;
+            audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            return;
+        }
+        const d = snap.data();
+        if(!d.audio) return;
+        
+        if(lastAudioSrc !== d.audio) {
+            lastAudioSrc = d.audio; showToast(`Host playing: ${d.songName}`);
+            const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; 
+            currentQueue = [s]; playSong(0);
+        }
+        requestAnimationFrame(() => {
+            if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
+            else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
+        });
+    });
+}
+roomLiveTag.onclick = () => {
+    vibeClick();
+    if(myJoinedRoomId && joinedRoomUnsub) {
+        joinedRoomUnsub(); myJoinedRoomId = null; roomLiveTag.classList.add('hidden');
+        audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing');
+        showToast("Left Room.");
+    }
+};
+
+// === 💬 7. CHAT (BLACK SCREEN BUG FIXED & ORDERING) ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -437,11 +520,13 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
 });
 
 document.getElementById('closeChatBtn').addEventListener('click', () => { vibeClick(); document.getElementById('chatWidget').classList.remove('show'); document.getElementById('btnChatToggle').classList.remove('active'); document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); });
-document.getElementById('backToContactsBtn').addEventListener('click', () => { vibeClick(); document.getElementById('chatRoomView').style.display = 'none'; document.getElementById('chatContactsView').style.display = 'block'; currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub(); if(partnerStatusUnsub) partnerStatusUnsub();});
+document.getElementById('backToContactsBtn').addEventListener('click', () => { vibeClick(); document.getElementById('chatRoomView').classList.add('hidden'); document.getElementById('chatContactsView').classList.remove('hidden'); currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub(); if(partnerStatusUnsub) partnerStatusUnsub();});
 
 function openPrivateChat(partnerId, partnerName, avatar) {
     currentChatPartner = partnerId;
-    document.getElementById('chatContactsView').style.display = 'none'; document.getElementById('chatRoomView').style.display = 'flex'; 
+    // 🔥 FIX: Properly hide/show using clear class toggling to avoid black screens
+    document.getElementById('chatContactsView').classList.add('hidden'); 
+    document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
     if(partnerStatusUnsub) partnerStatusUnsub();
@@ -457,19 +542,43 @@ function openPrivateChat(partnerId, partnerName, avatar) {
     const area = document.getElementById('directMessages');
     area.innerHTML = ''; 
     
-    if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
-    
-    if (db) {
-        // 🔥 BUG 1 FIXED: Order strictly by timestamp from Firebase. NO optimistic appends to avoid duplicates.
-        chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
-            area.innerHTML = ''; // Wipe and re-render to guarantee perfect order
+    try {
+        const cachedChat = localStorage.getItem('chat_' + roomID);
+        if(cachedChat) { 
             const frag = document.createDocumentFragment();
-            snap.forEach(d => {
-                const m = d.data();
+            JSON.parse(cachedChat).forEach(m => {
                 const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; 
                 div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}</span>`; frag.appendChild(div);
             });
             area.appendChild(frag); autoScrollChat();
+        }
+    } catch(e) {}
+
+    if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub();
+    
+    if (db) {
+        let isInitialLoad = true;
+        chatUnsub = onSnapshot(query(collection(db, `privateChats/${roomID}/messages`), orderBy("timestamp", "asc")), (snap) => {
+            if(isInitialLoad) {
+                area.innerHTML = ''; const msgs = []; const frag = document.createDocumentFragment();
+                snap.forEach(d => {
+                    const m = d.data(); msgs.push(m);
+                    const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; 
+                    div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}</span>`; frag.appendChild(div);
+                });
+                area.appendChild(frag); localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); autoScrollChat(); isInitialLoad = false;
+            } else {
+                snap.docChanges().forEach(change => {
+                    if(change.type === 'added') {
+                        const m = change.doc.data();
+                        const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; 
+                        div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}</span>`;
+                        area.appendChild(div);
+                        const cached = JSON.parse(localStorage.getItem('chat_' + roomID) || "[]"); cached.push(m); localStorage.setItem('chat_' + roomID, JSON.stringify(cached));
+                    }
+                });
+                autoScrollChat();
+            }
         });
 
         typingUnsub = onSnapshot(doc(db, `privateChats/${roomID}/typing`, partnerId), (snap) => {
@@ -486,7 +595,6 @@ document.getElementById('directChatInput').addEventListener('input', () => {
     typingTimer = setTimeout(() => { setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false }); }, 1500);
 });
 
-// DOUBLE CLICK LOCK
 let isSending = false;
 document.getElementById('sendDirectChatBtn').addEventListener('click', async () => {
     if(isSending) return;
@@ -497,7 +605,6 @@ document.getElementById('sendDirectChatBtn').addEventListener('click', async () 
     const roomID = getRoomID(currentUser, currentChatPartner); const ts = Date.now();
     inp.value = ''; setDoc(doc(db, `privateChats/${roomID}/typing`, currentUser), { isTyping: false });
     
-    // Only send to Firebase. The snapshot listener will instantly pick it up and render it ONCE.
     await addDoc(collection(db, `privateChats/${roomID}/messages`), { sender: currentUser, text: txt, timestamp: ts });
     setTimeout(() => { isSending = false; }, 500);
 });
