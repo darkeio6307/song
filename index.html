@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Music</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=42.0">
+    <link rel="stylesheet" href="style.css?v=43.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
@@ -74,7 +74,7 @@
                         <button id="viewSwitchBtn" class="view-toggle-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map</button>
                     </div>
                     <div class="status-widgets">
-                        <div id="onlineSoulsTag" class="session-timer glass-widget" style="color: #00ff88; border-color:#00ff88;">
+                        <div id="onlineSoulsTag" class="session-timer glass-widget" style="color: #00ff88; border-color:#00ff88; cursor: pointer;">
                             <i class="fa-solid fa-earth-asia fade-blink"></i> <span id="onlineCountText">1 Online</span>
                         </div>
                         <div id="roomLiveTag" class="session-timer glass-widget hidden" style="color: #b026ff; cursor: pointer; border-color:#b026ff;">
@@ -101,6 +101,15 @@
                     <button class="mood-chip" data-mood="Deep Focus Study">📚 Focus</button>
                     <button class="mood-chip" data-mood="Arijit Singh Romantic">❤️ Romance</button>
                 </div>
+            </div>
+
+            <div id="onlinePopup" class="online-popup glass-widget-heavy">
+                <div class="online-popup-header">
+                    <h3>Live Souls <i class="fa-solid fa-earth-asia"></i></h3>
+                    <button id="closeOnlinePopup"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="onlinePopupList" class="online-popup-list">
+                    </div>
             </div>
 
             <div id="topProfileStats" class="legendary-dashboard hidden">
@@ -186,7 +195,6 @@
             </div>
 
             <div id="chatWidget" class="chat-panel full-screen-panel glass-widget-heavy">
-                
                 <div id="chatContactsView" class="chat-view">
                     <div class="chat-live-status-area">
                         <div class="chat-header native-header">
@@ -210,9 +218,7 @@
                             <span id="typingIndicator" class="typing-text hidden">typing...</span>
                         </div>
                     </div>
-                    
                     <div id="directMessages" class="chat-messages telegram-bg" style="flex: 1; height: 100%;"></div>
-                    
                     <div class="chat-input-wrapper">
                         <input type="text" id="directChatInput" placeholder="Message..." autocomplete="off">
                         <button id="sendDirectChatBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
@@ -233,6 +239,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=42.0"></script>
+    <script type="module" src="script.js?v=43.0"></script>
 </body>
 </html>
