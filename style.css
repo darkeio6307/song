@@ -145,21 +145,13 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 .loader-text { text-align: center; padding: 15px; color: var(--neon-main); font-size: 12px; font-weight: bold; }
 .scroll-bottom-pad { height: 230px; width: 100%; flex-shrink: 0; }
 
-.pro-player { 
-    position: absolute; bottom: 85px; left: 10px; right: 10px; 
-    border-radius: 20px; padding: 10px 15px; z-index: 100; 
-    background: rgba(15, 15, 25, 0.3) !important; 
-    backdrop-filter: blur(35px) saturate(200%);
-    -webkit-backdrop-filter: blur(35px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
-}
+.pro-player { position: absolute; bottom: 85px; left: 10px; right: 10px; border-radius: 20px; padding: 10px 15px; z-index: 100; background: rgba(15, 15, 25, 0.3) !important; backdrop-filter: blur(35px) saturate(200%); -webkit-backdrop-filter: blur(35px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.15) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
 .seek-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .time-label { font-size: 10px; color: #ccc; font-weight: bold; width: 35px; text-align: center; }
 .custom-slider { flex: 1; height: 4px; appearance: none; background: rgba(255,255,255,0.15); border-radius: 5px; }
 .custom-slider::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px var(--neon-main); }
 .player-main-ui { display: flex; align-items: center; justify-content: space-between; }
-.now-playing { display: flex; align-items: center; width: 45%; cursor: pointer; }
+.now-playing { display: flex; align-items: center; width: 50%; cursor: pointer; }
 .vinyl-record { width: 38px; height: 38px; border-radius: 50%; background: #111; display: flex; justify-content: center; align-items: center; position: relative; border: 2px solid #222; margin-right: 10px; flex-shrink:0; }
 .vinyl-record img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
 .record-hole { position: absolute; width: 6px; height: 6px; background: #000; border-radius: 50%; }
@@ -170,6 +162,19 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 .action-btn { background: none; border: none; color: #fff; font-size: 16px; cursor: pointer; padding: 5px; }
 .timer-active { color: #ffd700 !important; text-shadow: 0 0 10px #ffd700; }
 
+/* 🔥 NEW: Instagram Heart Pop Animation */
+.pop-heart { position: absolute; left: 10px; top: 0; font-size: 40px; color: #ff3366; z-index: 200; opacity: 0; pointer-events: none; transform: scale(0.5); filter: drop-shadow(0 0 10px rgba(255,51,102,0.8)); }
+.pop-heart.animate { animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes heartPop { 0% { opacity: 1; transform: scale(0.5); } 50% { transform: scale(1.2); } 100% { opacity: 0; transform: scale(1) translateY(-20px); } }
+
+/* 🔥 NEW: Spotify Live Equalizer Bars */
+#visualizer { display: inline-flex; align-items: flex-end; gap: 2px; margin-left: 6px; height: 10px; }
+.bar { width: 3px; background: var(--neon-main); border-radius: 2px; animation: dance 0.6s infinite ease-in-out alternate; }
+.bar:nth-child(2) { animation-delay: 0.2s; }
+.bar:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dance { 0% { height: 3px; } 100% { height: 12px; box-shadow: 0 0 5px var(--neon-main); } }
+
+/* Dock */
 .dock-nav { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); padding: 12px 35px; display: flex; justify-content: space-between; width: 90%; max-width: 420px; border-radius: 30px; z-index: 90; }
 .dock-item { color: #888; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; position: relative; }
 .dock-item i { font-size: 20px; transition: 0.3s; }
@@ -177,13 +182,16 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 .dock-item.active i { transform: translateY(-3px); filter: drop-shadow(0 0 10px var(--neon-main)); }
 .chat-badge { position: absolute; top: -5px; right: 5px; width: 10px; height: 10px; background: #ff3366; border-radius: 50%; box-shadow: 0 0 10px #ff3366; border: 2px solid var(--glass-heavy); }
 
-/* 🔥 FULL SCREEN 100dvh SLIDING PANELS */
+/* Sliding Panels */
 .full-screen-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100dvh; background: var(--chat-bg); z-index: 1000000 !important; border-radius: 0; display: flex; flex-direction: column; transform: translate3d(0, 100%, 0); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; will-change: transform; pointer-events: none;}
 .full-screen-panel.show { transform: translate3d(0, 0, 0); pointer-events: auto;}
 
-.native-header { padding: 25px 20px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+/* 🔥 Apple Gestures Header */
+.native-header { padding: 25px 20px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; cursor: grab;}
+.native-header:active { cursor: grabbing; }
+.native-header::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 4px; } /* iOS Pull Indicator */
 .native-header h2 { font-size: 20px; font-weight: 800; color: #fff; }
-.close-native { background: rgba(255,255,255,0.1); width: 35px; height: 35px; border-radius: 50%; border: none; color: #fff; font-size: 16px; cursor: pointer; }
+.close-native { background: rgba(255,255,255,0.1); width: 35px; height: 35px; border-radius: 50%; border: none; color: #fff; font-size: 16px; cursor: pointer; pointer-events: auto;}
 
 .room-del-btn { background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; color: #ff3366; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; margin-left: 10px;}
 .room-del-btn:active { background: #ff3366; color: #fff; }
@@ -201,7 +209,6 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 .fm-listener-badge { font-size: 11px; color: #888; font-weight: 500;}
 .fm-listener-badge.live { color: #00ff88; font-weight: bold;} 
 
-/* 🔥 TELEGRAM DARK THEME CHAT ROOM */
 .telegram-header { padding: 45px 20px 15px; display: flex; align-items: center; gap: 15px; background: rgba(20, 20, 28, 0.95); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10; }
 .back-btn { background: none; border: none; color: var(--neon-main); font-size: 22px; cursor: pointer; padding: 5px; }
 .chat-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
@@ -210,28 +217,22 @@ body.theme-default { --neon-main: #ffd700; --neon-sec: #ff8c00; --bg-gradient: r
 .status-text { font-size: 11px; color: #888; font-weight: 500; }
 .status-text.online { color: #00ff88; }
 .typing-text { font-size: 11px; color: var(--neon-main); font-style: italic; animation: blinkSync 1.5s infinite; }
-@keyframes blinkSync { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 .telegram-bg { background: var(--chat-bg); }
 .chat-messages { flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: none; scroll-behavior: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;}
 
 .chat-msg { padding: 10px 14px; max-width: 75%; font-size: 14px; line-height: 1.4; width: fit-content; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.2); position: relative; animation: msgPop 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; will-change: transform, opacity;}
-@keyframes msgPop { 0% { opacity: 0; transform: translate3d(0, 15px, 0) scale(0.95); } 100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); } }
-
 .chat-msg.them { background: var(--bubble-them); border-radius: 18px 18px 18px 4px; align-self: flex-start; color: #fff; }
 .chat-msg.mine { background: var(--bubble-mine); border-radius: 18px 18px 4px 18px; align-self: flex-end; color: #fff; }
 
-.msg-time { display: block; font-size: 9px; opacity: 0.6; margin-top: 4px; text-align: right; font-weight: 500; }
-.chat-msg.them .msg-time { text-align: right; }
+.msg-time { display: flex; align-items: center; justify-content: flex-end; font-size: 9px; opacity: 0.7; margin-top: 4px; font-weight: 500; }
+.chat-msg.them .msg-time { justify-content: flex-start; }
 
 .chat-input-wrapper { padding: 12px 15px 25px; display: flex; gap: 10px; align-items: center; background: rgba(20, 20, 28, 0.95); border-top: 1px solid rgba(255,255,255,0.05); }
 .chat-input-wrapper input { flex: 1; padding: 14px 20px; border-radius: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 15px; outline: none; }
 .chat-send-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--neon-main); color: #000; border: none; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; padding-right: 2px; }
 .chat-send-btn:active { transform: scale(0.9); }
 
-.lyrics-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 75vh; border-radius: 30px 30px 0 0; background: rgba(10, 10, 15, 0.98); border-top: 2px solid var(--neon-main); z-index: 1000000 !important; display: flex; flex-direction: column; transform: translate3d(0, 120%, 0); opacity: 0; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s; pointer-events: none; will-change: transform;}
-.lyrics-panel.show { transform: translate3d(0, 0, 0); opacity: 1; pointer-events: auto; }
-.lyrics-header { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--glass-border); }
 .lyrics-content { flex: 1; padding: 30px; display: flex; justify-content: center; align-items: center; text-align: center; }
 .lyrics-text { font-size: 22px; font-weight: 800; line-height: 1.6; color: rgba(255,255,255,0.6); }
 .toast-popup { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, var(--neon-main), var(--neon-sec)); padding: 12px 30px; border-radius: 30px; font-weight: 800; font-size: 13px; color: #fff; transition: top 0.5s cubic-bezier(0.68, -0.55, 0.26, 1.55); z-index: 9999999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); white-space: nowrap; }
