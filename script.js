@@ -1,11 +1,10 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v42.0 (The Micro-Polish Update)
+ * 🌌 ARSHAD SUPREME ENGINE v43.0 (The Social & Background Engine)
  * Optimized for: Tecno Pova 7
  * UPGRADES: 
- * 1. Active Playing Glow: The currently playing song gets a neon border.
- * 2. Double Tap Seek: Double tap the vinyl record to skip 10 seconds.
- * 3. Haptic Feedback Boost.
+ * 1. Online Souls Popup: Click the top tag to see exactly who is online.
+ * 2. MediaSession API Added: Proper Background Audio controls in Android notification.
  * =========================================================================
  */
 
@@ -174,18 +173,34 @@ function trackAndLoadStats() {
     });
 }
 
+// 🔥 ONLINE SOULS POPUP LOGIC
+const onlinePopup = document.getElementById('onlinePopup');
+document.getElementById('onlineSoulsTag').addEventListener('click', () => { vibeClick(); onlinePopup.classList.toggle('show'); });
+document.getElementById('closeOnlinePopup').addEventListener('click', () => { vibeClick(); onlinePopup.classList.remove('show'); });
+
 function trackOnlineSouls() {
     if (!db) return;
     onSnapshot(collection(db, "liveStatus"), (snap) => {
         let onlineCount = 0;
         const container = document.getElementById('liveStoriesContainer');
-        container.innerHTML = ''; 
+        const popupList = document.getElementById('onlinePopupList');
+        
+        container.innerHTML = ''; popupList.innerHTML = '';
         const frag = document.createDocumentFragment();
+        const popupFrag = document.createDocumentFragment();
 
         snap.forEach(docSnap => {
             const data = docSnap.data();
             if (data.lastSeen > (Date.now() - 60000)) {
                 onlineCount++; 
+                
+                // Populate Active Souls Popup
+                const pItem = document.createElement('div'); pItem.className = 'online-user-item';
+                let playingText = data.isPlaying && data.songName ? `Vibing: ${data.songName}` : 'Chilling...';
+                pItem.innerHTML = `<img src="${data.avatar || 'guest.jpg'}"><div><p>${data.displayName || docSnap.id}</p><span>${playingText}</span></div>`;
+                popupFrag.appendChild(pItem);
+
+                // Populate Top Live Stories (Only if playing)
                 if (docSnap.id !== currentUser && data.isPlaying) {
                     const item = document.createElement('div'); item.className = 'story-item';
                     item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
@@ -200,7 +215,10 @@ function trackOnlineSouls() {
         
         document.getElementById('onlineCountText').innerText = `${onlineCount} Online`;
         container.appendChild(frag);
+        popupList.appendChild(popupFrag);
+        
         if(container.childNodes.length === 0) container.innerHTML = '<p class="empty-msg" style="width:100%; text-align:center; font-size:10px;">Cosmos is quiet...</p>';
+        if(popupList.childNodes.length === 0) popupList.innerHTML = '<p style="font-size:10px; color:#aaa; text-align:center;">Only you are here...</p>';
     });
 }
 
@@ -209,7 +227,7 @@ document.getElementById('closeStatsBtn').addEventListener('click', () => { vibeC
 window.logoutApp = () => { vibeClick(); localStorage.clear(); updateLiveStatus(false); setTimeout(() => { location.reload(); }, 300); };
 document.getElementById('powerForceTheme').addEventListener('click', () => { vibeClick(); document.body.className = "theme-preeti"; showToast("UI Theme Forced! 🎨"); });
 
-// === 🎶 3. MUSIC ENGINE (SEARCH UPGRADED) ===
+// === 🎶 3. MUSIC ENGINE ===
 async function fetchMusic(q, isLoadMore = false) {
     const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
     if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
@@ -219,7 +237,6 @@ async function fetchMusic(q, isLoadMore = false) {
         const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}&page=${currentPage}&limit=50`);
         const data = await res.json();
         if(data.success && data.data.results.length > 0) {
-            
             let newSongs = data.data.results;
             newSongs.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
 
@@ -237,7 +254,6 @@ function appendLibrary(songs, startIndex) {
     const list = document.getElementById('songsList'); const frag = document.createDocumentFragment(); 
     songs.forEach((song, i) => {
         const globalIndex = startIndex + i; const div = document.createElement('div'); div.className = 'song-card glass-widget';
-        // 🔥 UPGRADE: Active Glow UI Check
         if(globalIndex === currentIndex && !audio.paused) div.classList.add('active-playing-card');
         
         const isFav = myPlaylist.some(s => s.id === song.id);
@@ -266,7 +282,6 @@ window.toggleFav = toggleFav; window.playSong = playSong;
 function playSong(i) {
     currentIndex = i; const song = currentQueue[i];
     
-    // 🔥 UPGRADE: Glow the playing card
     const allCards = document.querySelectorAll('.song-card');
     allCards.forEach((card, index) => {
         if(index === i) card.classList.add('active-playing-card');
@@ -283,13 +298,24 @@ function playSong(i) {
     
     document.getElementById('vinylDisk').classList.add('spin-vinyl'); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('profileBtn').classList.add('playing'); 
     
+    // 🔥 MEDIA SESSION API (Background Play Fix)
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.name, artist: song.artists.primary[0].name,
+            artwork: [{ src: song.image[2].url, sizes: '500x500', type: 'image/jpeg' }]
+        });
+        navigator.mediaSession.setActionHandler('play', () => playBtn.click());
+        navigator.mediaSession.setActionHandler('pause', () => playBtn.click());
+        navigator.mediaSession.setActionHandler('nexttrack', () => document.getElementById('nextBtn').click());
+        navigator.mediaSession.setActionHandler('previoustrack', () => document.getElementById('prevBtn').click());
+    }
+
     if(myHostedRoomId && db) updateRoomState(song, true);
     if(db) updateLiveStatus(true, song);
     
     document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
-// 🔥 UPGRADE: DOUBLE TAP TO SKIP 10s
 let lastTap = 0;
 document.getElementById('vinylDisk').addEventListener('touchend', (e) => {
     const currentTime = new Date().getTime();
@@ -297,8 +323,7 @@ document.getElementById('vinylDisk').addEventListener('touchend', (e) => {
     if (tapLength < 300 && tapLength > 0) {
         if(!isNaN(audio.duration)) {
             audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
-            showToast("⏩ +10s");
-            vibeClick();
+            showToast("⏩ +10s"); vibeClick();
         }
         e.preventDefault();
     }
@@ -469,7 +494,7 @@ roomLiveTag.onclick = () => {
     }
 };
 
-// === 💬 7. CHAT (READ RECEIPTS & SMOOTHNESS) ===
+// === 💬 7. CHAT UPGRADE ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
