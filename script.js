@@ -1,10 +1,11 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v43.0 (The Social & Background Engine)
+ * 🌌 ARSHAD SUPREME ENGINE v44.0 (The Infinity Flow Update)
  * Optimized for: Tecno Pova 7
- * UPGRADES: 
- * 1. Online Souls Popup: Click the top tag to see exactly who is online.
- * 2. MediaSession API Added: Proper Background Audio controls in Android notification.
+ * CRITICAL FIXES & UPGRADES: 
+ * 1. Auto-Play Bug Fixed: Songs now play sequentially. Loop never breaks!
+ * 2. Search Upgraded: Exact matches to your search query forced to the TOP.
+ * 3. Smart Categories: Chips updated to Trending, Artists, Albums.
  * =========================================================================
  */
 
@@ -46,7 +47,7 @@ let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null; let isMapView = false;
 
 let myHostedRoomId = null; let myJoinedRoomId = null; let joinedRoomUnsub = null; let lastAudioSrc = "";
-const aiVibes = ["Trending Hindi Hits", "Arijit Singh Romantic", "Sad Lofi Hindi", "Phonk Gym Motivation", "Bollywood Hits"];
+const aiVibes = ["Top Trending Hindi Songs", "Best Bollywood Artists", "Global Hit Albums", "New Hindi Releases 2026"];
 
 function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
 function vibeClick() { if(navigator.vibrate) navigator.vibrate(40); }
@@ -58,8 +59,7 @@ function formatLastSeen(ts) {
     const diff = Date.now() - ts;
     if(diff < 60000) return "Online"; 
     
-    const date = new Date(ts);
-    const today = new Date();
+    const date = new Date(ts); const today = new Date();
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
     const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
@@ -133,16 +133,11 @@ function bootSession(rawName, showWelcome = false, userData) {
         document.body.className = userData.theme || "theme-default";
         document.getElementById('userAvatar').src = userData.avatar || "guest.jpg";
         document.getElementById('profRelation').innerText = userData.relation || "Vibe Listener";
-        if(userData.headerText) {
-            document.getElementById('timeGreeting').innerText = userData.headerText;
-        } else {
-            const hrs = new Date().getHours(); 
-            document.getElementById('timeGreeting').innerText = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,";
-        }
+        if(userData.headerText) { document.getElementById('timeGreeting').innerText = userData.headerText; } 
+        else { const hrs = new Date().getHours(); document.getElementById('timeGreeting').innerText = hrs < 12 ? "Good Morning," : hrs < 17 ? "Good Afternoon," : hrs < 21 ? "Good Evening," : "Good Night,"; }
     }
     
-    document.getElementById('userName').innerText = currentDisplay; 
-    document.getElementById('profName').innerText = currentDisplay;
+    document.getElementById('userName').innerText = currentDisplay; document.getElementById('profName').innerText = currentDisplay;
 
     if(showWelcome) {
         if(currentUser === "dark_eio") showToast("Welcome back Lord 👑"); else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️"); else showToast("Welcome to Universe 🎧");
@@ -173,7 +168,6 @@ function trackAndLoadStats() {
     });
 }
 
-// 🔥 ONLINE SOULS POPUP LOGIC
 const onlinePopup = document.getElementById('onlinePopup');
 document.getElementById('onlineSoulsTag').addEventListener('click', () => { vibeClick(); onlinePopup.classList.toggle('show'); });
 document.getElementById('closeOnlinePopup').addEventListener('click', () => { vibeClick(); onlinePopup.classList.remove('show'); });
@@ -181,43 +175,22 @@ document.getElementById('closeOnlinePopup').addEventListener('click', () => { vi
 function trackOnlineSouls() {
     if (!db) return;
     onSnapshot(collection(db, "liveStatus"), (snap) => {
-        let onlineCount = 0;
-        const container = document.getElementById('liveStoriesContainer');
-        const popupList = document.getElementById('onlinePopupList');
-        
-        container.innerHTML = ''; popupList.innerHTML = '';
-        const frag = document.createDocumentFragment();
-        const popupFrag = document.createDocumentFragment();
+        let onlineCount = 0; const popupList = document.getElementById('onlinePopupList');
+        popupList.innerHTML = ''; const popupFrag = document.createDocumentFragment();
 
         snap.forEach(docSnap => {
             const data = docSnap.data();
             if (data.lastSeen > (Date.now() - 60000)) {
                 onlineCount++; 
-                
-                // Populate Active Souls Popup
                 const pItem = document.createElement('div'); pItem.className = 'online-user-item';
                 let playingText = data.isPlaying && data.songName ? `Vibing: ${data.songName}` : 'Chilling...';
                 pItem.innerHTML = `<img src="${data.avatar || 'guest.jpg'}"><div><p>${data.displayName || docSnap.id}</p><span>${playingText}</span></div>`;
                 popupFrag.appendChild(pItem);
-
-                // Populate Top Live Stories (Only if playing)
-                if (docSnap.id !== currentUser && data.isPlaying) {
-                    const item = document.createElement('div'); item.className = 'story-item';
-                    item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
-                    item.onclick = () => { 
-                        const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] }; 
-                        currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`); 
-                    };
-                    frag.appendChild(item);
-                }
             }
         });
         
         document.getElementById('onlineCountText').innerText = `${onlineCount} Online`;
-        container.appendChild(frag);
         popupList.appendChild(popupFrag);
-        
-        if(container.childNodes.length === 0) container.innerHTML = '<p class="empty-msg" style="width:100%; text-align:center; font-size:10px;">Cosmos is quiet...</p>';
         if(popupList.childNodes.length === 0) popupList.innerHTML = '<p style="font-size:10px; color:#aaa; text-align:center;">Only you are here...</p>';
     });
 }
@@ -227,7 +200,7 @@ document.getElementById('closeStatsBtn').addEventListener('click', () => { vibeC
 window.logoutApp = () => { vibeClick(); localStorage.clear(); updateLiveStatus(false); setTimeout(() => { location.reload(); }, 300); };
 document.getElementById('powerForceTheme').addEventListener('click', () => { vibeClick(); document.body.className = "theme-preeti"; showToast("UI Theme Forced! 🎨"); });
 
-// === 🎶 3. MUSIC ENGINE ===
+// === 🎶 3. MUSIC ENGINE (SEARCH UPGRADE: EXACT MATCH TOP) ===
 async function fetchMusic(q, isLoadMore = false) {
     const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
     if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
@@ -238,7 +211,15 @@ async function fetchMusic(q, isLoadMore = false) {
         const data = await res.json();
         if(data.success && data.data.results.length > 0) {
             let newSongs = data.data.results;
-            newSongs.sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+            
+            // 🔥 UPGRADE: Smart Exact Match Algorithm
+            const searchLower = q.toLowerCase();
+            newSongs.sort((a, b) => {
+                const aMatch = a.name.toLowerCase() === searchLower ? 1 : 0;
+                const bMatch = b.name.toLowerCase() === searchLower ? 1 : 0;
+                if(aMatch !== bMatch) return bMatch - aMatch; // Exact match goes to top
+                return (parseInt(b.year) || 0) - (parseInt(a.year) || 0); // Then sort by newest year
+            });
 
             const startIndex = currentQueue.length; currentQueue = [...currentQueue, ...newSongs];
             appendLibrary(newSongs, startIndex);
@@ -257,8 +238,12 @@ function appendLibrary(songs, startIndex) {
         if(globalIndex === currentIndex && !audio.paused) div.classList.add('active-playing-card');
         
         const isFav = myPlaylist.some(s => s.id === song.id);
-        div.innerHTML = `<img src="${song.image[2].url}" onclick="playSong(${globalIndex})" loading="lazy">
+        
+        // 🔥 UPGRADE: Added Live Audio Wave Animation for Playing Track
+        div.innerHTML = `
+            <img src="${song.image[2].url}" onclick="playSong(${globalIndex})" loading="lazy">
             <div class="song-info-v2" onclick="playSong(${globalIndex})"><h4>${song.name}</h4><p>${song.artists.primary[0].name} • ${song.year||'Unknown'}</p></div>
+            <div class="audio-wave"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
             <button class="fav-btn" style="color:${isFav?'var(--neon-main)':'#555'}" onclick="toggleFav(event, ${globalIndex})"><i class="fa-solid fa-heart"></i></button>`;
         frag.appendChild(div);
     });
@@ -275,13 +260,15 @@ async function toggleFav(e, globalIndex) {
     const song = currentQueue[globalIndex]; const idx = myPlaylist.findIndex(s => s.id === song.id);
     if(idx > -1) { myPlaylist.splice(idx, 1); showToast("Removed from Vault"); } else { myPlaylist.push(song); showToast("Saved to Vault ❤️"); }
     if(db) await setDoc(doc(db, "vaults", currentUser), { songs: myPlaylist });
-    if(isPlaylistView) renderLibrary(); else e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)';
+    if(isPlaylistView) renderLibrary(); else { e.currentTarget.style.color = (idx > -1) ? '#555' : 'var(--neon-main)'; document.getElementById('profSongCount').innerText = myPlaylist.length; }
 }
 window.toggleFav = toggleFav; window.playSong = playSong;
 
 function playSong(i) {
+    if(i >= currentQueue.length) i = 0; // Safe bound check
     currentIndex = i; const song = currentQueue[i];
     
+    // Update Glow and Wave
     const allCards = document.querySelectorAll('.song-card');
     allCards.forEach((card, index) => {
         if(index === i) card.classList.add('active-playing-card');
@@ -298,12 +285,8 @@ function playSong(i) {
     
     document.getElementById('vinylDisk').classList.add('spin-vinyl'); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('profileBtn').classList.add('playing'); 
     
-    // 🔥 MEDIA SESSION API (Background Play Fix)
     if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: song.name, artist: song.artists.primary[0].name,
-            artwork: [{ src: song.image[2].url, sizes: '500x500', type: 'image/jpeg' }]
-        });
+        navigator.mediaSession.metadata = new MediaMetadata({ title: song.name, artist: song.artists.primary[0].name, artwork: [{ src: song.image[2].url, sizes: '500x500', type: 'image/jpeg' }] });
         navigator.mediaSession.setActionHandler('play', () => playBtn.click());
         navigator.mediaSession.setActionHandler('pause', () => playBtn.click());
         navigator.mediaSession.setActionHandler('nexttrack', () => document.getElementById('nextBtn').click());
@@ -318,13 +301,9 @@ function playSong(i) {
 
 let lastTap = 0;
 document.getElementById('vinylDisk').addEventListener('touchend', (e) => {
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
+    const currentTime = new Date().getTime(); const tapLength = currentTime - lastTap;
     if (tapLength < 300 && tapLength > 0) {
-        if(!isNaN(audio.duration)) {
-            audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
-            showToast("⏩ +10s"); vibeClick();
-        }
+        if(!isNaN(audio.duration)) { audio.currentTime = Math.min(audio.duration, audio.currentTime + 10); showToast("⏩ +10s"); vibeClick(); }
         e.preventDefault();
     }
     lastTap = currentTime;
@@ -338,8 +317,7 @@ audio.onloadedmetadata = () => { if(!isNaN(audio.duration)) { document.getElemen
 
 audio.ontimeupdate = () => { 
     if(!isNaN(audio.duration)) { 
-        seekSlider.value = (audio.currentTime/audio.duration)*100; 
-        document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime);
+        seekSlider.value = (audio.currentTime/audio.duration)*100; document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime);
         if (audio.duration - audio.currentTime < 3 && audio.volume > 0.05) audio.volume -= 0.01; 
     } 
 };
@@ -358,13 +336,17 @@ playBtn.addEventListener('click', () => {
     }
 });
 
-document.getElementById('nextBtn').addEventListener('click', () => { vibeClick(); audio.onended(); });
+document.getElementById('nextBtn').addEventListener('click', () => { vibeClick(); audio.dispatchEvent(new Event('ended')); });
 document.getElementById('prevBtn').addEventListener('click', () => { vibeClick(); if(currentIndex > 0) playSong(currentIndex - 1); });
 
-audio.onended = () => { 
-    if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } 
-    else { let nextIndex = Math.floor(Math.random() * currentQueue.length); playSong(nextIndex); } 
-};
+// 🔥 BUG 1 FIXED: Auto-Play Next Song (Sequential & Reliable)
+audio.addEventListener('ended', () => {
+    if(currentQueue.length > 0) {
+        let nextIdx = (currentIndex + 1) % currentQueue.length;
+        playSong(nextIdx);
+        showToast("Playing Next Track...");
+    }
+});
 
 document.getElementById('sleepTimerBtn').addEventListener('click', () => {
     vibeClick(); const btn = document.getElementById('sleepTimerBtn');
@@ -380,19 +362,8 @@ if ('webkitSpeechRecognition' in window) {
 }
 
 // === 🏠 6. ROOM FEATURE ===
-document.getElementById('btnRoomToggle').addEventListener('click', () => { 
-    vibeClick(); 
-    document.getElementById('chatWidget').classList.remove('show'); 
-    document.getElementById('roomWidget').classList.toggle('show'); 
-    document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
-    document.getElementById('btnRoomToggle').classList.add('active'); 
-});
-document.getElementById('closeRoomBtn').addEventListener('click', () => { 
-    vibeClick(); 
-    document.getElementById('roomWidget').classList.remove('show'); 
-    document.getElementById('btnRoomToggle').classList.remove('active'); 
-    document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); 
-});
+document.getElementById('btnRoomToggle').addEventListener('click', () => { vibeClick(); document.getElementById('chatWidget').classList.remove('show'); document.getElementById('roomWidget').classList.toggle('show'); document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); document.getElementById('btnRoomToggle').classList.add('active'); });
+document.getElementById('closeRoomBtn').addEventListener('click', () => { vibeClick(); document.getElementById('roomWidget').classList.remove('show'); document.getElementById('btnRoomToggle').classList.remove('active'); document.getElementById(isPlaylistView ? 'btnPlaylist' : 'btnHome').classList.add('active'); });
 
 document.getElementById('createRoomBtn').addEventListener('click', async () => { 
     vibeClick(); 
@@ -402,35 +373,15 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     myHostedRoomId = roomCode;
     
     let songData = currentQueue[currentIndex] || null;
-    await setDoc(doc(db, "rooms", roomCode), { 
-        hostId: currentUser, hostName: currentDisplay, active: true, createdAt: Date.now(),
-        songId: songData ? songData.id : null, audio: songData ? songData.downloadUrl[4].url : null,
-        songName: songData ? songData.name : "Silence", artist: songData ? songData.artists.primary[0].name : "",
-        cover: songData ? songData.image[2].url : "", isPlaying: !audio.paused
-    });
-    
-    showToast(`Room #${roomCode} Created!`);
-    document.getElementById('createRoomBtn').innerText = "ROOM ACTIVE (LISTED)";
+    await setDoc(doc(db, "rooms", roomCode), { hostId: currentUser, hostName: currentDisplay, active: true, createdAt: Date.now(), songId: songData ? songData.id : null, audio: songData ? songData.downloadUrl[4].url : null, songName: songData ? songData.name : "Silence", artist: songData ? songData.artists.primary[0].name : "", cover: songData ? songData.image[2].url : "", isPlaying: !audio.paused });
+    showToast(`Room #${roomCode} Created!`); document.getElementById('createRoomBtn').innerText = "ROOM ACTIVE (LISTED)";
 });
 
-async function updateRoomState(song, isPlaying) {
-    if(!myHostedRoomId || !db) return;
-    await updateDoc(doc(db, "rooms", myHostedRoomId), {
-        songId: song.id, audio: song.downloadUrl[4].url, songName: song.name, 
-        cover: song.image[2].url, artist: song.artists.primary[0].name, isPlaying: isPlaying
-    });
-}
+async function updateRoomState(song, isPlaying) { if(!myHostedRoomId || !db) return; await updateDoc(doc(db, "rooms", myHostedRoomId), { songId: song.id, audio: song.downloadUrl[4].url, songName: song.name, cover: song.image[2].url, artist: song.artists.primary[0].name, isPlaying: isPlaying }); }
 
 window.deleteRoom = async (roomId, e) => {
     e.stopPropagation(); vibeClick();
-    if(db) {
-        await deleteDoc(doc(db, "rooms", roomId));
-        if(myHostedRoomId === roomId) {
-            myHostedRoomId = null;
-            document.getElementById('createRoomBtn').innerText = "CREATE PRIVATE ROOM";
-            showToast("Room Closed");
-        }
-    }
+    if(db) { await deleteDoc(doc(db, "rooms", roomId)); if(myHostedRoomId === roomId) { myHostedRoomId = null; document.getElementById('createRoomBtn').innerText = "CREATE PRIVATE ROOM"; showToast("Room Closed"); } }
 };
 
 function listenToRooms() {
@@ -442,37 +393,23 @@ function listenToRooms() {
             if(data.active) {
                 count++; const div = document.createElement('div'); div.className = 'contact-item';
                 const delBtnHtml = (data.hostId === currentUser) ? `<button class="room-del-btn" onclick="deleteRoom('${docSnap.id}', event)"><i class="fa-solid fa-trash"></i></button>` : '';
-                div.innerHTML = `<div class="story-ring" style="display:flex; justify-content:center; align-items:center; width:50px; height:50px;"><i class="fa-solid fa-house-signal" style="color:#00ff88; font-size:20px;"></i></div>
-                                 <div style="flex:1; margin-left:15px;"><h4>Room #${docSnap.id}</h4><p class="fm-listener-badge live">Host: ${data.hostName}</p></div>
-                                 ${delBtnHtml}`;
-                div.onclick = () => joinRoom(docSnap.id, data.hostId);
-                frag.appendChild(div);
+                div.innerHTML = `<div class="story-ring" style="display:flex; justify-content:center; align-items:center; width:50px; height:50px;"><i class="fa-solid fa-house-signal" style="color:#00ff88; font-size:20px;"></i></div><div style="flex:1; margin-left:15px;"><h4>Room #${docSnap.id}</h4><p class="fm-listener-badge live">Host: ${data.hostName}</p></div>${delBtnHtml}`;
+                div.onclick = () => joinRoom(docSnap.id, data.hostId); frag.appendChild(div);
             }
         });
-        list.appendChild(frag);
-        if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No active rooms found.</p>';
+        list.appendChild(frag); if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No active rooms found.</p>';
     });
 }
 
 function joinRoom(roomId, hostId) {
     if(hostId === currentUser) return showToast("You are the host!");
     if(myJoinedRoomId === roomId) return;
-    
     if(joinedRoomUnsub) joinedRoomUnsub();
-    myJoinedRoomId = roomId;
-    roomLiveTag.classList.remove('hidden');
-    document.getElementById('roomLiveText').innerText = "Room #" + roomId;
-    showToast(`Joined Room #${roomId}`);
+    myJoinedRoomId = roomId; roomLiveTag.classList.remove('hidden'); document.getElementById('roomLiveText').innerText = "Room #" + roomId; showToast(`Joined Room #${roomId}`);
     
     joinedRoomUnsub = onSnapshot(doc(db, "rooms", roomId), snap => {
-        if(!snap.exists() || !snap.data().active) {
-            showToast("Room ended by host.");
-            roomLiveTag.classList.add('hidden'); myJoinedRoomId = null;
-            audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
-            return;
-        }
-        const d = snap.data();
-        if(!d.audio) return;
+        if(!snap.exists() || !snap.data().active) { showToast("Room ended by host."); roomLiveTag.classList.add('hidden'); myJoinedRoomId = null; audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); return; }
+        const d = snap.data(); if(!d.audio) return;
         
         if(lastAudioSrc !== d.audio) {
             lastAudioSrc = d.audio; showToast(`Host playing: ${d.songName}`);
@@ -485,16 +422,9 @@ function joinRoom(roomId, hostId) {
         });
     });
 }
-roomLiveTag.onclick = () => {
-    vibeClick();
-    if(myJoinedRoomId && joinedRoomUnsub) {
-        joinedRoomUnsub(); myJoinedRoomId = null; roomLiveTag.classList.add('hidden');
-        audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
-        showToast("Left Room.");
-    }
-};
+roomLiveTag.onclick = () => { vibeClick(); if(myJoinedRoomId && joinedRoomUnsub) { joinedRoomUnsub(); myJoinedRoomId = null; roomLiveTag.classList.add('hidden'); audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); showToast("Left Room."); } };
 
-// === 💬 7. CHAT UPGRADE ===
+// === 💬 7. CHAT UPGRADE (READ RECEIPTS) ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -528,17 +458,14 @@ document.getElementById('btnChatToggle').addEventListener('click', () => {
             snap.forEach(docSnap => {
                 const data = docSnap.data();
                 if(docSnap.id !== currentUser) {
-                    count++; const isOnline = data.lastSeen > (Date.now() - 60000); 
-                    const statusClass = isOnline ? 'is-online' : 'is-offline';
+                    count++; const isOnline = data.lastSeen > (Date.now() - 60000); const statusClass = isOnline ? 'is-online' : 'is-offline';
                     let badge = isOnline ? `<span class="fm-listener-badge live">Online</span>` : `<span class="fm-listener-badge">${formatLastSeen(data.lastSeen)}</span>`;
                     const item = document.createElement('div'); item.className = `contact-item ${statusClass}`; 
                     item.innerHTML = `<img src="${data.avatar || 'guest.jpg'}"><div style="flex:1;"><h4>${data.displayName || docSnap.id}</h4><p>${badge}</p></div>`;
-                    item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar);
-                    frag.appendChild(item);
+                    item.onclick = () => openPrivateChat(docSnap.id, data.displayName || docSnap.id, data.avatar); frag.appendChild(item);
                 }
             });
-            list.appendChild(frag);
-            if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No one here 🏜️</p>';
+            list.appendChild(frag); if(count === 0) list.innerHTML = '<p class="empty-msg" style="text-align:center; margin-top:20px;">No one here 🏜️</p>';
         });
     }
 });
@@ -547,23 +474,16 @@ document.getElementById('closeChatBtn').addEventListener('click', () => { vibeCl
 document.getElementById('backToContactsBtn').addEventListener('click', () => { vibeClick(); document.getElementById('chatRoomView').classList.add('hidden'); document.getElementById('chatContactsView').classList.remove('hidden'); currentChatPartner = null; if(chatUnsub) chatUnsub(); if(typingUnsub) typingUnsub(); if(partnerStatusUnsub) partnerStatusUnsub();});
 
 function openPrivateChat(partnerId, partnerName, avatar) {
-    currentChatPartner = partnerId;
-    document.getElementById('chatContactsView').classList.add('hidden'); 
-    document.getElementById('chatRoomView').classList.remove('hidden');
+    currentChatPartner = partnerId; document.getElementById('chatContactsView').classList.add('hidden'); document.getElementById('chatRoomView').classList.remove('hidden');
     document.getElementById('chatPartnerName').innerText = partnerName; document.getElementById('chatPartnerAvatar').src = avatar || 'guest.jpg';
     
     if(partnerStatusUnsub) partnerStatusUnsub();
     partnerStatusUnsub = onSnapshot(doc(db, "liveStatus", partnerId), (snap) => {
         const statText = document.getElementById('chatPartnerStatus');
-        if(snap.exists()) {
-            const data = snap.data(); const isOnline = data.lastSeen > (Date.now() - 60000);
-            statText.innerText = isOnline ? "Online" : formatLastSeen(data.lastSeen); statText.className = isOnline ? "status-text online" : "status-text";
-        }
+        if(snap.exists()) { const data = snap.data(); const isOnline = data.lastSeen > (Date.now() - 60000); statText.innerText = isOnline ? "Online" : formatLastSeen(data.lastSeen); statText.className = isOnline ? "status-text online" : "status-text"; }
     });
 
-    const roomID = getRoomID(currentUser, partnerId);
-    const area = document.getElementById('directMessages');
-    area.innerHTML = ''; 
+    const roomID = getRoomID(currentUser, partnerId); const area = document.getElementById('directMessages'); area.innerHTML = ''; 
     
     try {
         const cachedChat = localStorage.getItem('chat_' + roomID);
@@ -589,9 +509,7 @@ function openPrivateChat(partnerId, partnerName, avatar) {
                     if(m.sender !== currentUser && !m.read) { updateDoc(doc(db, `privateChats/${roomID}/messages`, docId), { read: true }).catch(()=>{}); }
 
                     const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.id = `msg-${docId}`;
-                    let tickHtml = '';
-                    if(m.sender === currentUser) { tickHtml = m.read ? `<i class="fa-solid fa-check-double" style="color:#00ff88; font-size:10px; margin-left:5px;"></i>` : `<i class="fa-solid fa-check" style="color:#ccc; font-size:10px; margin-left:5px;"></i>`; }
-                    
+                    let tickHtml = ''; if(m.sender === currentUser) { tickHtml = m.read ? `<i class="fa-solid fa-check-double" style="color:#00ff88; font-size:10px; margin-left:5px;"></i>` : `<i class="fa-solid fa-check" style="color:#ccc; font-size:10px; margin-left:5px;"></i>`; }
                     div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}${tickHtml}</span>`; frag.appendChild(div);
                 });
                 area.appendChild(frag); localStorage.setItem('chat_' + roomID, JSON.stringify(msgs)); autoScrollChat(); isInitialLoad = false;
@@ -600,20 +518,13 @@ function openPrivateChat(partnerId, partnerName, avatar) {
                     const m = change.doc.data(); const docId = change.doc.id;
                     if(change.type === 'added') {
                         if(m.sender !== currentUser && !m.read) { updateDoc(doc(db, `privateChats/${roomID}/messages`, docId), { read: true }).catch(()=>{}); }
-                        
                         const div = document.createElement('div'); div.className = `chat-msg ${m.sender === currentUser ? 'mine' : 'them'}`; div.id = `msg-${docId}`;
-                        let tickHtml = '';
-                        if(m.sender === currentUser) { tickHtml = m.read ? `<i class="fa-solid fa-check-double" style="color:#00ff88; font-size:10px; margin-left:5px;"></i>` : `<i class="fa-solid fa-check" style="color:#ccc; font-size:10px; margin-left:5px;"></i>`; }
-                        
-                        div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}${tickHtml}</span>`;
-                        area.appendChild(div); autoScrollChat();
+                        let tickHtml = ''; if(m.sender === currentUser) { tickHtml = m.read ? `<i class="fa-solid fa-check-double" style="color:#00ff88; font-size:10px; margin-left:5px;"></i>` : `<i class="fa-solid fa-check" style="color:#ccc; font-size:10px; margin-left:5px;"></i>`; }
+                        div.innerHTML = `${m.text} <span class="msg-time">${formatTime(m.timestamp)}${tickHtml}</span>`; area.appendChild(div); autoScrollChat();
                     }
                     if(change.type === 'modified') {
                         const msgEl = document.getElementById(`msg-${docId}`);
-                        if(msgEl && m.sender === currentUser && m.read) {
-                            const tickEl = msgEl.querySelector('.fa-check');
-                            if(tickEl) { tickEl.className = 'fa-solid fa-check-double'; tickEl.style.color = '#00ff88'; }
-                        }
+                        if(msgEl && m.sender === currentUser && m.read) { const tickEl = msgEl.querySelector('.fa-check'); if(tickEl) { tickEl.className = 'fa-solid fa-check-double'; tickEl.style.color = '#00ff88'; } }
                     }
                 });
             }
