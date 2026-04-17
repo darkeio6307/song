@@ -1,11 +1,12 @@
 /**
  * =========================================================================
- * 🌌 ARSHAD SUPREME ENGINE v38.0 (The Anti-Freeze Update)
+ * 🌌 ARSHAD SUPREME ENGINE v40.0 (The Ultimate Clean & Sync Update)
  * Optimized for: Tecno Pova 7
- * CRITICAL FIXES: 
- * 1. Black Screen / Hidden Buttons FIXED (Removed hidden class conflict)
- * 2. Normal Tab Freeze FIXED (Added failsafe boot timer & try-catch)
- * 3. LocalStorage JSON Crash Prevented
+ * CRITICAL FIXES & UPGRADES: 
+ * 1. Timer Bug (00:00) FIXED via onloadedmetadata binding.
+ * 2. FM Feature COMPLETELY REMOVED (Rooms are the future).
+ * 3. Permanent Global 'Online Souls' Counter Added to Header.
+ * 4. Audio Buffering Spinner added to Play Button for premium feel.
  * =========================================================================
  */
 
@@ -24,23 +25,22 @@ const firebaseConfig = {
 let db = null;
 try { const firebaseApp = initializeApp(firebaseConfig); db = getFirestore(firebaseApp); } catch(e) { console.error("Firebase Offline"); }
 
+// 🔥 VIP DATABASE
 const vipDB = { 
     "dark_eio": { displayName: "Dark_eio", pass: "moh0909", relation: "Universe Lord 👑", badge: "The Creator", theme: "theme-default", avatar: "darkeio.jpg", headerText: "God Mode 👑" },
-    "muskan": { displayName: "Muskan", pass: "sweetheart", relation: "My Love, My Life ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg", headerText: "Love ❤️" },
+    "muskan": { displayName: "Muskan", pass: "Love", relation: "My Love, My Life ❤️", badge: "Queen", theme: "theme-muskan", avatar: "wife.jpg", headerText: "Love ❤️" },
     "priti": { displayName: "Priti", pass: "bff", relation: "Best Friend 🤞", badge: "Angel", theme: "theme-preeti", avatar: "bff.jpg", headerText: "Best Friend 🥀" }
 };
 
 const app = document.getElementById('mainApp');
 const audio = document.getElementById('audioEngine');
 const playBtn = document.getElementById('playBtn');
-const fmBroadcastBtn = document.getElementById('fmBroadcastBtn');
-const fmLiveTag = document.getElementById('fmLiveTag');
+const seekSlider = document.getElementById('seekSlider');
 const roomLiveTag = document.getElementById('roomLiveTag');
 
 let currentUser = ""; let currentDisplay = "";
 let currentQueue = []; let myPlaylist = []; let currentIndex = 0;
-let isPlaylistView = false; let isBroadcastingFM = false; let isListeningToFM = false;
-let currentFMSongId = null; let currentChatPartner = null; 
+let isPlaylistView = false; let currentChatPartner = null; 
 let chatUnsub = null; let typingUnsub = null; let partnerStatusUnsub = null;
 let globalChatListeners = {}; 
 
@@ -48,7 +48,7 @@ let currentPage = 1; let currentQuery = "Trending Hindi Hits";
 let isLoadingMore = false; let hasMoreSongs = true;
 let typingTimer; let sleepTimeout = null; let isMapView = false;
 
-let myHostedRoomId = null; let myJoinedRoomId = null; let joinedRoomUnsub = null;
+let myHostedRoomId = null; let myJoinedRoomId = null; let joinedRoomUnsub = null; let lastAudioSrc = "";
 const aiVibes = ["Trending Hindi Hits", "Arijit Singh Romantic", "Sad Lofi Hindi", "Phonk Gym Motivation", "Bollywood Hits"];
 
 function getRoomID(user1, user2) { return [user1.toLowerCase(), user2.toLowerCase()].sort().join("_"); }
@@ -60,6 +60,7 @@ function formatLastSeen(ts) {
     if(!ts) return "Offline"; const diff = Date.now() - ts;
     if(diff < 60000) return "Online"; return `last seen at ${formatTime(ts)}`;
 }
+function fmtTime(s) { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
 // === 🌌 1. STAR-MAP CANVAS ENGINE ===
 const canvas = document.getElementById('starMapCanvas');
@@ -112,7 +113,7 @@ document.getElementById('viewSwitchBtn').addEventListener('click', () => {
     else { canvasCont.classList.add('hidden'); scrollCont.classList.remove('hidden'); btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Map'; }
 });
 
-// === 🌌 2. DIRECT BOOT (TRY-CATCH SAFE) ===
+// === 🌌 2. DIRECT BOOT ===
 function bootSession(rawName, showWelcome = false, userData) {
     currentUser = rawName.toLowerCase();
     currentDisplay = userData ? userData.displayName : (rawName.charAt(0).toUpperCase() + rawName.slice(1));
@@ -139,7 +140,7 @@ function bootSession(rawName, showWelcome = false, userData) {
     if(showWelcome) {
         if(currentUser === "dark_eio") showToast("Welcome back Lord 👑"); else if(currentUser === "muskan") showToast("Welcome back Sweetheart ❤️"); else showToast("Welcome to Universe 🎧");
     }
-    if(currentUser === 'dark_eio') { fmBroadcastBtn.classList.remove('hidden'); document.getElementById('lordPowerPanel').classList.remove('hidden'); }
+    if(currentUser === 'dark_eio') { document.getElementById('lordPowerPanel').classList.remove('hidden'); }
     
     try { const startingVibe = aiVibes[Math.floor(Math.random() * aiVibes.length)]; fetchMusic(startingVibe); } catch(e){}
 
@@ -148,7 +149,7 @@ function bootSession(rawName, showWelcome = false, userData) {
             myPlaylist = vSnap.exists() ? vSnap.data().songs : [];
             document.getElementById('profSongCount').innerText = myPlaylist.length;
         }).catch(e=>{});
-        trackAndLoadStats(); listenToGlobalFM(); startGlobalNotifications(); listenToRooms();
+        trackAndLoadStats(); trackOnlineSouls(); startGlobalNotifications(); listenToRooms();
     }
 }
 
@@ -165,11 +166,42 @@ function trackAndLoadStats() {
     });
 }
 
+// 🔥 PERMANENT ONLINE SOULS COUNTER (NEW)
+function trackOnlineSouls() {
+    if (!db) return;
+    onSnapshot(collection(db, "liveStatus"), (snap) => {
+        let onlineCount = 0;
+        const container = document.getElementById('liveStoriesContainer');
+        container.innerHTML = ''; 
+        const frag = document.createDocumentFragment();
+
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.lastSeen > (Date.now() - 60000)) {
+                onlineCount++; // Count everyone online
+                
+                // Show live stories ONLY for other people actively playing music
+                if (docSnap.id !== currentUser && data.isPlaying) {
+                    const item = document.createElement('div'); item.className = 'story-item';
+                    item.innerHTML = `<div class="story-ring"><img src="${data.avatar || 'guest.jpg'}"></div><p>${data.displayName || docSnap.id}</p>`;
+                    item.onclick = () => { 
+                        const syncSong = { id: data.songId, name: data.songName, artists: { primary: [{ name: "VIP Sync" }] }, image: [{},{},{url: data.avatar}], downloadUrl: [{},{},{},{},{url: data.audio}] }; 
+                        currentQueue = [syncSong]; playSong(0); showToast(`Tuned into ${data.displayName || docSnap.id}'s Vibe`); 
+                    };
+                    frag.appendChild(item);
+                }
+            }
+        });
+        
+        document.getElementById('onlineCountText').innerText = `${onlineCount} Online`;
+        container.appendChild(frag);
+        if(container.childNodes.length === 0) container.innerHTML = '<p class="empty-msg" style="width:100%; text-align:center; font-size:10px;">Cosmos is quiet...</p>';
+    });
+}
+
 document.getElementById('profileBtn').addEventListener('click', () => { vibeClick(); const drop = document.getElementById('topProfileStats'); if(drop.classList.contains('hidden')) { drop.classList.remove('hidden'); } else { drop.classList.add('hidden'); } });
 document.getElementById('closeStatsBtn').addEventListener('click', () => { vibeClick(); document.getElementById('topProfileStats').classList.add('hidden'); });
 window.logoutApp = () => { vibeClick(); localStorage.clear(); updateLiveStatus(false); setTimeout(() => { location.reload(); }, 300); };
-
-document.getElementById('powerKillFM').addEventListener('click', async () => { vibeClick(); if(currentUser !== 'dark_eio' || !db) return; await setDoc(doc(db, "fm", "globalRadio"), { isLive: false }, {merge: true}); showToast("Global FM Terminated 💀"); });
 document.getElementById('powerForceTheme').addEventListener('click', () => { vibeClick(); document.body.className = "theme-preeti"; showToast("UI Theme Forced! 🎨"); });
 
 // === 🎶 3. MUSIC ENGINE ===
@@ -224,28 +256,49 @@ function playSong(i) {
     document.getElementById('playerTitle').innerText = song.name; document.getElementById('playerArtist').innerText = song.artists.primary[0].name; document.getElementById('playerCover').src = song.image[1].url;
     document.getElementById('bgAura').style.background = `url(${song.image[1].url})`; document.getElementById('bgAura').style.backgroundSize = "cover";
     
+    // Reset timer display immediately so it doesn't show old song time
+    seekSlider.value = 0; document.getElementById('timeCurrent').innerText = "0:00"; document.getElementById('timeTotal').innerText = "0:00";
+    
     audio.src = song.downloadUrl[4].url; audio.volume = 0; 
     audio.play().then(() => { let vol = 0; let fadeInterval = setInterval(() => { if(vol < 1) { vol += 0.05; audio.volume = Math.min(1, vol); } else clearInterval(fadeInterval); }, 50); }).catch(e=>{});
     
     document.getElementById('vinylDisk').classList.add('spin-vinyl'); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('profileBtn').classList.add('playing'); 
     
-    if(isBroadcastingFM && currentUser === 'dark_eio' && db) broadcastFM(song, true);
     if(myHostedRoomId && db) updateRoomState(song, true);
     if(db) updateLiveStatus(true, song);
     
     document.querySelector('.lyrics-text').innerHTML = `Vibing to:<br><span style="color:var(--neon-main)">${song.name}</span>`;
 }
 
+// 🔥 AUDIO EVENT LISTENERS (LOADING SPINNER & TIMER FIX)
+audio.onwaiting = () => playBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+audio.onplaying = () => playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+audio.onpause = () => playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+
+audio.onloadedmetadata = () => {
+    if(!isNaN(audio.duration)) {
+        document.getElementById('timeTotal').innerText = fmtTime(audio.duration);
+        seekSlider.max = 100;
+    }
+};
+
+audio.ontimeupdate = () => { 
+    if(!isNaN(audio.duration)) { 
+        seekSlider.value = (audio.currentTime/audio.duration)*100; 
+        document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime);
+        if (audio.duration - audio.currentTime < 3 && audio.volume > 0.05) audio.volume -= 0.01; 
+    } 
+};
+seekSlider.addEventListener('input', () => { if(!isNaN(audio.duration)) { audio.currentTime = (seekSlider.value/100)*audio.duration; }});
+
 playBtn.addEventListener('click', () => {
     vibeClick();
     if(audio.paused) {
-        audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing');
-        if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], true);
+        audio.play().catch(e=>{}); document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing');
         if(myHostedRoomId && db) updateRoomState(currentQueue[currentIndex], true);
         if(db) updateLiveStatus(true, currentQueue[currentIndex]);
     } else {
-        audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
-        if(isBroadcastingFM && db) broadcastFM(currentQueue[currentIndex], false);
+        audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
         if(myHostedRoomId && db) updateRoomState(currentQueue[currentIndex], false);
         if(db) updateLiveStatus(false, null);
     }
@@ -258,14 +311,6 @@ audio.onended = () => {
     if(isPlaylistView) { if(currentIndex < currentQueue.length - 1) playSong(currentIndex + 1); else playSong(0); } 
     else { let nextIndex = Math.floor(Math.random() * currentQueue.length); playSong(nextIndex); } 
 };
-
-audio.ontimeupdate = () => { 
-    if(!isNaN(audio.duration)) { 
-        seekSlider.value = (audio.currentTime/audio.duration)*100; document.getElementById('timeCurrent').innerText = fmtTime(audio.currentTime); document.getElementById('timeTotal').innerText = fmtTime(audio.duration); 
-        if (audio.duration - audio.currentTime < 3 && audio.volume > 0.05) audio.volume -= 0.01; 
-    } 
-};
-seekSlider.oninput = () => audio.currentTime = (seekSlider.value/100)*audio.duration;
 
 document.getElementById('sleepTimerBtn').addEventListener('click', () => {
     vibeClick(); const btn = document.getElementById('sleepTimerBtn');
@@ -280,64 +325,11 @@ if ('webkitSpeechRecognition' in window) {
     rec.onerror = () => mic.style.color = 'var(--neon-main)';
 }
 
-// === 📡 5. FM RADIO OPTIMIZED ===
-let lastAudioSrc = "";
-fmBroadcastBtn.addEventListener('click', () => {
-    vibeClick(); isBroadcastingFM = !isBroadcastingFM; fmBroadcastBtn.style.color = isBroadcastingFM ? "#00ff88" : "#fff";
-    if(isBroadcastingFM) { showToast("📡 FM Broadcast: LIVE!"); if(currentQueue[currentIndex]) broadcastFM(currentQueue[currentIndex], !audio.paused); } 
-    else { 
-        if(db) setDoc(doc(db, "fm", "globalRadio"), { isLive: false }); 
-        showToast("📡 Broadcast Ended."); 
-        document.getElementById('fmLiveTag').classList.add('hidden');
-    }
-});
-async function broadcastFM(song, isPlayingStatus) { await setDoc(doc(db, "fm", "globalRadio"), { isLive: true, host: currentDisplay, hostId: currentUser, songId: song.id, songName: song.name, cover: song.image[2].url, audio: song.downloadUrl[4].url, artist: song.artists.primary[0].name, isPlaying: isPlayingStatus, timestamp: Date.now() }); }
-
-function listenToGlobalFM() {
-    onSnapshot(doc(db, "fm", "globalRadio"), (snap) => {
-        const d = snap.data();
-        if(d && d.isLive) {
-            currentFMSongId = d.songId; 
-            if(d.hostId !== currentUser) {
-                fmLiveTag.classList.remove('hidden'); 
-                if (isListeningToFM) {
-                    if (lastAudioSrc !== d.audio) { lastAudioSrc = d.audio; showToast(`Host changed track! 📻`); const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); }
-                    requestAnimationFrame(() => {
-                        if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
-                        else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
-                    });
-                }
-                fmLiveTag.onclick = () => {
-                    vibeClick();
-                    if(!isListeningToFM) { isListeningToFM = true; fmLiveTag.style.color = "#00ff88"; lastAudioSrc = d.audio; const s = { id: d.songId, name: d.songName, artists: { primary: [{ name: d.artist }] }, image: [{},{},{url: d.cover}], downloadUrl: [{},{},{},{},{url: d.audio}] }; currentQueue = [s]; playSong(0); if(!d.isPlaying) setTimeout(()=>{ audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }, 500); } 
-                    else { isListeningToFM = false; fmLiveTag.style.color = "#ff3366"; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing'); }
-                };
-            }
-        } else {
-            if(d && d.hostId !== currentUser) fmLiveTag.classList.add('hidden'); 
-            currentFMSongId = null;
-            if(isListeningToFM) { isListeningToFM = false; audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); showToast("Host ended broadcast."); }
-        }
-    });
-
-    onSnapshot(collection(db, "liveStatus"), (snap) => {
-        let fmListeners = 0;
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
-            if(data.lastSeen > (Date.now() - 60000) && data.isPlaying) {
-                if(currentFMSongId && data.songId === currentFMSongId) { fmListeners++; }
-            }
-        });
-        const fmCountEl = document.getElementById('fmCount');
-        if(isBroadcastingFM || isListeningToFM) { fmLiveTag.classList.remove('hidden'); fmCountEl.innerText = `${fmListeners} souls`; }
-    });
-}
-
-// === 🏠 6. ROOM FEATURE ===
+// === 🏠 6. ROOM FEATURE (THE ULTIMATE SYNC) ===
 document.getElementById('btnRoomToggle').addEventListener('click', () => { 
     vibeClick(); 
     document.getElementById('chatWidget').classList.remove('show'); 
-    document.getElementById('roomWidget').classList.add('show'); 
+    document.getElementById('roomWidget').classList.toggle('show'); 
     document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active')); 
     document.getElementById('btnRoomToggle').classList.add('active'); 
 });
@@ -422,7 +414,7 @@ function joinRoom(roomId, hostId) {
         if(!snap.exists() || !snap.data().active) {
             showToast("Room ended by host.");
             roomLiveTag.classList.add('hidden'); myJoinedRoomId = null;
-            audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
             return;
         }
         const d = snap.data();
@@ -434,8 +426,8 @@ function joinRoom(roomId, hostId) {
             currentQueue = [s]; playSong(0);
         }
         requestAnimationFrame(() => {
-            if(d.isPlaying === false && !audio.paused) { audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
-            else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
+            if(d.isPlaying === false && !audio.paused) { audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing'); } 
+            else if(d.isPlaying === true && audio.paused) { audio.play().catch(e=>{}); document.getElementById('vinylDisk').classList.add('spin-vinyl'); document.getElementById('profileBtn').classList.add('playing'); }
         });
     });
 }
@@ -443,12 +435,12 @@ roomLiveTag.onclick = () => {
     vibeClick();
     if(myJoinedRoomId && joinedRoomUnsub) {
         joinedRoomUnsub(); myJoinedRoomId = null; roomLiveTag.classList.add('hidden');
-        audio.pause(); playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; document.getElementById('profileBtn').classList.remove('playing');
+        audio.pause(); document.getElementById('vinylDisk').classList.remove('spin-vinyl'); document.getElementById('profileBtn').classList.remove('playing');
         showToast("Left Room.");
     }
 };
 
-// === 💬 7. CHAT ENGINE (FIXED BLACK SCREEN) ===
+// === 💬 7. CHAT ENGINE ===
 function startGlobalNotifications() {
     const appLoadTime = Date.now();
     onSnapshot(collection(db, "liveStatus"), (snap) => {
@@ -616,7 +608,6 @@ document.getElementById('closeLyricsBtn').addEventListener('click', () => docume
 
 // === 🚨 SAFE BOOT UP LOGIC WITH FAILSAFE TIMER ===
 document.addEventListener('DOMContentLoaded', () => {
-    // FAILSAFE: Always force-hide splash after 4 seconds max
     const failsafeTimer = setTimeout(() => {
         document.getElementById('splashScreen').style.display = 'none';
         if(localStorage.getItem('keepMeLoggedIn') && document.getElementById('mainApp').classList.contains('hidden')) {
