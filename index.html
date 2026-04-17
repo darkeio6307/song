@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Music</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=40.0">
+    <link rel="stylesheet" href="style.css?v=42.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0c29">
     
@@ -148,9 +148,16 @@
                     <span class="time-label" id="timeTotal">0:00</span>
                 </div>
                 <div class="player-main-ui">
-                    <div class="now-playing" id="openLyricsAreaBtn">
+                    <div class="now-playing" id="openLyricsAreaBtn" style="position:relative;">
+                        <i id="bigHeartOverlay" class="fa-solid fa-heart pop-heart hidden"></i>
+                        
                         <div class="vinyl-record" id="vinylDisk"><img id="playerCover" src="https://via.placeholder.com/80"><div class="record-hole"></div></div>
-                        <div class="song-meta"><h4 id="playerTitle">Arshad Music</h4><p id="playerArtist">Elite Edition</p></div>
+                        <div class="song-meta">
+                            <h4 id="playerTitle">Arshad Music 
+                                <span id="visualizer" class="hidden"><i class="bar"></i><i class="bar"></i><i class="bar"></i></span>
+                            </h4>
+                            <p id="playerArtist">Elite Edition</p>
+                        </div>
                     </div>
                     <div class="playback-controls">
                         <button id="prevBtn" class="action-btn"><i class="fa-solid fa-backward-fast"></i></button>
@@ -233,6 +240,6 @@
     </div>
 
     <audio id="audioEngine" crossorigin="anonymous"></audio>
-    <script type="module" src="script.js?v=40.0"></script>
+    <script type="module" src="script.js?v=42.0"></script>
 </body>
 </html>
