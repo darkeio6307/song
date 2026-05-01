@@ -207,7 +207,7 @@ async function fetchMusic(q, isLoadMore = false) {
     else { loader.classList.remove('hidden'); }
     isLoadingMore = true;
     try {
-        const res = await fetch(`https://saavn.sumit.co/api/search/songs?query=${q}&page=${currentPage}&limit=50`);
+       const res = await fetch(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${q}&page=${currentPage}&limit=50`);
         const data = await res.json();
         if(data.success && data.data.results.length > 0) {
             let newSongs = data.data.results;
