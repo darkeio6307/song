@@ -208,9 +208,12 @@ async function fetchMusic(q, isLoadMore = false) {
     isLoadingMore = true;
     try {
        const res = await fetch(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${q}&page=${currentPage}&limit=50`);
-        const data = await res.json();
-        if(data.success && data.data.results.length > 0) {
-            let newSongs = data.data.results;
+const data = await res.json();
+
+let newSongs = data?.data?.results || data?.results || [];
+
+if(newSongs.length > 0) {
+
             
             // 🔥 UPGRADE: Smart Exact Match Algorithm
             const searchLower = q.toLowerCase();
