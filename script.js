@@ -6,6 +6,7 @@
  * 1. Auto-Play Bug Fixed: Songs now play sequentially. Loop never breaks!
  * 2. Search Upgraded: Exact matches to your search query forced to the TOP.
  * 3. Smart Categories: Chips updated to Trending, Artists, Albums.
+ * 4. SERVER UPGRADE: Vercel High-Speed API & Smart JSON Extractor Added! 🔥
  * =========================================================================
  */
 
@@ -206,16 +207,10 @@ async function fetchMusic(q, isLoadMore = false) {
     if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
     else { loader.classList.remove('hidden'); }
     isLoadingMore = true;
-    try {
-       async function fetchMusic(q, isLoadMore = false) {
-    const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
-    if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
-    else { loader.classList.remove('hidden'); }
-    isLoadingMore = true;
     
     try {
-        // 🔥 The Most Stable API Right Now
-        const res = await fetch(`https://saavn.dev/api/search/songs?query=${q}&page=${currentPage}&limit=50`);
+        // 🔥 The Most Stable Vercel API
+        const res = await fetch(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${q}&page=${currentPage}&limit=50`);
         const data = await res.json();
         
         // Smart Data Extractor
@@ -240,29 +235,10 @@ async function fetchMusic(q, isLoadMore = false) {
             if(!isLoadMore) showToast("No matches found."); 
         }
     } catch(e) { 
-        console.error("API Error Bhai: ", e); // Debugging ke liye
+        console.error("API Error Bhai: ", e); 
         if(!isLoadMore) showToast("Network Drop!"); 
     }
     
-    isLoadingMore = false; loader.classList.add('hidden');
-}
-
-            
-            // 🔥 UPGRADE: Smart Exact Match Algorithm
-            const searchLower = q.toLowerCase();
-            newSongs.sort((a, b) => {
-                const aMatch = a.name.toLowerCase() === searchLower ? 1 : 0;
-                const bMatch = b.name.toLowerCase() === searchLower ? 1 : 0;
-                if(aMatch !== bMatch) return bMatch - aMatch; // Exact match goes to top
-                return (parseInt(b.year) || 0) - (parseInt(a.year) || 0); // Then sort by newest year
-            });
-
-            const startIndex = currentQueue.length; currentQueue = [...currentQueue, ...newSongs];
-            appendLibrary(newSongs, startIndex);
-            if(!isLoadMore) heading.innerText = `'${q}' Vibes`;
-            if(isMapView) initStarMap();
-        } else { hasMoreSongs = false; if(!isLoadMore) showToast("No matches found."); }
-    } catch(e) { if(!isLoadMore) showToast("Network Drop!"); }
     isLoadingMore = false; loader.classList.add('hidden');
 }
 
