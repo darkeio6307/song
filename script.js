@@ -209,15 +209,14 @@ async function fetchMusic(q, isLoadMore = false) {
     isLoadingMore = true;
     
     try {
-        // 🔥 The Most Stable Vercel API
-        const res = await fetch(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${q}&page=${currentPage}&limit=50`);
+        // 🔥 CORS-Friendly Open API Server
+        const res = await fetch(`https://saavn.me/search/songs?query=${q}&page=${currentPage}`);
         const data = await res.json();
         
         // Smart Data Extractor
         let newSongs = data?.data?.results || data?.results || [];
 
         if(newSongs.length > 0) {
-            // 🔥 UPGRADE: Smart Exact Match Algorithm
             const searchLower = q.toLowerCase();
             newSongs.sort((a, b) => {
                 const aMatch = a.name.toLowerCase() === searchLower ? 1 : 0;
@@ -235,12 +234,14 @@ async function fetchMusic(q, isLoadMore = false) {
             if(!isLoadMore) showToast("No matches found."); 
         }
     } catch(e) { 
-        console.error("API Error Bhai: ", e); 
-        if(!isLoadMore) showToast("Network Drop!"); 
+        // 🕵️‍♂️ Jaasoos: Ab hume asli error screen par dikhega!
+        console.error("Asli Error: ", e); 
+        if(!isLoadMore) showToast("Err: " + e.message); 
     }
     
     isLoadingMore = false; loader.classList.add('hidden');
 }
+
 
 function renderLibrary() { document.getElementById('songsList').innerHTML = ''; appendLibrary(currentQueue, 0); }
 function appendLibrary(songs, startIndex) {
