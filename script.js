@@ -202,6 +202,7 @@ window.logoutApp = () => { vibeClick(); localStorage.clear(); updateLiveStatus(f
 document.getElementById('powerForceTheme').addEventListener('click', () => { vibeClick(); document.body.className = "theme-preeti"; showToast("UI Theme Forced! 🎨"); });
 
 // === 🎶 3. MUSIC ENGINE (SEARCH UPGRADE: EXACT MATCH TOP) ===
+// === 🎶 3. MUSIC ENGINE (THE ULTIMATE PROXY BYPASS) ===
 async function fetchMusic(q, isLoadMore = false) {
     const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
     if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
@@ -209,8 +210,9 @@ async function fetchMusic(q, isLoadMore = false) {
     isLoadingMore = true;
     
     try {
-        // 🔥 CORS-Friendly Open API Server
-        const res = await fetch(`https://saavn.me/search/songs?query=${q}&page=${currentPage}`);
+        // 🛡️ THE ULTIMATE BYPASS (CORS Proxy Middleman)
+        const targetUrl = encodeURIComponent(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${q}&page=${currentPage}&limit=50`);
+        const res = await fetch(`https://api.allorigins.win/raw?url=${targetUrl}`);
         const data = await res.json();
         
         // Smart Data Extractor
@@ -234,7 +236,6 @@ async function fetchMusic(q, isLoadMore = false) {
             if(!isLoadMore) showToast("No matches found."); 
         }
     } catch(e) { 
-        // 🕵️‍♂️ Jaasoos: Ab hume asli error screen par dikhega!
         console.error("Asli Error: ", e); 
         if(!isLoadMore) showToast("Err: " + e.message); 
     }
