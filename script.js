@@ -207,12 +207,45 @@ async function fetchMusic(q, isLoadMore = false) {
     else { loader.classList.remove('hidden'); }
     isLoadingMore = true;
     try {
-       const res = await fetch(`https://jiosaavn-api-privatecvc2.vercel.app/search/songs?query=${q}&page=${currentPage}&limit=50`);
-const data = await res.json();
+       async function fetchMusic(q, isLoadMore = false) {
+    const heading = document.getElementById('listHeading'); const loader = document.getElementById('infiniteLoader');
+    if(!isLoadMore) { currentPage = 1; currentQuery = q; heading.innerText = "Scanning Galaxy..."; hasMoreSongs = true; currentQueue = []; document.getElementById('songsList').innerHTML = '';} 
+    else { loader.classList.remove('hidden'); }
+    isLoadingMore = true;
+    
+    try {
+        // 🔥 The Most Stable API Right Now
+        const res = await fetch(`https://saavn.dev/api/search/songs?query=${q}&page=${currentPage}&limit=50`);
+        const data = await res.json();
+        
+        // Smart Data Extractor
+        let newSongs = data?.data?.results || data?.results || [];
 
-let newSongs = data?.data?.results || data?.results || [];
+        if(newSongs.length > 0) {
+            // 🔥 UPGRADE: Smart Exact Match Algorithm
+            const searchLower = q.toLowerCase();
+            newSongs.sort((a, b) => {
+                const aMatch = a.name.toLowerCase() === searchLower ? 1 : 0;
+                const bMatch = b.name.toLowerCase() === searchLower ? 1 : 0;
+                if(aMatch !== bMatch) return bMatch - aMatch; 
+                return (parseInt(b.year) || 0) - (parseInt(a.year) || 0); 
+            });
 
-if(newSongs.length > 0) {
+            const startIndex = currentQueue.length; currentQueue = [...currentQueue, ...newSongs];
+            appendLibrary(newSongs, startIndex);
+            if(!isLoadMore) heading.innerText = `'${q}' Vibes`;
+            if(isMapView) initStarMap();
+        } else { 
+            hasMoreSongs = false; 
+            if(!isLoadMore) showToast("No matches found."); 
+        }
+    } catch(e) { 
+        console.error("API Error Bhai: ", e); // Debugging ke liye
+        if(!isLoadMore) showToast("Network Drop!"); 
+    }
+    
+    isLoadingMore = false; loader.classList.add('hidden');
+}
 
             
             // 🔥 UPGRADE: Smart Exact Match Algorithm
